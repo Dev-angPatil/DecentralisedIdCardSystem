@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Login</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="login">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="content-grid auth-grid">
+          <article class="glass-card section-card spotlight-card">
+            <span class="chain-tag">Access + wallet layer</span>
+            <h1>Log in to the student portal and preview where wallet signing will happen.</h1>
+            <p>
+              Authentication is mock UI for now, but the Phantom connect button is deliberately
+              visible so students understand the future blockchain step.
+            </p>
+          </article>
+
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Login</p>
+                <h2>Student Sign In</h2>
+              </div>
+              <span class="pill">UI only</span>
+            </div>
+            <form class="form-grid" data-login-form>
+              <label>
+                Email
+                <input type="email" name="email" placeholder="student@college.edu" required />
+              </label>
+              <label>
+                Password
+                <input type="password" name="password" placeholder="Enter password" required />
+              </label>
+              <div class="inline-actions">
+                <button type="submit" class="primary-btn">Login</button>
+                <button type="button" class="secondary-btn" data-google-login>Continue with Google</button>
+              </div>
+            </form>
+            <div class="wallet-box">
+              <p class="eyebrow">Wallet</p>
+              <h3>Phantom Placeholder</h3>
+              <p data-wallet-copy>Connect Wallet to reveal a mock wallet address.</p>
+              <button type="button" class="secondary-btn" data-connect-wallet>Connect Wallet</button>
+            </div>
+            <p class="status-copy" data-auth-message></p>
+          </article>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/auth.js"></script>
+  </body>
+</html>
