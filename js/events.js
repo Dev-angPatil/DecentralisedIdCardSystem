@@ -1,6 +1,7 @@
 import { createEventOnChain, registerForEventOnChain } from "./blockchain.js";
 import {
   getState,
+  requireConnectedWallet,
   renderStatusPanel,
   setButtonPending,
   setTransaction,
@@ -47,6 +48,12 @@ function renderEvents() {
 function bindEventButtons() {
   document.querySelectorAll("[data-register-event]").forEach((button) => {
     button.onclick = async () => {
+      if (!(await requireConnectedWallet({
+        message: "Connect your wallet before registering for events."
+      }))) {
+        return;
+      }
+
       const eventId = button.dataset.registerEvent;
       const state = getState();
       const eventItem = state.events.find((item) => item.id === eventId);
@@ -88,10 +95,10 @@ function bindEventButtons() {
         setTransaction(
           "Failed",
           `Event registration failed`,
-          "The mock blockchain registration was not completed.",
+          "The connected wallet could not complete event registration.",
           ""
         );
-        showToast("Event registration failed", "Try the mock action again.", "failed");
+        showToast("Event registration failed", "Check the connected wallet and try again.", "failed");
         setButtonPending(
           button,
           false,
@@ -122,6 +129,12 @@ function initCreateEvent() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!(await requireConnectedWallet({
+      message: "Connect the wallet before creating a blockchain event."
+    }))) {
+      return;
+    }
+
     const payload = Object.fromEntries(new FormData(form).entries());
 
     setButtonPending(
@@ -133,7 +146,7 @@ function initCreateEvent() {
     setTransaction(
       "Pending",
       "Admin event creation",
-      "Blockchain placeholder is creating the event.",
+      "The connected wallet is creating the event.",
       ""
     );
 
@@ -153,7 +166,7 @@ function initCreateEvent() {
       setTransaction(
         "Success",
         "Admin event creation confirmed",
-        "New event created through the mock blockchain layer.",
+        "New event created through the connected wallet flow.",
         result.txId
       );
       renderStatusPanel(
@@ -173,7 +186,7 @@ function initCreateEvent() {
       setTransaction(
         "Failed",
         "Admin event creation failed",
-        "The blockchain placeholder could not create the event.",
+        "The connected wallet could not create the event.",
         ""
       );
       renderStatusPanel(
@@ -181,11 +194,11 @@ function initCreateEvent() {
         {
           title: "Event creation failed",
           badge: "FAILED",
-          message: "The mock blockchain event creation flow did not finish."
+          message: "The connected wallet could not complete event creation."
         },
         "failed"
       );
-      showToast("Event creation failed", "Mock blockchain action failed.", "failed");
+      showToast("Event creation failed", "Check the connected wallet and try again.", "failed");
     } finally {
       setButtonPending(
         submitButton,
