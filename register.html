@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Register</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="register">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="content-grid">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Student Registration</p>
+                <h2>Register with a future on-chain identity flow</h2>
+              </div>
+              <span class="pill">registerStudentOnChain()</span>
+            </div>
+            <form class="form-grid two-column" data-register-form>
+              <label>
+                Full Name
+                <input type="text" name="name" placeholder="Aarav Mehta" required />
+              </label>
+              <label>
+                College
+                <input type="text" name="college" placeholder="Lumina College of Technology" required />
+              </label>
+              <label>
+                Program
+                <input type="text" name="program" placeholder="B.Tech Computer Science" required />
+              </label>
+              <label>
+                Year
+                <input type="text" name="year" placeholder="3rd Year" required />
+              </label>
+              <label class="wide-field">
+                Student ID
+                <input type="text" name="studentId" placeholder="LC-2026-0432" required />
+              </label>
+              <div class="wide-field inline-actions">
+                <button type="submit" class="primary-btn" data-register-submit>
+                  Register (On-Chain)
+                </button>
+                <span class="helper-copy">Transaction status and mock tx ID will appear after submission.</span>
+              </div>
+            </form>
+            <div class="status-panel" data-register-status></div>
+          </article>
+
+          <aside class="glass-card section-card">
+            <p class="eyebrow">Integration Boundary</p>
+            <h2>Only one file owns smart contract placeholders</h2>
+            <div class="stack-list">
+              <div class="info-row">
+                <span>UI Trigger</span>
+                <strong>Register (On-Chain)</strong>
+              </div>
+              <div class="info-row">
+                <span>JavaScript Layer</span>
+                <strong>js/auth.js</strong>
+              </div>
+              <div class="info-row">
+                <span>Blockchain Layer</span>
+                <strong>js/blockchain.js</strong>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/auth.js"></script>
+  </body>
+</html>

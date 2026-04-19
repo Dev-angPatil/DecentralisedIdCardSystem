@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Student Platform</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="home">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card">
+          <div class="hero-copy">
+            <span class="chain-tag">Solana-ready student actions</span>
+            <h1>Student registration, event participation, and attendance with a clear on-chain path.</h1>
+            <p>
+              ChainCampus keeps the interface simple while making blockchain touchpoints
+              impossible to miss. Every core action is already designed to route through
+              <code>js/blockchain.js</code>.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-btn" href="dashboard.html">Open Dashboard</a>
+              <a class="secondary-btn" href="register.html">Register (On-Chain)</a>
+            </div>
+          </div>
+          <div class="hero-rail">
+            <div class="rail-card">
+              <p>Student Registration</p>
+              <strong>registerStudentOnChain()</strong>
+            </div>
+            <div class="rail-card">
+              <p>Event Registration</p>
+              <strong>registerForEventOnChain()</strong>
+            </div>
+            <div class="rail-card">
+              <p>Attendance</p>
+              <strong>markAttendanceOnChain()</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-grid">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Platform Overview</p>
+                <h2>What this website is designed to do</h2>
+              </div>
+              <span class="pill">Blockchain-first UX</span>
+            </div>
+            <div class="feature-grid">
+              <div class="feature-card">
+                <span>On-Chain Registration</span>
+                <strong>Students register through a mock transaction flow today.</strong>
+              </div>
+              <div class="feature-card">
+                <span>Verified Events</span>
+                <strong>Event joins show a verified state after blockchain placeholder success.</strong>
+              </div>
+              <div class="feature-card">
+                <span>Attendance Ledger</span>
+                <strong>Student and admin attendance actions share one chain abstraction layer.</strong>
+              </div>
+            </div>
+          </article>
+
+          <aside class="glass-card section-card">
+            <p class="eyebrow">Live Status</p>
+            <h2>Current platform summary</h2>
+            <div data-home-summary class="stack-list"></div>
+          </aside>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

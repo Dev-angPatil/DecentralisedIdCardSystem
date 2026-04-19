@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Events</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="events">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card">
+          <div class="hero-copy">
+            <span class="chain-tag">Event participation</span>
+            <h1>Events page with explicit blockchain-verified registration actions.</h1>
+            <p>
+              Every event button below calls <code>registerForEventOnChain()</code> through the
+              dedicated blockchain abstraction layer.
+            </p>
+          </div>
+          <div class="hero-rail">
+            <div class="rail-card">
+              <p>Primary action label</p>
+              <strong>Register (Blockchain Verified)</strong>
+            </div>
+            <div class="rail-card">
+              <p>Success state</p>
+              <strong>Verified badge</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="cards-grid" data-events-list></section>
+
+        <section class="glass-card section-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Admin View</p>
+              <h2>Create Event (Blockchain)</h2>
+            </div>
+            <span class="pill">createEventOnChain()</span>
+          </div>
+          <form class="form-grid three-column" data-create-event-form>
+            <label>
+              Event Title
+              <input type="text" name="title" placeholder="Founder Meetup" required />
+            </label>
+            <label>
+              Date
+              <input type="text" name="date" placeholder="April 28, 2026" required />
+            </label>
+            <label>
+              Venue
+              <input type="text" name="venue" placeholder="Innovation Lab" required />
+            </label>
+            <div class="wide-field inline-actions">
+              <button type="submit" class="secondary-btn" data-create-event-submit>
+                Create Event (Blockchain)
+              </button>
+              <span class="helper-copy">Admin event creation is also routed through blockchain.js.</span>
+            </div>
+          </form>
+          <div class="status-panel" data-create-event-status></div>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/events.js"></script>
+  </body>
+</html>

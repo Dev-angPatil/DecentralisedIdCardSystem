@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="dashboard">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card dashboard-hero">
+          <div class="hero-copy">
+            <span class="chain-tag">Dashboard</span>
+            <h1>One view for student metrics, wallet state, and the latest blockchain transaction.</h1>
+            <p>
+              The dashboard makes it immediately clear which areas are designed to become smart
+              contract-powered without changing the rest of the interface.
+            </p>
+          </div>
+          <div class="transaction-box" data-last-transaction></div>
+        </section>
+
+        <section class="stats-grid" data-dashboard-stats></section>
+
+        <section class="content-grid">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Recent Notices</p>
+                <h2>Student updates</h2>
+              </div>
+              <span class="pill">Campus + chain readiness</span>
+            </div>
+            <div class="stack-list" data-dashboard-notices></div>
+          </article>
+
+          <aside class="glass-card section-card">
+            <p class="eyebrow">Wallet</p>
+            <h2>Connection status</h2>
+            <div class="wallet-box compact-box">
+              <p data-wallet-copy></p>
+              <button type="button" class="secondary-btn" data-connect-wallet>Connect Wallet</button>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
