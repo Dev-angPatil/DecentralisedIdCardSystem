@@ -101,7 +101,63 @@ To connect this project to Solana smart contracts, follow this flow:
 6. Return real transaction results back to the UI in the same response shape used today.
 7. Keep all HTML and page-level JavaScript files calling only the exported functions from `blockchain.js`.
 
-## 8. Example Replacement
+### Current integration mode
+`js/blockchain.js` now supports both:
+
+- `mock` mode for the existing demo flow
+- real Anchor-powered Solana calls when runtime config is provided
+
+By default it runs in `auto` mode:
+
+- if a valid Solana/Anchor config is present, it sends a real transaction
+- if config is missing or incomplete, it falls back to the existing mock transaction flow
+
+## 8. Runtime Solana Configuration
+Before the page modules load, you can provide your deployed program details on `window.CHAIN_CAMPUS_SOLANA_CONFIG`.
+
+Example:
+
+```html
+<script>
+  window.CHAIN_CAMPUS_SOLANA_CONFIG = {
+    mode: "anchor",
+    network: "devnet",
+    rpcEndpoint: "https://api.devnet.solana.com",
+    programId: "YOUR_PROGRAM_ID",
+    idl: YOUR_ANCHOR_IDL_OBJECT,
+    actions: {
+      registerStudentOnChain: {
+        method: "registerStudent",
+        getArgs(payload) {
+          return [
+            payload.name,
+            payload.college,
+            payload.program,
+            payload.year,
+            payload.studentId
+          ];
+        },
+        getAccounts(payload, { wallet, web3 }) {
+          return {
+            authority: wallet.publicKey,
+            systemProgram: web3.SystemProgram.programId
+          };
+        }
+      }
+    }
+  };
+</script>
+```
+
+Each action in `actions` may define:
+
+- `method`: Anchor method name from your IDL
+- `getArgs(payload, context)`: maps current UI payloads into contract arguments
+- `getAccounts(payload, context)`: returns the accounts object for `.accounts(...)`
+
+This keeps the UI response shape stable while letting the Solana program evolve behind the adapter.
+
+## 9. Example Replacement
 ### Before: Mock placeholder
 ```js
 export async function registerStudentOnChain(data) {
@@ -135,7 +191,7 @@ export async function registerStudentOnChain(data) {
 }
 ```
 
-## 9. How to Run the Project
+## 10. How to Run the Project
 Because this is a static frontend built with HTML, CSS, and Vanilla JavaScript, you can run it locally in a few simple ways:
 
 1. Clone or download the project.
@@ -162,14 +218,14 @@ http://localhost:8000
 
 You can also open `index.html` directly in a browser, but using a local server is recommended for a smoother development setup.
 
-## 10. Development Notes
+## 11. Development Notes
 - Phantom wallet connection now uses the injected browser provider
 - Transaction results are mocked for demonstration
 - The dashboard reads shared state from local storage
 - Event verification and attendance verification are simulated
 - Real blockchain integration should preserve the existing UI response structure where possible
 
-## 11. Summary
+## 12. Summary
 This project is a frontend-first student platform with a clean path to Solana integration. The UI already makes blockchain-triggered actions obvious, and the architecture is intentionally prepared for smart contract adoption.
 
 For future Web3 development, start in `js/blockchain.js`. That file is the single integration boundary for all smart contract work.

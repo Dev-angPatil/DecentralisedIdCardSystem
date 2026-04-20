@@ -79,6 +79,38 @@ export async function connectWallet() {
   }
 }
 
+export async function requireConnectedWallet(options = {}) {
+  const { message = "Connect your wallet to continue." } = options;
+  const state = getState();
+
+  if (state.walletAddress) {
+    return true;
+  }
+
+  showToast("Wallet required", message, "pending");
+  await connectWallet();
+
+  return Boolean(getState().walletAddress);
+}
+
+export function setButtonPending(
+  button,
+  isPending,
+  pendingLabel = "Pending...",
+  defaultLabel = "Submit"
+) {
+  if (!button) return;
+
+  if (!button.dataset.defaultLabel) {
+    button.dataset.defaultLabel = button.textContent.trim();
+  }
+
+  button.disabled = isPending;
+  button.textContent = isPending
+    ? pendingLabel
+    : defaultLabel || button.dataset.defaultLabel;
+}
+
 /* ================= UI ================= */
 
 function renderHeader() {
