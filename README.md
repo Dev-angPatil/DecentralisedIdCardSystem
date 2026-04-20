@@ -9,7 +9,7 @@ The project is intentionally designed for future blockchain integration. Core st
 - Student registration with an on-chain-ready submission flow
 - Event registration with blockchain-ready verified states
 - Attendance system with student and admin blockchain-ready actions
-- Wallet connection UI placeholder for future Phantom integration
+- Real Phantom wallet connection support through the browser extension
 - Dashboard with attendance, event count, wallet status, and last transaction state
 - Profile page with mock on-chain data visibility
 
@@ -44,14 +44,14 @@ The project is intentionally designed for future blockchain integration. Core st
 
 ### File Responsibilities
 - `index.html`: Landing page and platform overview
-- `login.html`: Login UI, Google login placeholder, and wallet connect placeholder
+- `login.html`: Login UI, Google login placeholder, and Phantom wallet connect flow
 - `register.html`: Student registration form that triggers `registerStudentOnChain()`
 - `dashboard.html`: Overview of attendance, enrolled events, wallet status, and transaction state
 - `events.html`: Event listing, blockchain-ready event registration, and admin event creation
 - `attendance.html`: Attendance history plus student/admin blockchain-ready actions
 - `profile.html`: Student profile and mock on-chain data display
 - `css/styles.css`: Shared glassmorphism UI and responsive layout styles
-- `js/main.js`: Shared state, navigation, wallet placeholder, notifications, and UI helpers
+- `js/main.js`: Shared state, navigation, Phantom wallet connection, notifications, and UI helpers
 - `js/auth.js`: Login and registration page logic
 - `js/events.js`: Event registration and admin event creation logic
 - `js/attendance.js`: Attendance marking and verification logic
@@ -163,7 +163,7 @@ http://localhost:8000
 You can also open `index.html` directly in a browser, but using a local server is recommended for a smoother development setup.
 
 ## 10. Development Notes
-- The current wallet connection is a UI placeholder only
+- Phantom wallet connection now uses the injected browser provider
 - Transaction results are mocked for demonstration
 - The dashboard reads shared state from local storage
 - Event verification and attendance verification are simulated

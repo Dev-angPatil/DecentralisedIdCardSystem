@@ -1,6 +1,7 @@
 import { registerStudentOnChain } from "./blockchain.js";
 import {
   connectWallet,
+  requireConnectedWallet,
   renderStatusPanel,
   setButtonPending,
   setTransaction,
@@ -19,13 +20,13 @@ function initLoginPage() {
 
   loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    authMessage.textContent = "Login UI submitted. Backend auth is intentionally not connected in this mock.";
-    showToast("Login submitted", "Authentication is UI-only for this demo.", "pending");
+    authMessage.textContent = "Sign-in is captured. The next step is activating the student's wallet for blockchain actions.";
+    showToast("Sign-in captured", "Connect the wallet to activate on-chain student actions.", "pending");
   });
 
   googleButton.addEventListener("click", () => {
-    authMessage.textContent = "Google login is a placeholder button in this demo.";
-    showToast("Google login", "Third-party auth UI placeholder clicked.", "pending");
+    authMessage.textContent = "Google sign-in is shown as an optional campus login path before wallet activation.";
+    showToast("Google sign-in", "Complete sign-in, then activate the wallet.", "pending");
   });
 
   updateWalletCopy();
@@ -53,6 +54,12 @@ function initRegisterPage() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!(await requireConnectedWallet({
+      message: "Connect your wallet before registering your student identity on-chain."
+    }))) {
+      return;
+    }
+
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
 
@@ -60,7 +67,7 @@ function initRegisterPage() {
     setTransaction(
       "Pending",
       "Student registration",
-      "Transaction submitted. Waiting for blockchain placeholder response.",
+      "Registration request submitted through the wallet-linked student flow.",
       ""
     );
     renderStatusPanel(
@@ -68,7 +75,7 @@ function initRegisterPage() {
       {
         title: "Transaction submitted",
         badge: "PENDING",
-        message: "registerStudentOnChain() is simulating a blockchain confirmation."
+        message: "Your connected wallet is authorizing the student registration flow."
       },
       "pending"
     );
@@ -86,7 +93,7 @@ function initRegisterPage() {
       setTransaction(
         "Success",
         "Student registration confirmed",
-        "Student identity has been registered through the mock on-chain flow.",
+        "Student identity has been linked to the connected wallet.",
         result.txId
       );
       renderStatusPanel(
@@ -94,7 +101,7 @@ function initRegisterPage() {
         {
           title: "Registration successful",
           badge: "SUCCESS",
-          message: "Student registration completed through js/blockchain.js.",
+          message: "Student registration completed through the wallet-linked blockchain flow.",
           txId: result.txId
         },
         "success"
@@ -105,7 +112,7 @@ function initRegisterPage() {
       setTransaction(
         "Failed",
         "Student registration failed",
-        "The blockchain placeholder returned an error.",
+        "The wallet-linked registration flow returned an error.",
         ""
       );
       renderStatusPanel(
@@ -113,11 +120,11 @@ function initRegisterPage() {
         {
           title: "Registration failed",
           badge: "FAILED",
-          message: "The mock blockchain registration flow was not completed."
+          message: "The connected wallet could not complete student registration."
         },
         "failed"
       );
-      showToast("Registration failed", "Mock blockchain action failed.", "failed");
+      showToast("Registration failed", "Check the connected wallet and try again.", "failed");
     } finally {
       setButtonPending(submitButton, false, "Transaction Pending...", "Register (On-Chain)");
     }

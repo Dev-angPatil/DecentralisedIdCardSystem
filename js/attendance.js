@@ -1,6 +1,7 @@
 import { markAttendanceOnChain } from "./blockchain.js";
 import {
   getState,
+  requireConnectedWallet,
   setButtonPending,
   setTransaction,
   showToast,
@@ -41,6 +42,12 @@ function initAttendanceActions() {
   }
 
   markButton.addEventListener("click", async () => {
+    if (!(await requireConnectedWallet({
+      message: "Connect your wallet before marking attendance."
+    }))) {
+      return;
+    }
+
     setButtonPending(
       markButton,
       true,
@@ -69,7 +76,7 @@ function initAttendanceActions() {
       setTransaction(
         "Success",
         "Attendance marked",
-        "Attendance recorded through the mock blockchain layer.",
+        "Attendance recorded through the connected wallet flow.",
         result.txId
       );
       showToast("Attendance marked", result.txId, "success");
@@ -78,10 +85,10 @@ function initAttendanceActions() {
       setTransaction(
         "Failed",
         "Attendance marking failed",
-        "The mock attendance transaction was not completed.",
+        "The connected wallet could not complete attendance marking.",
         ""
       );
-      showToast("Attendance failed", "Try the mock action again.", "failed");
+      showToast("Attendance failed", "Check the connected wallet and try again.", "failed");
     } finally {
       setButtonPending(
         markButton,
@@ -93,6 +100,12 @@ function initAttendanceActions() {
   });
 
   verifyButton.addEventListener("click", async () => {
+    if (!(await requireConnectedWallet({
+      message: "Connect the wallet before verifying attendance."
+    }))) {
+      return;
+    }
+
     setButtonPending(
       verifyButton,
       true,
@@ -118,7 +131,7 @@ function initAttendanceActions() {
       setTransaction(
         "Success",
         "Attendance verified",
-        "Attendance verified through the mock blockchain layer.",
+        "Attendance verified through the connected wallet flow.",
         result.txId
       );
       showToast("Attendance verified", result.txId, "success");
@@ -127,10 +140,10 @@ function initAttendanceActions() {
       setTransaction(
         "Failed",
         "Attendance verification failed",
-        "The admin blockchain placeholder could not verify attendance.",
+        "The connected wallet could not verify attendance.",
         ""
       );
-      showToast("Verification failed", "Try the mock admin action again.", "failed");
+      showToast("Verification failed", "Check the connected wallet and try again.", "failed");
     } finally {
       setButtonPending(
         verifyButton,
