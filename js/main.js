@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   ["register.html", "Register", "register"],
   ["events.html", "Events", "events"],
   ["attendance.html", "Attendance", "attendance"],
+  ["schol.html", "Scholarships", "scholarships"],
   ["profile.html", "Profile", "profile"],
   ["login.html", "Login", "login"]
 ];
