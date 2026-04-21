@@ -226,186 +226,66 @@ You can also open `index.html` directly in a browser, but using a local server i
 - Real blockchain integration should preserve the existing UI response structure where possible
 
 ## 12. Massive Implementation To-Do List
-1.
-Finalize the Anchor program interface and IDL
-Everything depends on this being stable first.
-2.
-Define account structure for students, events, registrations, and attendance
-Stable accounts make every feature easier to build.
-3.
-Define PDA for student identity records
-Deterministic on-chain address per student wallet.
-4.
-Define PDA for event records
-Predictable address for each event.
-5.
-Define PDA for event registration records
-Prevents duplicate registrations at the contract level.
-6.
-Define PDA for attendance records
-Enables per-student, per-event audit trail.
-7.
-Add on-chain validation for duplicate student registration
-Program rejects registering the same student twice.
-8.
-Add on-chain validation for duplicate event registration
-Students cannot register for the same event more than once.
-9.
-Add event capacity limits on-chain
-Seat limits enforced by the contract, not just the UI.
-10.
-Add event start and end timestamps
-Enables time-based validation for registration and attendance.
-11.
-Add attendance-window validation
-Attendance can only be marked during a valid period.
-12.
-Add admin authority checks for event creation
-Only authorised wallets can create official events.
-13.
-Add admin authority checks for attendance verification
-Verification restricted to admin or faculty accounts.
-14.
-Add custom program error codes and human-readable messages
-Makes debugging and frontend error display much cleaner.
-15.
-Replace mock transactions with real Anchor instruction calls
-Converts the app from a demo into a working Web3 project.
-16.
-Map each UI action to exact Anchor method arguments and account objects
-Adapter layer formally translates form inputs to contract calls.
-17.
-Add wallet connect, disconnect, and reconnect on page refresh
-Core wallet session management every user will hit.
-18.
-Add wallet account and network change detection
-UI updates immediately if the user switches accounts or networks.
-19.
-Add transaction confirmation polling
-Users see whether a transaction is pending, confirmed, or failed.
-20.
-Add Solana Explorer links for every successful transaction
-Makes on-chain activity visible and auditable.
-21.
-Add support for localnet and devnet clusters with easy switching
-Needed for development and demonstration on different networks.
-22.
-Add a normalised error parser for Solana and Anchor errors
-Shows readable messages instead of raw exceptions.
-23.
-Add retry logic for temporary RPC failures and per-action timeouts
-Prevents the UI from hanging on common network hiccups.
-24.
-Emit Anchor events for student registration, event creation, and attendance
-Useful for debugging and future indexing.
-25.
-Add student ID, department, semester, and university email fields
-Core identity fields needed for a student platform.
-26.
-Add profile image upload
-Makes the identity page look complete and presentable.
-27.
-Add role field (student, admin, faculty)
-Required for permission-aware flows in later phases.
-28.
-Add QR code generation for student identity
-QR scanning can power attendance and event check-in.
-29.
-Add downloadable student identity card view
-A natural and impressive feature for a digital ID project.
-30.
-Add profile completion indicator
-Nudges users to fill out all required fields.
-31.
-Add event creation with title, description, venue, date, and capacity
-Core event data that every other feature depends on.
-32.
-Add event categories (workshop, seminar, hackathon, sports, cultural)
-Makes browsing and filtering events practical.
-33.
-Add event registration and registration deadline support
-Students can register and the form closes automatically on time.
-34.
-Add event capacity display in the UI
-Students see available seats before registering.
-35.
-Add event edit and delete for admins
-Admins need basic event management tools.
-36.
-Add event cancellation support
-Clean cancellation preserving the audit trail.
-37.
-Add registration withdrawal (student unregister)
-Students may need to cancel before an event starts.
-38.
-Add attendance marking via QR code scan
-The most practical and impressive attendance flow for a campus demo.
-39.
-Add attendance marking via one-time session code
-A simple fallback alternative to QR scanning.
-40.
-Add present, late, and absent attendance statuses
-More realistic than a simple present/not-present flag.
-41.
-Add attendance percentage calculation per student
-Useful and visible metric for dashboards.
-42.
-Add attendance history view with filters by event and date
-Students and admins both need to browse records easily.
-43.
-Create a dedicated admin page separate from the student view
-A clean separation makes the project far more professional.
-44.
-Add admin search for students, events, and attendance records
-Basic lookup tools are essential for any admin panel.
-45.
-Add bulk attendance verification for admins
-Admins should not have to verify records one by one.
-46.
-Add attendance export as CSV
-Simple download for reports and presentations.
-47.
-Replace static dashboard values with live on-chain data
-Dashboard should reflect real state, not placeholder numbers.
-48.
-Add KPI cards (total students, total events, attendance rate)
-Clean summary metrics make the dashboard look polished.
-49.
-Add event filters by date, category, and registration status
-Makes navigating a growing list of events faster.
-50.
-Add in-app notifications for registration and attendance confirmation
-Users need feedback when key actions complete.
-51.
-Add event reminder notifications
-Timely reminders improve demo engagement.
-52.
-Add skeleton loading states on all data-fetching views
-Makes async waits feel smooth rather than broken.
-53.
-Add inline form validation messages
-Users should know what to fix before submitting.
-54.
-Improve empty states with helpful guidance text
-Empty pages should point the user toward their next action.
-55.
-Add success feedback after transactions complete
-Small confirmation moments reduce uncertainty during blockchain waits.
-56.
-Add copy-to-clipboard for wallet addresses and transaction IDs
-Small but high-value usability detail.
-57.
-Add confirmation dialogs for admin delete and verify actions
-Irreversible actions should require a deliberate second step.
-58.
-Add environment config file for localnet/devnet switching
-Makes running and demonstrating the project much easier.
-59.
-Add integration tests for registration, event, and attendance flows
-Enough coverage to catch regressions in the three main journeys.
-60.
-Add a sample IDL and contributor setup notes in the README
-Makes the project easy to run and review during evaluation.
+Finalize the Anchor program interface and IDL as the foundational contract layer.
+Define account structures for students, events, registrations, and attendance.
+Define a PDA for student identity records (one per wallet).
+Define a PDA for event records with deterministic addressing.
+Define a PDA for event registration to prevent duplicates.
+Define a PDA for attendance records for audit tracking.
+Implement on-chain validation to prevent duplicate student registrations.
+Implement on-chain validation to prevent duplicate event registrations.
+Enforce event capacity limits at the smart contract level.
+Add event start and end timestamps for time-based logic.
+Implement attendance window validation constraints.
+Add admin authority checks for event creation.
+Add admin authority checks for attendance verification.
+Define custom program error codes with readable messages.
+Replace mock transactions with actual Anchor instruction calls.
+Map each UI action to corresponding Anchor methods and accounts.
+Implement wallet connect, disconnect, and session persistence.
+Detect wallet account and network changes in real time.
+Add transaction confirmation tracking and status polling.
+Provide Solana Explorer links for transaction visibility.
+Support localnet and devnet clusters with easy switching.
+Implement a normalized error parser for Anchor and Solana errors.
+Add retry logic and timeouts for RPC reliability.
+Emit Anchor events for registration, event creation, and attendance.
+Add student fields: ID, department, semester, and university email.
+Implement profile image upload functionality.
+Add role-based fields (student, admin, faculty).
+Generate QR codes for student identity.
+Provide downloadable student ID card view.
+Add profile completion progress indicator.
+Enable event creation with core fields (title, description, venue, date, capacity).
+Add event categories (workshop, seminar, hackathon, sports, cultural).
+Implement event registration with deadline enforcement.
+Display real-time event capacity in the UI.
+Add admin controls for event edit and delete.
+Support event cancellation with audit preservation.
+Enable student registration withdrawal before event start.
+Implement attendance marking via QR code scanning.
+Add fallback attendance via one-time session code.
+Support attendance states: present, late, absent.
+Calculate attendance percentage per student.
+Provide attendance history with filters (event/date).
+Build a dedicated admin dashboard separate from student UI.
+Add admin search for students, events, and attendance.
+Enable bulk attendance verification for admins.
+Provide attendance export functionality (CSV format).
+Replace static dashboard data with live on-chain data.
+Add KPI cards (total students, events, attendance rate).
+Implement event filtering (date, category, registration status).
+Add in-app notifications for registration and attendance updates.
+Implement event reminder notifications.
+Add skeleton loaders for async data states.
+Provide inline form validation messages.
+Improve empty states with actionable guidance.
+Add success feedback after transaction completion.
+Enable copy-to-clipboard for wallet addresses and transaction IDs.
+Add confirmation dialogs for destructive admin actions.
+Create environment config for network switching.
+Add integration tests for core flows (registration, events, attendance).
+Include sample IDL and contributor setup in README.
 ## 13. Summary
 This project is a frontend-first student platform with a clean path to Solana integration. The UI already makes blockchain-triggered actions obvious, and the architecture is intentionally prepared for smart contract adoption.
 
