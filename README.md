@@ -226,67 +226,110 @@ You can also open `index.html` directly in a browser, but using a local server i
 - Real blockchain integration should preserve the existing UI response structure where possible
 
 ## 12. Massive Implementation To-Do List
-Finalize the Anchor program interface and IDL as the foundational contract layer.
-Define account structures for students, events, registrations, and attendance.
-Define a PDA for student identity records (one per wallet).
-Define a PDA for event records with deterministic addressing.
-Define a PDA for event registration to prevent duplicates.
-Define a PDA for attendance records for audit tracking.
-Implement on-chain validation to prevent duplicate student registrations.
-Implement on-chain validation to prevent duplicate event registrations.
-Enforce event capacity limits at the smart contract level.
-Add event start and end timestamps for time-based logic.
-Implement attendance window validation constraints.
-Add admin authority checks for event creation.
-Add admin authority checks for attendance verification.
-Define custom program error codes with readable messages.
-Replace mock transactions with actual Anchor instruction calls.
-Map each UI action to corresponding Anchor methods and accounts.
-Implement wallet connect, disconnect, and session persistence.
-Detect wallet account and network changes in real time.
-Add transaction confirmation tracking and status polling.
-Provide Solana Explorer links for transaction visibility.
-Support localnet and devnet clusters with easy switching.
-Implement a normalized error parser for Anchor and Solana errors.
-Add retry logic and timeouts for RPC reliability.
-Emit Anchor events for registration, event creation, and attendance.
-Add student fields: ID, department, semester, and university email.
-Implement profile image upload functionality.
-Add role-based fields (student, admin, faculty).
-Generate QR codes for student identity.
-Provide downloadable student ID card view.
-Add profile completion progress indicator.
-Enable event creation with core fields (title, description, venue, date, capacity).
-Add event categories (workshop, seminar, hackathon, sports, cultural).
-Implement event registration with deadline enforcement.
-Display real-time event capacity in the UI.
-Add admin controls for event edit and delete.
-Support event cancellation with audit preservation.
-Enable student registration withdrawal before event start.
-Implement attendance marking via QR code scanning.
-Add fallback attendance via one-time session code.
-Support attendance states: present, late, absent.
-Calculate attendance percentage per student.
-Provide attendance history with filters (event/date).
-Build a dedicated admin dashboard separate from student UI.
-Add admin search for students, events, and attendance.
-Enable bulk attendance verification for admins.
-Provide attendance export functionality (CSV format).
-Replace static dashboard data with live on-chain data.
-Add KPI cards (total students, events, attendance rate).
-Implement event filtering (date, category, registration status).
-Add in-app notifications for registration and attendance updates.
-Implement event reminder notifications.
-Add skeleton loaders for async data states.
-Provide inline form validation messages.
-Improve empty states with actionable guidance.
-Add success feedback after transaction completion.
-Enable copy-to-clipboard for wallet addresses and transaction IDs.
-Add confirmation dialogs for destructive admin actions.
-Create environment config for network switching.
-Add integration tests for core flows (registration, events, attendance).
-Include sample IDL and contributor setup in README.
-## 13. Summary
+## 🚀 Project Roadmap
+
+### 🔹 Blockchain & Smart Contract Layer (Anchor / Solana)
+
+1. Finalize the Anchor program interface and IDL as the foundational contract layer.  
+2. Define account structures for students, events, registrations, and attendance.  
+3. Define a PDA for student identity records (one per wallet).  
+4. Define a PDA for event records with deterministic addressing.  
+5. Define a PDA for event registration to prevent duplicates.  
+6. Define a PDA for attendance records for audit tracking.  
+7. Implement on-chain validation to prevent duplicate student registrations.  
+8. Implement on-chain validation to prevent duplicate event registrations.  
+9. Enforce event capacity limits at the smart contract level.  
+10. Add event start and end timestamps for time-based logic.  
+11. Implement attendance window validation constraints.  
+12. Add admin authority checks for event creation.  
+13. Add admin authority checks for attendance verification.  
+14. Define custom program error codes with readable messages.  
+15. Emit Anchor events for registration, event creation, and attendance.  
+
+---
+
+### 🔹 Web3 Integration Layer
+
+16. Replace mock transactions with actual Anchor instruction calls.  
+17. Map each UI action to corresponding Anchor methods and accounts.  
+18. Implement wallet connect, disconnect, and session persistence.  
+19. Detect wallet account and network changes in real time.  
+20. Add transaction confirmation tracking and status polling.  
+21. Provide Solana Explorer links for transaction visibility.  
+22. Support localnet and devnet clusters with easy switching.  
+23. Implement a normalized error parser for Anchor and Solana errors.  
+24. Add retry logic and timeouts for RPC reliability.  
+
+---
+
+### 🔹 Student Identity System
+
+25. Add student fields: ID, department, semester, and university email.  
+26. Implement profile image upload functionality.  
+27. Add role-based fields (student, admin, faculty).  
+28. Generate QR codes for student identity.  
+29. Provide downloadable student ID card view.  
+30. Add profile completion progress indicator.  
+
+---
+
+### 🔹 Event Management System
+
+31. Enable event creation with core fields (title, description, venue, date, capacity).  
+32. Add event categories (workshop, seminar, hackathon, sports, cultural).  
+33. Implement event registration with deadline enforcement.  
+34. Display real-time event capacity in the UI.  
+35. Add admin controls for event edit and delete.  
+36. Support event cancellation with audit preservation.  
+37. Enable student registration withdrawal before event start.  
+
+---
+
+### 🔹 Attendance System
+
+38. Implement attendance marking via QR code scanning.  
+39. Add fallback attendance via one-time session code.  
+40. Support attendance states: present, late, absent.  
+41. Calculate attendance percentage per student.  
+42. Provide attendance history with filters (event/date).  
+
+---
+
+### 🔹 Admin Panel
+
+43. Build a dedicated admin dashboard separate from student UI.  
+44. Add admin search for students, events, and attendance.  
+45. Enable bulk attendance verification for admins.  
+46. Provide attendance export functionality (CSV format).  
+
+---
+
+### 🔹 Dashboard & Analytics
+
+47. Replace static dashboard data with live on-chain data.  
+48. Add KPI cards (total students, events, attendance rate).  
+49. Implement event filtering (date, category, registration status).  
+
+---
+
+### 🔹 UX & Frontend Improvements
+
+50. Add in-app notifications for registration and attendance updates.  
+51. Implement event reminder notifications.  
+52. Add skeleton loaders for async data states.  
+53. Provide inline form validation messages.  
+54. Improve empty states with actionable guidance.  
+55. Add success feedback after transaction completion.  
+56. Enable copy-to-clipboard for wallet addresses and transaction IDs.  
+57. Add confirmation dialogs for destructive admin actions.  
+
+---
+
+### 🔹 DevOps, Testing & Documentation
+
+58. Create environment config for network switching.  
+59. Add integration tests for core flows (registration, events, attendance).  
+60. Include sample IDL and contributor setup in README.  ## 13. Summary
 This project is a frontend-first student platform with a clean path to Solana integration. The UI already makes blockchain-triggered actions obvious, and the architecture is intentionally prepared for smart contract adoption.
 
 For future Web3 development, start in `js/blockchain.js`. That file is the single integration boundary for all smart contract work.
