@@ -1,4 +1,4 @@
-use anchor_lang::prelude::*;
+wuse anchor_lang::prelude::*;
 
 #[account]
 pub struct Event {
