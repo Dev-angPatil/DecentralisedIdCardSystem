@@ -11,14 +11,9 @@ const NAV_ITEMS = [
   ["courses.html",    "Courses",    "courses"],
   ["events.html",     "Events",     "events"],
   ["attendance.html", "Attendance", "attendance"],
-  ["timetable.html",  "Timetable",  "timetable"],
-  ["profile.html",    "Profile",    "profile"],
-];
-
-const ADMIN_NAV_ITEMS = [
-  ["admin_dashboard.html", "Dashboard", "admin_dashboard"],
-  ["admin_courses.html",   "Manage Courses", "admin_courses"],
-  ["admin_events.html",    "Manage Events",  "admin_events"],
+  ["schol.html", "Scholarships", "scholarships"],
+  ["profile.html", "Profile", "profile"],
+  ["login.html", "Login", "login"]
 ];
 
 /* ─── Sample Data (used for seeding) ─────────── */
@@ -425,13 +420,83 @@ export function renderSharedElements(){
   bindGlobal();
 }
 
-function init(){
-  seedData();
-  if(!requireAuth()) return;
+function populateDashboardStats() {
+  const statsPanel = document.querySelector("[data-dashboard-stats]");
+  const state = getState();
+  
+  if (statsPanel) {
+    const eventCount = state.events ? state.events.length : 12;
+    const attendanceCount = state.attendanceRecords ? state.attendanceRecords.length : 3;
+
+    statsPanel.innerHTML = `
+      <div class="stat-card glass-card">
+        <p>Total Registered Events</p>
+        <h2>${eventCount}</h2>
+      </div>
+      <div class="stat-card glass-card">
+        <p>Total Attendances</p>
+        <h2>${attendanceCount}</h2>
+      </div>
+      <div class="stat-card glass-card">
+        <p>Wallet Status</p>
+        <h2>${state.walletAddress ? 'Active' : 'Missing'}</h2>
+      </div>
+    `;
+  }
+
+  const noticesPanel = document.querySelector("[data-dashboard-notices]");
+  if (noticesPanel) {
+    const list = state.notifications && state.notifications.length ? state.notifications : [
+      {title: "Welcome to ChainCampus", desc: "Your blockchain portal is initialized."},
+      {title: "Solana Connected", desc: "The platform is ready for on-chain transactions."}
+    ];
+    noticesPanel.innerHTML = list.map(n => `
+      <div class="notice-item">
+        <strong>${n.title}</strong>
+        <p>${n.desc}</p>
+      </div>
+    `).join("");
+  }
+}
+
+function populateHomeSummary() {
+  const summaryPanel = document.querySelector("[data-home-summary]");
+  if (!summaryPanel) return;
+  const state = getState();
+  
+  summaryPanel.innerHTML = `
+    <div class="summary-item notice-item">
+      <span>Mock Web3 Status:</span>
+      <strong>Active</strong>
+    </div>
+    <div class="summary-item notice-item">
+      <span>Connected Wallet:</span>
+      <strong>${state.walletAddress ? state.walletAddress.slice(0, 8) + '...' + state.walletAddress.slice(-8) : "None"}</strong>
+    </div>
+  `;
+}
+
+async function init() {
+  saveState(getState());
   renderSharedElements();
-  renderDashboard();
-  renderProfile();
-  renderHomeSummary();
+  
+  populateDashboardStats();
+  populateHomeSummary();
+
+  if (window.solana && window.solana.isPhantom) {
+    try {
+      const res = await window.solana.connect({ onlyIfTrusted: true });
+      updateState((state) => {
+        state.walletAddress = res.publicKey.toString();
+        return state;
+      });
+      renderSharedElements();
+      populateDashboardStats();
+      populateHomeSummary();
+    } catch(err) {
+      // Not yet authorized
+    }
+  }
 }
 
 init();
