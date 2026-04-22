@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Courses</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="courses">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card">
+          <div class="hero-copy">
+            <span class="chain-tag">Course Enrollment</span>
+            <h1>Register for your semester courses.</h1>
+            <p>
+              Enrolling in a course logs a verifiable transaction on the Solana devnet. 
+              Once enrolled, courses will appear on your timetable and attendance tracker.
+            </p>
+          </div>
+        </section>
+
+        <section class="content-grid" style="grid-template-columns:1fr">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Available Courses</p>
+                <h2>Semester Core & Electives</h2>
+              </div>
+              <span class="pill">Enrollment Open</span>
+            </div>
+            
+            <div class="cards-grid" data-courses-list style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+              <!-- Courses rendered here -->
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/courses.js"></script>
+  </body>
+</html>

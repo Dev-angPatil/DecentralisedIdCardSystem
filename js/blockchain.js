@@ -2,11 +2,11 @@ const SOLANA_WEB3_IMPORT_URL = "https://esm.sh/@solana/web3.js@1.98.4";
 const ANCHOR_IMPORT_URL = "https://esm.sh/@coral-xyz/anchor@0.30.1";
 
 const DEFAULT_CONFIG = {
-  mode: "auto",
-  network: "devnet",
-  rpcEndpoint: "https://api.devnet.solana.com",
+  mode: "anchor",
+  network: "localhost",
+  rpcEndpoint: "http://127.0.0.1:8899",
   commitment: "confirmed",
-  programId: "",
+  programId: "Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd", // ChainCampus Program ID
   idl: null,
   actions: {}
 };
@@ -15,7 +15,8 @@ const DEFAULT_ACTION_METHODS = {
   registerStudentOnChain: "registerStudent",
   registerForEventOnChain: "registerForEvent",
   markAttendanceOnChain: "markAttendance",
-  createEventOnChain: "createEvent"
+  createEventOnChain: "createEvent",
+  enrollCourseOnChain: "enrollCourse"
 };
 
 let blockchainConfig = {
@@ -123,11 +124,8 @@ function resolveArgs(actionName, payload, actionConfig, context) {
   switch (actionName) {
     case "registerStudentOnChain":
       return [
-        payload.name || "",
-        payload.college || "",
-        payload.program || "",
-        payload.year || "",
-        payload.studentId || ""
+        payload.studentId || "",
+        payload.name || ""
       ];
     case "registerForEventOnChain":
       return [payload.id || payload.eventId || "", payload.title || ""];
@@ -135,6 +133,8 @@ function resolveArgs(actionName, payload, actionConfig, context) {
       return [payload.mode || "student"];
     case "createEventOnChain":
       return [payload.title || "", payload.date || "", payload.venue || ""];
+    case "enrollCourseOnChain":
+      return [payload.courseId || ""];
     default:
       return [];
   }
@@ -288,4 +288,8 @@ export async function markAttendanceOnChain(data) {
 
 export async function createEventOnChain(data) {
   return runChainAction("createEventOnChain", data);
+}
+
+export async function enrollCourseOnChain(data) {
+  return runChainAction("enrollCourseOnChain", data);
 }

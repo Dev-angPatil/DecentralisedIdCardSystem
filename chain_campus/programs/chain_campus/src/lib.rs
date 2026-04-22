@@ -38,4 +38,8 @@ pub mod chain_campus {
     pub fn verify_attendance(ctx: Context<VerifyAttendance>) -> Result<()> {
         instructions::verify_attendance::handler(ctx)
     }
+
+    pub fn enroll_course(ctx: Context<EnrollCourse>, course_id: String) -> Result<()> {
+        instructions::enroll_course::handler(ctx, course_id)
+    }
 }
