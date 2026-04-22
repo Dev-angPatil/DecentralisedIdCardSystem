@@ -14,11 +14,11 @@
         <section class="content-grid auth-grid">
          
           <article class="glass-card section-card spotlight-card">
-            <span class="chain-tag">Access + wallet layer</span>
-            <h1>Log in to the student portal and preview where wallet signing will happen.</h1>
+            <span class="chain-tag">Access + Wallet Layer</span>
+            <h1>Log in to the student portal.</h1>
             <p>
-              Authentication is mock UI for now, but the Phantom connect button is deliberately
-              visible so students understand the future blockchain step.
+              Authentication is a two-step process: first, verify your academic credentials, 
+              then authorize session actions via your Phantom wallet.
             </p>
           </article>
 
@@ -28,29 +28,43 @@
                 <p class="eyebrow">Login</p>
                 <h2>Student Sign In</h2>
               </div>
-              <span class="pill">UI only</span>
+              <span class="pill" data-step-num>1</span>
             </div>
-            <form class="form-grid" data-login-form>
-              <label>
-                Email
-                <input type="email" name="email" placeholder="student@college.edu" required />
-              </label>
-              <label>
-                Password
-                <input type="password" name="password" placeholder="Enter password" required />
-              </label>
-              <div class="inline-actions">
-                <button type="submit" class="primary-btn">Login</button>
-                <button type="button" class="secondary-btn" data-google-login>Continue with Google</button>
+            
+            <div data-step-1>
+              <form class="form-grid" data-login-form>
+                <label class="wide-field">
+                  Email
+                  <input type="email" name="email" placeholder="student@college.edu" required />
+                </label>
+                <label class="wide-field">
+                  Password
+                  <input type="password" name="password" placeholder="Enter password" required />
+                </label>
+                
+                <div class="wide-field error-message" data-login-error></div>
+
+                <div class="wide-field inline-actions" style="margin-top:5px">
+                  <button type="submit" class="primary-btn">Verify Credentials</button>
+                </div>
+                <div class="wide-field" style="margin-top:10px">
+                  <span class="helper-copy">Don't have an account? <a href="signup.html" style="color:var(--brand-primary);text-decoration:underline;font-weight:600">Sign up</a></span>
+                </div>
+              </form>
+            </div>
+
+            <div data-step-2 class="step-hidden">
+              <div class="wallet-box">
+                <p class="eyebrow" style="color:var(--brand-primary)">Step 2: Wallet Verification (Optional)</p>
+                <h3>Connect Phantom Wallet</h3>
+                <p>Link your wallet to establish your decentralized identity. You can skip this and connect later if needed.</p>
+                <div class="inline-actions">
+                  <button type="button" class="primary-btn" data-connect-wallet-login>Connect Phantom</button>
+                  <button type="button" class="secondary-btn" data-skip-wallet>Skip for now</button>
+                </div>
               </div>
-            </form>
-            <div class="wallet-box">
-              <p class="eyebrow">Wallet</p>
-              <h3>Phantom Wallet</h3>
-              <p data-wallet-copy>Connect Phantom to continue.</p>
-              <button type="button" class="secondary-btn" data-connect-wallet>Connect Phantom</button>
+              <p class="status-copy" data-auth-message></p>
             </div>
-            <p class="status-copy" data-auth-message></p>
           </article>
         </section>
       </main>

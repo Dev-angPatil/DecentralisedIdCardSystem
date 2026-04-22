@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChainCampus | Attendance</title>
+    <title>ChainCampus | Timetable</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
-  <body data-page="attendance">
+  <body data-page="timetable">
     <div class="site-shell">
       <header data-site-header></header>
 
@@ -15,12 +15,15 @@
           <article class="glass-card section-card">
             <div class="section-head">
               <div>
-                <p class="eyebrow">Course Attendance</p>
-                <h2>Track your lecture attendance</h2>
+                <p class="eyebrow">Schedule</p>
+                <h2>Weekly Timetable</h2>
               </div>
-              <span class="pill">On-Chain Verified</span>
+              <span class="pill">Current Semester</span>
             </div>
-            <div class="cards-grid" data-attendance-list style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
+            
+            <div class="timetable-grid" data-timetable>
+              <!-- Timetable rendered here via JS -->
+            </div>
           </article>
         </section>
       </main>
@@ -31,6 +34,6 @@
     <div class="toast-stack" data-toast-stack></div>
 
     <script type="module" src="js/main.js"></script>
-    <script type="module" src="js/attendance.js"></script>
+    <script type="module" src="js/timetable.js"></script>
   </body>
 </html>

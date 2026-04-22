@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Signup</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="signup">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="content-grid auth-grid">
+          <article class="glass-card section-card spotlight-card">
+            <span class="chain-tag">Student Enrollment</span>
+            <h1>Create your student profile and link your on-chain identity.</h1>
+            <p>
+              ChainCampus uses a two-step enrollment: first we create your academic profile, 
+              then we link your Phantom wallet for verifiable credentials.
+            </p>
+          </article>
+
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Registration</p>
+                <h2>Sign Up</h2>
+              </div>
+              <span class="pill">Step 1 of 2</span>
+            </div>
+            
+            <form class="form-grid two-column" data-signup-form>
+              <label class="wide-field">
+                Full Name
+                <input type="text" name="name" placeholder="Aarav Mehta" required />
+              </label>
+              <label class="wide-field">
+                Email Address
+                <input type="email" name="email" placeholder="student@college.edu" required />
+              </label>
+              
+              <label>
+                Password
+                <input type="password" name="password" placeholder="Create password" required />
+                <div class="strength-meter">
+                  <div class="strength-bar" data-strength-bar></div>
+                </div>
+                <span class="strength-label" data-strength-label></span>
+              </label>
+              <label>
+                Confirm Password
+                <input type="password" name="confirm" placeholder="Confirm password" required />
+              </label>
+
+              <div class="wide-field divider">Academic Details</div>
+
+              <label class="wide-field">
+                Student ID
+                <input type="text" name="studentId" placeholder="Will be auto-generated if left blank" />
+              </label>
+              <label class="wide-field">
+                College/University
+                <input type="text" name="college" placeholder="Lumina College of Technology" required />
+              </label>
+              <label>
+                Program
+                <input type="text" name="program" placeholder="B.Tech Computer Science" required />
+              </label>
+              <label>
+                Year
+                <select name="year" required class="custom-select">
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year" selected>3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                  <option value="Postgrad">Postgraduate</option>
+                </select>
+              </label>
+
+              <div class="wide-field error-message" data-signup-error></div>
+
+              <div class="wide-field inline-actions" style="margin-top:10px">
+                <button type="submit" class="primary-btn" data-signup-submit>Create Account</button>
+                <span class="helper-copy">Already have an account? <a href="login.html" style="color:var(--violet-light);text-decoration:underline">Log in</a></span>
+              </div>
+            </form>
+          </article>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/signup.js"></script>
+  </body>
+</html>

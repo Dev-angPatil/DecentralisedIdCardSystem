@@ -3,10 +3,10 @@ const ANCHOR_IMPORT_URL = "https://esm.sh/@coral-xyz/anchor@0.30.1";
 
 const DEFAULT_CONFIG = {
   mode: "auto",
-  network: "devnet",
-  rpcEndpoint: "https://api.devnet.solana.com",
+  network: "localhost",
+  rpcEndpoint: "http://127.0.0.1:8899",
   commitment: "confirmed",
-  programId: "",
+  programId: "Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd", // ChainCampus Program ID
   idl: null,
   actions: {}
 };
@@ -15,7 +15,9 @@ const DEFAULT_ACTION_METHODS = {
   registerStudentOnChain: "registerStudent",
   registerForEventOnChain: "registerForEvent",
   markAttendanceOnChain: "markAttendance",
-  createEventOnChain: "createEvent"
+  createEventOnChain: "createEvent",
+  enrollCourseOnChain: "enrollCourse",
+  createCourseOnChain: "createCourse"
 };
 
 let blockchainConfig = {
@@ -123,18 +125,31 @@ function resolveArgs(actionName, payload, actionConfig, context) {
   switch (actionName) {
     case "registerStudentOnChain":
       return [
-        payload.name || "",
-        payload.college || "",
-        payload.program || "",
-        payload.year || "",
-        payload.studentId || ""
+        payload.studentId || "",
+        payload.name || ""
       ];
     case "registerForEventOnChain":
       return [payload.id || payload.eventId || "", payload.title || ""];
     case "markAttendanceOnChain":
       return [payload.mode || "student"];
     case "createEventOnChain":
-      return [payload.title || "", payload.date || "", payload.venue || ""];
+      return [
+        payload.eventId || "", 
+        payload.title || "",
+        payload.venue || "",
+        payload.capacity || 0, 
+        payload.start_time || 0, 
+        payload.end_time || 0
+      ];
+    case "enrollCourseOnChain":
+      return [payload.courseId || ""];
+    case "createCourseOnChain":
+      return [
+        payload.courseId || "", 
+        payload.name || "", 
+        payload.credits || 0, 
+        payload.instructor || ""
+      ];
     default:
       return [];
   }
@@ -247,6 +262,7 @@ async function runChainAction(actionName, payload) {
   try {
     return await submitAnchorTransaction(actionName, payload);
   } catch (error) {
+    console.error(`[blockchain.js] Error in ${actionName}:`, error);
     if (config.mode === "auto") {
       console.warn(
         `[blockchain.js] ${actionName} fell back to mock mode:`,
@@ -288,4 +304,12 @@ export async function markAttendanceOnChain(data) {
 
 export async function createEventOnChain(data) {
   return runChainAction("createEventOnChain", data);
+}
+
+export async function enrollCourseOnChain(data) {
+  return runChainAction("enrollCourseOnChain", data);
+}
+
+export async function createCourseOnChain(data) {
+  return runChainAction("createCourseOnChain", data);
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Admin Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="admin_dashboard">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card">
+          <div class="hero-copy" data-welcome>
+            <span class="chain-tag">Admin Overview</span>
+            <h1>University Metrics</h1>
+          </div>
+        </section>
+
+        <section class="stats-grid" data-admin-stats>
+          <!-- Stats rendered via JS -->
+        </section>
+
+        <section class="content-grid">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">System Status</p>
+                <h2>Recent Blockchain Activity</h2>
+              </div>
+            </div>
+            <div class="stack-list" data-tx-log></div>
+          </article>
+
+          <aside class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Quick Actions</p>
+                <h2>Management</h2>
+              </div>
+            </div>
+            <div class="stack-list">
+              <a href="admin_courses.html" class="primary-btn" style="width:100%">Add New Course</a>
+              <a href="admin_events.html" class="primary-btn" style="width:100%; margin-top:8px">Create New Event</a>
+            </div>
+          </aside>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>
