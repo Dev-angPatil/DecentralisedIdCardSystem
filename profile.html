@@ -5,6 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChainCampus | Profile</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      .docs-modal {
+        margin: auto;
+        padding: 30px;
+        width: 600px;
+        max-width: 90vw;
+        border: 1px solid var(--stroke-teal);
+        border-radius: var(--r-xl);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-lg);
+      }
+      .docs-modal::backdrop {
+        background: rgba(15, 25, 35, 0.4);
+        backdrop-filter: blur(4px);
+      }
+      .docs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 16px;
+      }
+      .doc-square {
+        aspect-ratio: 1;
+        background: #fff;
+        border: 1px solid var(--stroke);
+        border-radius: var(--r-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+        text-align: center;
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+      }
+      .doc-square:nth-child(1) { border-top: 4px solid rgba(147,197,253,0.7); background: var(--pastel-blue); }
+      .doc-square:nth-child(2) { border-top: 4px solid rgba(249,168,212,0.7); background: var(--pastel-pink); }
+      .doc-square:nth-child(3) { border-top: 4px solid rgba(245,158,11,0.5); background: var(--pastel-peach); }
+      .doc-square:nth-child(4) { border-top: 4px solid rgba(110,231,183,0.4); background: var(--pastel-mint); }
+      .doc-square:nth-child(5) { border-top: 4px solid rgba(196,181,253,0.45); background: var(--pastel-lavender); }
+      .doc-square:nth-child(6) { border-top: 4px solid rgba(147,197,253,0.7); background: #fff; }
+      
+      .doc-square:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--stroke-teal);
+      }
+      .doc-icon {
+        font-size: 2.5rem;
+        transition: transform var(--t-fast);
+      }
+      .doc-square:hover .doc-icon {
+        transform: scale(1.1);
+      }
+      .doc-square span {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        color: var(--text);
+        font-size: 0.85rem;
+        line-height: 1.2;
+      }
+    </style>
   </head>
   <body data-page="profile">
     <div class="site-shell">
@@ -20,7 +84,56 @@
               </div>
               <span class="pill">Profile</span>
             </div>
-            <div class="profile-grid" data-profile-details></div>
+            <div class="profile-grid" data-profile-details>
+              <div class="info-row">
+                <span>Name</span>
+                <strong>Jane Doe</strong>
+              </div>
+              <div class="info-row">
+                <span>PRN</span>
+                <strong>202301456</strong>
+              </div>
+              <div class="info-row">
+                <span>Course</span>
+                <strong>B.Tech Computer Science</strong>
+              </div>
+              <div class="info-row">
+                <span>Phone No</span>
+                <strong>+1 234 567 8900</strong>
+              </div>
+              <div class="info-row">
+                <span>Gender</span>
+                <strong>Female</strong>
+              </div>
+              <div class="info-row">
+                <span>Div</span>
+                <strong>A</strong>
+              </div>
+              <div class="info-row">
+                <span>Year of Admission</span>
+                <strong>2023</strong>
+              </div>
+              <div class="info-row">
+                <span>Year of Passout</span>
+                <strong>2027</strong>
+              </div>
+              <div class="info-row" style="cursor: pointer; border-color: var(--stroke-teal); background: var(--pastel-blue);" onclick="document.getElementById('docsModal').showModal()" title="Click to view documents">
+                <span>Documents Submitted</span>
+                <strong><span class="pill" style="cursor:pointer; background: #fff;">View Attached (6)</span></strong>
+              </div>
+              <div class="info-row">
+                <span>Fees Structure</span>
+                <strong>Paid</strong>
+              </div>
+              <div class="info-row">
+                <span>Results</span>
+                <strong>Sem 1: 9.2 SGPA</strong>
+              </div>
+              <div class="info-row">
+                <span>Admission Method</span>
+                <strong>Merit List</strong>
+              </div>
+            </div>
           </article>
 
           <aside class="glass-card section-card">
@@ -28,11 +141,84 @@
             <h2>Mock blockchain mirror</h2>
             <div class="stack-list" data-onchain-details></div>
           </aside>
+
+          <article class="glass-card section-card" style="grid-column: 1 / -1;">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Financial Aid</p>
+                <h2>Scholarship Information</h2>
+              </div>
+              <span class="pill">Scholarships</span>
+            </div>
+            <div class="profile-grid">
+              <div class="info-row">
+                <span>Scholarship Name</span>
+                <strong>MahaDBT State Scholarship</strong>
+              </div>
+              <div class="info-row">
+                <span>Status</span>
+                <strong><span class="status-badge success">Approved</span></strong>
+              </div>
+              <div class="info-row">
+                <span>Amount Sanctioned</span>
+                <strong>₹ 50,000</strong>
+              </div>
+              <div class="info-row">
+                <span>Amount Disbursed</span>
+                <strong>₹ 25,000</strong>
+              </div>
+              <div class="info-row">
+                <span>Application ID</span>
+                <strong>2324MH102938</strong>
+              </div>
+              <div class="info-row">
+                <span>Academic Year</span>
+                <strong>2023-2024</strong>
+              </div>
+            </div>
+          </article>
         </section>
       </main>
 
       <footer data-site-footer></footer>
     </div>
+
+    <!-- Modal for Documents -->
+    <dialog id="docsModal" class="glass-card docs-modal">
+      <div class="section-head" style="border-bottom: 1px solid var(--stroke-light); margin-bottom: 20px; padding-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <p class="eyebrow">Verification</p>
+          <h2>Submitted Documents</h2>
+        </div>
+        <button onclick="document.getElementById('docsModal').close()" class="secondary-btn" style="padding: 6px 14px; font-size: 13px;">Close</button>
+      </div>
+      <div class="docs-grid">
+        <div class="doc-square">
+          <div class="doc-icon">📄</div>
+          <span>10th Marksheet</span>
+        </div>
+        <div class="doc-square">
+          <div class="doc-icon">📄</div>
+          <span>12th Marksheet</span>
+        </div>
+        <div class="doc-square">
+          <div class="doc-icon">🪪</div>
+          <span>Aadhar Card</span>
+        </div>
+        <div class="doc-square">
+          <div class="doc-icon">🏢</div>
+          <span>Domicile</span>
+        </div>
+        <div class="doc-square">
+          <div class="doc-icon">🧾</div>
+          <span>Fee Receipt</span>
+        </div>
+        <div class="doc-square">
+          <div class="doc-icon">🎫</div>
+          <span>College ID</span>
+        </div>
+      </div>
+    </dialog>
 
     <div class="toast-stack" data-toast-stack></div>
 
