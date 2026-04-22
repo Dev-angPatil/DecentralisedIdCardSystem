@@ -16,8 +16,12 @@ function initLoginPage(){
   const skipBtn    = document.querySelector('[data-skip-wallet]');
   if(!form) return;
 
-  /* If already logged in → go to dashboard */
-  if(isLoggedIn()){ window.location.href = 'dashboard.html'; return; }
+  /* If already logged in → go to correct dashboard */
+  if(isLoggedIn()){
+    const s = getSession();
+    window.location.href = s.isAdmin ? 'admin_dashboard.html' : 'dashboard.html';
+    return;
+  }
 
   let pendingUser = null;
 
@@ -35,7 +39,7 @@ function initLoginPage(){
 
     const user = getUserByEmail(email);
     if(!user || user.password !== password){
-      showError(errMsg, 'Invalid email or password. Please try again.');
+      showError(errMsg, 'Invalid email or password.');
       markInvalid(form.email);
       markInvalid(form.password);
       return;
@@ -55,14 +59,14 @@ function initLoginPage(){
     const addr = await connectWallet();
     if(!addr){ return; }
 
-    /* Update user record with wallet */
     pendingUser.walletAddress = addr;
     saveUser(pendingUser);
     updateState(s => { s.walletAddress = addr; return s; });
 
     setSession(pendingUser);
     showToast('Login successful 🎉', `Welcome back, ${pendingUser.name}!`, 'success');
-    setTimeout(()=>{ window.location.href = 'dashboard.html'; }, 900);
+    const target = pendingUser.isAdmin ? 'admin_dashboard.html' : 'dashboard.html';
+    setTimeout(()=>{ window.location.href = target; }, 900);
   });
 
   /* Step 2 — Skip wallet */
@@ -71,7 +75,8 @@ function initLoginPage(){
     
     setSession(pendingUser);
     showToast('Login successful', `Welcome back, ${pendingUser.name}!`, 'success');
-    setTimeout(()=>{ window.location.href = 'dashboard.html'; }, 600);
+    const target = pendingUser.isAdmin ? 'admin_dashboard.html' : 'dashboard.html';
+    setTimeout(()=>{ window.location.href = target; }, 600);
   });
 
   updateWalletCopy();

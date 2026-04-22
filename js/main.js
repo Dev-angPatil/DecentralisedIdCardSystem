@@ -15,8 +15,14 @@ const NAV_ITEMS = [
   ["profile.html",    "Profile",    "profile"],
 ];
 
-/* ─── Sample Courses (exported for other modules) ─────────── */
-export const SAMPLE_COURSES = [
+const ADMIN_NAV_ITEMS = [
+  ["admin_dashboard.html", "Dashboard", "admin_dashboard"],
+  ["admin_courses.html",   "Manage Courses", "admin_courses"],
+  ["admin_events.html",    "Manage Events",  "admin_events"],
+];
+
+/* ─── Sample Data (used for seeding) ─────────── */
+const SEED_COURSES = [
   { id:'cs101', code:'CS101', name:'Data Structures & Algorithms',    credits:4, instructor:'Dr. Priya Sharma',   days:['Mon','Wed','Fri'], time:'9:00 AM',  room:'LH-201',    color:'blue'     },
   { id:'cs201', code:'CS201', name:'Database Management Systems',     credits:3, instructor:'Prof. Rahul Verma',  days:['Tue','Thu'],       time:'11:00 AM', room:'LH-102',    color:'pink'     },
   { id:'cs301', code:'CS301', name:'Computer Networks',               credits:4, instructor:'Dr. Anjali Nair',   days:['Mon','Wed','Fri'], time:'2:00 PM',  room:'LH-305',    color:'mint'     },
@@ -27,12 +33,11 @@ export const SAMPLE_COURSES = [
   { id:'cs701', code:'CS701', name:'Web Development',                 credits:3, instructor:'Dr. Suresh Kumar',  days:['Mon','Thu'],        time:'4:00 PM',  room:'CS-Lab-2',  color:'amber'    },
 ];
 
-/* ─── Seed data ───────────────────────────────────────────── */
 const SEED_EVENTS = [
-  { id:'evt1', title:'Blockchain Hackathon 2026',  date:'May 10, 2026',  venue:'Innovation Hub',    description:'Build decentralised apps on Solana and compete for prizes.',           verified:false },
-  { id:'evt2', title:'Web3 Summit',                date:'May 18, 2026',  venue:'Main Auditorium',   description:'Industry leaders discuss Web3, DeFi, and decentralised identity.',     verified:false },
-  { id:'evt3', title:'AI × Blockchain Workshop',   date:'June 2, 2026',  venue:'CS Lab 1',          description:'Hands-on workshop combining AI agents with blockchain-verified data.', verified:false },
-  { id:'evt4', title:'Annual Tech Fest 2026',      date:'June 15, 2026', venue:'Campus Grounds',    description:'The biggest campus tech event with competitions, talks & networking.',  verified:false },
+  { id:'evt1', title:'Blockchain Hackathon 2026',  date:'May 10, 2026',  venue:'Innovation Hub',    capacity: 100, description:'Build decentralised apps on Solana and compete for prizes.',           verified:false },
+  { id:'evt2', title:'Web3 Summit',                date:'May 18, 2026',  venue:'Main Auditorium',   capacity: 500, description:'Industry leaders discuss Web3, DeFi, and decentralised identity.',     verified:false },
+  { id:'evt3', title:'AI × Blockchain Workshop',   date:'June 2, 2026',  venue:'CS Lab 1',          capacity: 50,  description:'Hands-on workshop combining AI agents with blockchain-verified data.', verified:false },
+  { id:'evt4', title:'Annual Tech Fest 2026',      date:'June 15, 2026', venue:'Campus Grounds',    capacity: 1000, description:'The biggest campus tech event with competitions, talks & networking.',  verified:false },
 ];
 const SEED_NOTICES = [
   { id:'n1', title:'End-Semester Exam Schedule',        body:'Examinations begin May 5, 2026. Hall tickets available on portal.', type:'academic' },
@@ -52,7 +57,7 @@ const SEED_ENROLLED = ['cs101','cs601','cs501','ma101','cs301'];
 const defaultState = {
   walletAddress:'', student:{},
   lastTransaction:{ status:'Idle', label:'No transaction yet', message:'', txId:'' },
-  notifications:[], attendanceRecords:[], events:[], enrolledCourses:[], txLog:[], seeded:false,
+  notifications:[], attendanceRecords:[], events:[], courses:[], enrolledCourses:[], txLog:[], seeded:false,
 };
 
 /* ═══════════════ STATE ════════════════════════════════════ */
@@ -83,15 +88,29 @@ export function saveUser(user){
 export function getUserByEmail(email){ return getUsers().find(u => u.email === email) || null; }
 
 export function getSession(){ const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; }
-export function setSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ email:user.email, name:user.name, studentId:user.studentId, college:user.college, program:user.program, year:user.year, loggedIn:true })); }
+export function setSession(user){ 
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ 
+    email:user.email, name:user.name, studentId:user.studentId, college:user.college, 
+    program:user.program, year:user.year, isAdmin:user.isAdmin, loggedIn:true 
+  })); 
+}
 export function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 export function isLoggedIn(){ const s = getSession(); return !!(s && s.loggedIn); }
 
 export function requireAuth(){
   const page = document.body.dataset.page || '';
-  if(PROTECTED.includes(page) && !isLoggedIn()){
-    window.location.href = 'login.html';
-    return false;
+  const session = getSession();
+  
+  if(page.startsWith('admin_')){
+    if(!session || !session.isAdmin){
+      window.location.href = 'admin_login.html';
+      return false;
+    }
+  } else if(PROTECTED.includes(page)){
+    if(!session || session.isAdmin){
+      window.location.href = 'login.html';
+      return false;
+    }
   }
   return true;
 }
@@ -99,9 +118,14 @@ export function requireAuth(){
 /* ═══════════════ SEED ══════════════════════════════════════ */
 function seedData(){
   const s = getState();
+  if(!getUserByEmail('admin@college.edu')){
+    saveUser({ email:'admin@college.edu', password:'Admin()09', name:'System Admin', isAdmin:true });
+  }
+
   if(s.seeded) return;
   updateState(st => {
     st.events = SEED_EVENTS;
+    st.courses = SEED_COURSES;
     st.attendanceRecords = SEED_ATTENDANCE;
     st.notifications = SEED_NOTICES;
     st.enrolledCourses = SEED_ENROLLED;
@@ -193,12 +217,13 @@ function renderHeader(){
   const session = getSession();
   const state = getState();
 
-  const navLinks = NAV_ITEMS.map(([href,label,page]) =>
+  const navList = session?.isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
+  const navLinks = navList.map(([href,label,page]) =>
     `<a href="${href}" class="${page===cur?'active':''}">${label}</a>`
   ).join('');
 
   const authArea = session && session.loggedIn ? `
-    <span class="user-chip">${getInitials(session.name)}</span>
+    <span class="user-chip" style="${session.isAdmin?'background:var(--warning)':''}">${getInitials(session.name)}</span>
     <span class="wallet-chip">${state.walletAddress ? '🟢 '+truncate(state.walletAddress,12) : '⚪ No Wallet'}</span>
     <button class="secondary-btn" id="logout-btn">Sign Out</button>
   ` : `
@@ -208,9 +233,9 @@ function renderHeader(){
 
   header.innerHTML = `
     <nav class="site-nav glass-card">
-      <a class="brand" href="${session?.loggedIn ? 'dashboard.html' : 'index.html'}">
+      <a class="brand" href="${session?.loggedIn ? (session.isAdmin ? 'admin_dashboard.html' : 'dashboard.html') : 'index.html'}">
         <div class="brand-mark">CC</div>
-        <span class="brand-name">ChainCampus</span>
+        <span class="brand-name">ChainCampus ${session?.isAdmin ? '<span style="color:var(--warning);font-size:0.8rem">ADMIN</span>' : ''}</span>
       </a>
       <div class="nav-links">${navLinks}</div>
       <div class="nav-actions">${authArea}</div>
@@ -219,7 +244,7 @@ function renderHeader(){
   document.getElementById('logout-btn')?.addEventListener('click', ()=>{
     clearSession();
     updateState(s => { s.walletAddress=''; return s; });
-    window.location.href = 'login.html';
+    window.location.href = session?.isAdmin ? 'admin_login.html' : 'login.html';
   });
 }
 
@@ -402,7 +427,7 @@ export function renderSharedElements(){
 
 function init(){
   seedData();
-  requireAuth();
+  if(!requireAuth()) return;
   renderSharedElements();
   renderDashboard();
   renderProfile();

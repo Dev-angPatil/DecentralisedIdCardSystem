@@ -20,11 +20,13 @@ pub mod chain_campus {
     pub fn create_event(
         ctx: Context<CreateEvent>,
         event_id: String,
+        title: String,
+        venue: String,
         capacity: u32,
         start_time: i64,
         end_time: i64,
     ) -> Result<()> {
-        instructions::create_event::handler(ctx, event_id, capacity, start_time, end_time)
+        instructions::create_event::handler(ctx, event_id, title, venue, capacity, start_time, end_time)
     }
 
     pub fn register_for_event(ctx: Context<RegisterForEvent>) -> Result<()> {
@@ -41,5 +43,15 @@ pub mod chain_campus {
 
     pub fn enroll_course(ctx: Context<EnrollCourse>, course_id: String) -> Result<()> {
         instructions::enroll_course::handler(ctx, course_id)
+    }
+
+    pub fn create_course(
+        ctx: Context<CreateCourse>,
+        course_id: String,
+        name: String,
+        credits: u8,
+        instructor: String,
+    ) -> Result<()> {
+        instructions::create_course::handler(ctx, course_id, name, credits, instructor)
     }
 }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Manage Events</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="admin_events">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="content-grid" style="grid-template-columns: 1fr 1.5fr;">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Admin Actions</p>
+                <h2>Create Campus Event</h2>
+              </div>
+            </div>
+            <form class="form-grid" data-add-event-form>
+              <label>
+                Event Title
+                <input type="text" name="title" placeholder="e.g. Winter Workshop" required />
+              </label>
+              <div class="two-column">
+                <label>
+                  Date
+                  <input type="text" name="date" placeholder="May 20, 2026" required />
+                </label>
+                <label>
+                  Capacity
+                  <input type="number" name="capacity" value="100" required />
+                </label>
+              </div>
+              <label>
+                Venue
+                <input type="text" name="venue" placeholder="Innovation Lab" required />
+              </label>
+              <label>
+                Description
+                <textarea name="description" placeholder="Event details..." style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke-strong); min-height:80px; font-family:inherit;"></textarea>
+              </label>
+
+              <button type="submit" class="primary-btn" data-submit-btn>Deploy Event (On-Chain)</button>
+            </form>
+          </article>
+
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Public View</p>
+                <h2>Current Events</h2>
+              </div>
+            </div>
+            <div class="stack-list" data-events-list>
+              <!-- Rendered via JS -->
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

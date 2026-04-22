@@ -1,6 +1,6 @@
 import { enrollCourseOnChain } from "./blockchain.js";
 import {
-  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState, SAMPLE_COURSES
+  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
 
 function renderCourses() {
@@ -9,8 +9,9 @@ function renderCourses() {
 
   const state = getState();
   const enrolledIds = state.enrolledCourses || [];
+  const coursesList = state.courses || [];
 
-  target.innerHTML = SAMPLE_COURSES.map(course => {
+  target.innerHTML = coursesList.map(course => {
     const isEnrolled = enrolledIds.includes(course.id);
     
     return `
@@ -44,7 +45,8 @@ function bindEnrollButtons() {
       if (!(await requireConnectedWallet({ message: 'Connect wallet to enroll in courses.' }))) return;
 
       const courseId = btn.dataset.enrollBtn;
-      const course = SAMPLE_COURSES.find(c => c.id === courseId);
+      const state = getState();
+      const course = (state.courses || []).find(c => c.id === courseId);
       if (!course) return;
 
       setButtonPending(btn, true, 'Processing...', 'Enroll (On-Chain)');

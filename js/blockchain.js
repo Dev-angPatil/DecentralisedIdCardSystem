@@ -2,7 +2,7 @@ const SOLANA_WEB3_IMPORT_URL = "https://esm.sh/@solana/web3.js@1.98.4";
 const ANCHOR_IMPORT_URL = "https://esm.sh/@coral-xyz/anchor@0.30.1";
 
 const DEFAULT_CONFIG = {
-  mode: "anchor",
+  mode: "auto",
   network: "localhost",
   rpcEndpoint: "http://127.0.0.1:8899",
   commitment: "confirmed",
@@ -16,7 +16,8 @@ const DEFAULT_ACTION_METHODS = {
   registerForEventOnChain: "registerForEvent",
   markAttendanceOnChain: "markAttendance",
   createEventOnChain: "createEvent",
-  enrollCourseOnChain: "enrollCourse"
+  enrollCourseOnChain: "enrollCourse",
+  createCourseOnChain: "createCourse"
 };
 
 let blockchainConfig = {
@@ -132,9 +133,23 @@ function resolveArgs(actionName, payload, actionConfig, context) {
     case "markAttendanceOnChain":
       return [payload.mode || "student"];
     case "createEventOnChain":
-      return [payload.title || "", payload.date || "", payload.venue || ""];
+      return [
+        payload.eventId || "", 
+        payload.title || "",
+        payload.venue || "",
+        payload.capacity || 0, 
+        payload.start_time || 0, 
+        payload.end_time || 0
+      ];
     case "enrollCourseOnChain":
       return [payload.courseId || ""];
+    case "createCourseOnChain":
+      return [
+        payload.courseId || "", 
+        payload.name || "", 
+        payload.credits || 0, 
+        payload.instructor || ""
+      ];
     default:
       return [];
   }
@@ -247,6 +262,7 @@ async function runChainAction(actionName, payload) {
   try {
     return await submitAnchorTransaction(actionName, payload);
   } catch (error) {
+    console.error(`[blockchain.js] Error in ${actionName}:`, error);
     if (config.mode === "auto") {
       console.warn(
         `[blockchain.js] ${actionName} fell back to mock mode:`,
@@ -292,4 +308,8 @@ export async function createEventOnChain(data) {
 
 export async function enrollCourseOnChain(data) {
   return runChainAction("enrollCourseOnChain", data);
+}
+
+export async function createCourseOnChain(data) {
+  return runChainAction("createCourseOnChain", data);
 }

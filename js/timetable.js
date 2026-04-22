@@ -1,4 +1,4 @@
-import { getState, SAMPLE_COURSES } from "./main.js";
+import { getState } from "./main.js";
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIMES = ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'];
@@ -9,8 +9,9 @@ function renderTimetable() {
 
   const state = getState();
   const enrolledIds = state.enrolledCourses || [];
+  const allCourses = state.courses || [];
   
-  const enrolledCourses = SAMPLE_COURSES.filter(c => enrolledIds.includes(c.id));
+  const enrolledCourses = allCourses.filter(c => enrolledIds.includes(c.id));
 
   let html = `<div class="tt-header">Time</div>`;
   DAYS.forEach(day => {

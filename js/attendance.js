@@ -1,15 +1,9 @@
 import { markAttendanceOnChain } from "./blockchain.js";
 import {
-  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState, SAMPLE_COURSES
+  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
 
-function mockChainAction() {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ txId: 'tx_' + Math.random().toString(36).slice(2, 11) });
-    }, 1500);
-  });
-}
+
 
 function renderAttendance() {
   const target = document.querySelector("[data-attendance-list]");
@@ -18,8 +12,9 @@ function renderAttendance() {
   const state = getState();
   const records = state.attendanceRecords || [];
   const enrolledIds = state.enrolledCourses || [];
+  const allCourses = state.courses || [];
   
-  const enrolledCourses = SAMPLE_COURSES.filter(c => enrolledIds.includes(c.id));
+  const enrolledCourses = allCourses.filter(c => enrolledIds.includes(c.id));
 
   if (enrolledCourses.length === 0) {
     target.innerHTML = '<p class="small-copy">No courses enrolled. Enroll in courses first to see attendance.</p>';
@@ -58,13 +53,14 @@ function bindMarkButtons() {
       if (!(await requireConnectedWallet({ message: "Connect your wallet before marking attendance." }))) return;
 
       const courseId = btn.dataset.markBtn;
-      const course = SAMPLE_COURSES.find(c => c.id === courseId);
+      const state = getState();
+      const course = (state.courses || []).find(c => c.id === courseId);
       
       setButtonPending(btn, true, "Verifying...", "Mark Attendance");
       setTransaction("Pending", `Attendance: ${course.code}`, "Student attendance transaction submitted.", "");
 
       try {
-        const result = await mockChainAction();
+        const result = await markAttendanceOnChain({ courseId: course.id, mode: 'student' });
         updateState((state) => {
           state.attendanceRecords.unshift({
             id: "att_" + Date.now(),
