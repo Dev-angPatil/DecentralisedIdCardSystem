@@ -18,11 +18,14 @@ pub struct RegisterStudent<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<RegisterStudent>, student_id: String, name: String) -> Result<()> {
+pub fn handler(ctx: Context<RegisterStudent>, student_id: String, name: String, department: String, semester: String, email: String) -> Result<()> {
     let student = &mut ctx.accounts.student;
     student.authority = ctx.accounts.authority.key();
     student.student_id = student_id;
     student.name = name;
+    student.department = department;
+    student.semester = semester;
+    student.email = email;
     student.bump = ctx.bumps.student;
     Ok(())
 }
