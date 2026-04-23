@@ -16,6 +16,12 @@ const NAV_ITEMS = [
   ["login.html", "Login", "login"]
 ];
 
+const ADMIN_NAV_ITEMS = [
+  ["admin_dashboard.html", "Admin Dashboard", "admin_dashboard"],
+  ["admin_courses.html", "Manage Courses", "admin_courses"],
+  ["admin_events.html", "Manage Events", "admin_events"]
+];
+
 /* ─── Sample Data (used for seeding) ─────────── */
 const SEED_COURSES = [
   { id:'cs101', code:'CS101', name:'Data Structures & Algorithms',    credits:4, instructor:'Dr. Priya Sharma',   days:['Mon','Wed','Fri'], time:'9:00 AM',  room:'LH-201',    color:'blue'     },
@@ -98,12 +104,15 @@ export function requireAuth(){
   
   if(page.startsWith('admin_')){
     if(!session || !session.isAdmin){
-      window.location.href = 'admin_login.html';
+      window.location.href = 'login.html';
       return false;
     }
   } else if(PROTECTED.includes(page)){
-    if(!session || session.isAdmin){
+    if(!session){
       window.location.href = 'login.html';
+      return false;
+    } else if (session.isAdmin) {
+      window.location.href = 'admin_dashboard.html';
       return false;
     }
   }
@@ -239,7 +248,7 @@ function renderHeader(){
   document.getElementById('logout-btn')?.addEventListener('click', ()=>{
     clearSession();
     updateState(s => { s.walletAddress=''; return s; });
-    window.location.href = session?.isAdmin ? 'admin_login.html' : 'login.html';
+    window.location.href = 'login.html';
   });
 }
 
@@ -477,11 +486,15 @@ function populateHomeSummary() {
 }
 
 async function init() {
+  seedData();
   saveState(getState());
+  if(!requireAuth()) return;
   renderSharedElements();
   
   populateDashboardStats();
   populateHomeSummary();
+  renderDashboard();
+  renderProfile();
 
   if (window.solana && window.solana.isPhantom) {
     try {
