@@ -21,6 +21,9 @@ pub struct CreateEvent<'info> {
 pub fn handler(
     ctx: Context<CreateEvent>,
     event_id: String,
+    title: String,
+    description: String,
+    venue: String,
     capacity: u32,
     start_time: i64,
     end_time: i64,
@@ -28,6 +31,9 @@ pub fn handler(
     let event = &mut ctx.accounts.event;
     event.authority = ctx.accounts.authority.key();
     event.event_id = event_id;
+    event.title = title;
+    event.description = description;
+    event.venue = venue;
     event.capacity = capacity;
     event.registrations = 0;
     event.start_time = start_time;

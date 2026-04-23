@@ -11,37 +11,17 @@
       <header data-site-header></header>
 
       <main class="page-content">
-        <section class="content-grid">
+        <section class="content-grid" style="grid-template-columns:1fr">
           <article class="glass-card section-card">
             <div class="section-head">
               <div>
-                <p class="eyebrow">Attendance History</p>
-                <h2>Records prepared for future on-chain verification</h2>
+                <p class="eyebrow">Course Attendance</p>
+                <h2>Track your lecture attendance</h2>
               </div>
-              <span class="pill">markAttendanceOnChain()</span>
+              <span class="pill">On-Chain Verified</span>
             </div>
-            <div class="stack-list" data-attendance-list></div>
+            <div class="cards-grid" data-attendance-list style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
           </article>
-
-          <aside class="action-stack">
-            <section class="glass-card section-card">
-              <p class="eyebrow">Student Action</p>
-              <h2>Mark Attendance (On-Chain)</h2>
-              <p>Simulates a student-side blockchain attendance transaction.</p>
-              <button type="button" class="primary-btn" data-mark-attendance>
-                Mark Attendance (On-Chain)
-              </button>
-            </section>
-
-            <section class="glass-card section-card">
-              <p class="eyebrow">Admin Section</p>
-              <h2>Verify Attendance (Blockchain)</h2>
-              <p>Admin verification also routes through the same blockchain placeholder file.</p>
-              <button type="button" class="secondary-btn" data-verify-attendance>
-                Verify Attendance (Blockchain)
-              </button>
-            </section>
-          </aside>
         </section>
       </main>
 

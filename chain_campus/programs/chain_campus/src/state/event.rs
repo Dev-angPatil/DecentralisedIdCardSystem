@@ -1,9 +1,12 @@
-wuse anchor_lang::prelude::*;
+use anchor_lang::prelude::*;
 
 #[account]
 pub struct Event {
     pub authority: Pubkey, // 32
-    pub event_id: String, // 4 + len (assume max 20)
+    pub event_id: String, // 4 + max 20
+    pub title: String, // 4 + max 50
+    pub description: String, // 4 + max 200
+    pub venue: String, // 4 + max 50
     pub capacity: u32, // 4
     pub registrations: u32, // 4
     pub start_time: i64, // 8
@@ -12,5 +15,5 @@ pub struct Event {
 }
 
 impl Event {
-    pub const MAX_SIZE: usize = 32 + (4 + 20) + 4 + 4 + 8 + 8 + 1;
+    pub const MAX_SIZE: usize = 32 + (4 + 20) + (4 + 50) + (4 + 200) + (4 + 50) + 4 + 4 + 8 + 8 + 1;
 }

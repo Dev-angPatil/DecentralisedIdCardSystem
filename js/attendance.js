@@ -1,159 +1,89 @@
 import { markAttendanceOnChain } from "./blockchain.js";
 import {
-  getState,
-  requireConnectedWallet,
-  setButtonPending,
-  setTransaction,
-  showToast,
-  updateState
+  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
+
+
 
 function renderAttendance() {
   const target = document.querySelector("[data-attendance-list]");
-  if (!target) {
-    return;
-  }
+  if (!target) return;
 
   const state = getState();
-  target.innerHTML = state.attendanceRecords
-    .map(
-      (record) => `
-        <article class="attendance-card">
-          <div class="card-top">
-            <div>
-              <span class="chain-tag">Attendance Record</span>
-              <h3>${record.subject}</h3>
-              <p>${record.date}</p>
-            </div>
-            <span class="status-badge ${record.status === "Verified" ? "success" : "pending"}">${record.status}</span>
-          </div>
-          <p class="small-copy">Verifier: ${record.verifier}</p>
-        </article>
-      `
-    )
-    .join("");
-}
+  const records = state.attendanceRecords || [];
+  const enrolledIds = state.enrolledCourses || [];
+  const allCourses = state.courses || [];
+  
+  const enrolledCourses = allCourses.filter(c => enrolledIds.includes(c.id));
 
-function initAttendanceActions() {
-  const markButton = document.querySelector("[data-mark-attendance]");
-  const verifyButton = document.querySelector("[data-verify-attendance]");
-  if (!markButton || !verifyButton) {
+  if (enrolledCourses.length === 0) {
+    target.innerHTML = '<p class="small-copy">No courses enrolled. Enroll in courses first to see attendance.</p>';
     return;
   }
 
-  markButton.addEventListener("click", async () => {
-    if (!(await requireConnectedWallet({
-      message: "Connect your wallet before marking attendance."
-    }))) {
-      return;
-    }
+  target.innerHTML = enrolledCourses.map(course => {
+    const courseRecords = records.filter(r => r.courseId === course.id);
+    const total = 30; // mock total classes
+    const attended = courseRecords.length;
+    const pct = Math.round((attended / total) * 100) || 0;
+    
+    return `
+      <article class="attendance-card">
+        <div class="card-top">
+          <div>
+            <span class="chain-tag">${course.code}</span>
+            <h3>${course.name}</h3>
+            <p>${attended} / ${total} classes attended</p>
+          </div>
+          <span class="status-badge ${pct >= 75 ? 'success' : 'pending'}">${pct}%</span>
+        </div>
+        <div style="margin-top:12px">
+          <button type="button" class="primary-btn" data-mark-btn="${course.id}" style="width:100%">Mark Attendance (On-Chain)</button>
+        </div>
+      </article>
+    `;
+  }).join("");
 
-    setButtonPending(
-      markButton,
-      true,
-      "Transaction Pending...",
-      "Mark Attendance (On-Chain)"
-    );
-    setTransaction(
-      "Pending",
-      "Attendance marking",
-      "Student attendance transaction submitted.",
-      ""
-    );
+  bindMarkButtons();
+}
 
-    try {
-      const result = await markAttendanceOnChain({ mode: "student" });
-      updateState((state) => {
-        state.attendanceRecords.unshift({
-          id: "att_" + Date.now(),
-          subject: "Realtime Attendance Checkpoint",
-          date: "Today",
-          status: "Present",
-          verifier: "Student self-marked"
+function bindMarkButtons() {
+  document.querySelectorAll('[data-mark-btn]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!(await requireConnectedWallet({ message: "Connect your wallet before marking attendance." }))) return;
+
+      const courseId = btn.dataset.markBtn;
+      const state = getState();
+      const course = (state.courses || []).find(c => c.id === courseId);
+      
+      setButtonPending(btn, true, "Verifying...", "Mark Attendance");
+      setTransaction("Pending", `Attendance: ${course.code}`, "Student attendance transaction submitted.", "");
+
+      try {
+        const result = await markAttendanceOnChain({ courseId: course.id, mode: 'student' });
+        updateState((state) => {
+          state.attendanceRecords.unshift({
+            id: "att_" + Date.now(),
+            courseId: course.id,
+            courseName: course.name,
+            subject: "Daily Lecture",
+            date: new Date().toLocaleDateString(),
+            status: "Verified",
+            verifier: "Smart Contract"
+          });
+          return state;
         });
-        return state;
-      });
-      setTransaction(
-        "Success",
-        "Attendance marked",
-        "Attendance recorded through the connected wallet flow.",
-        result.txId
-      );
-      showToast("Attendance marked", result.txId, "success");
-      renderAttendance();
-    } catch (error) {
-      setTransaction(
-        "Failed",
-        "Attendance marking failed",
-        "The connected wallet could not complete attendance marking.",
-        ""
-      );
-      showToast("Attendance failed", "Check the connected wallet and try again.", "failed");
-    } finally {
-      setButtonPending(
-        markButton,
-        false,
-        "Transaction Pending...",
-        "Mark Attendance (On-Chain)"
-      );
-    }
-  });
-
-  verifyButton.addEventListener("click", async () => {
-    if (!(await requireConnectedWallet({
-      message: "Connect the wallet before verifying attendance."
-    }))) {
-      return;
-    }
-
-    setButtonPending(
-      verifyButton,
-      true,
-      "Transaction Pending...",
-      "Verify Attendance (Blockchain)"
-    );
-    setTransaction(
-      "Pending",
-      "Attendance verification",
-      "Admin verification transaction submitted.",
-      ""
-    );
-
-    try {
-      const result = await markAttendanceOnChain({ mode: "admin-verify" });
-      updateState((state) => {
-        if (state.attendanceRecords.length > 0) {
-          state.attendanceRecords[0].status = "Verified";
-          state.attendanceRecords[0].verifier = "Admin Node 09";
-        }
-        return state;
-      });
-      setTransaction(
-        "Success",
-        "Attendance verified",
-        "Attendance verified through the connected wallet flow.",
-        result.txId
-      );
-      showToast("Attendance verified", result.txId, "success");
-      renderAttendance();
-    } catch (error) {
-      setTransaction(
-        "Failed",
-        "Attendance verification failed",
-        "The connected wallet could not verify attendance.",
-        ""
-      );
-      showToast("Verification failed", "Check the connected wallet and try again.", "failed");
-    } finally {
-      setButtonPending(
-        verifyButton,
-        false,
-        "Transaction Pending...",
-        "Verify Attendance (Blockchain)"
-      );
-    }
+        
+        setTransaction("Success", `Attendance marked for ${course.code}`, "Attendance recorded through connected wallet.", result.txId);
+        showToast("Attendance marked", result.txId, "success");
+        renderAttendance();
+      } catch (error) {
+        setTransaction("Failed", "Attendance failed", "Could not complete attendance marking.", "");
+        showToast("Attendance failed", "Check wallet and try again.", "failed");
+        setButtonPending(btn, false, "Verifying...", "Mark Attendance");
+      }
+    });
   });
 }
 
 renderAttendance();
-initAttendanceActions();

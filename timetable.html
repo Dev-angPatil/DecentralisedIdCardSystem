@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Timetable</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="timetable">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="content-grid" style="grid-template-columns:1fr">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Schedule</p>
+                <h2>Weekly Timetable</h2>
+              </div>
+              <span class="pill">Current Semester</span>
+            </div>
+            
+            <div class="timetable-grid" data-timetable>
+              <!-- Timetable rendered here via JS -->
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/timetable.js"></script>
+  </body>
+</html>
