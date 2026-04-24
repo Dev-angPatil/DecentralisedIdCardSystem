@@ -799,6 +799,105 @@ h1, h2, h3, h4 {
   margin-top: 12px;
 }
 
+/* ── COURSE CARD ─────────────────────────────────────────── */
+.course-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--stroke);
+  background: var(--glass-card);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--t-mid), transform var(--t-mid) var(--ease-spring), box-shadow var(--t-mid);
+  height: 100%;
+}
+
+.course-card:nth-child(3n+1) { background: var(--pastel-blue); border-color: var(--pastel-blue-border); }
+.course-card:nth-child(3n+2) { background: var(--pastel-mint); border-color: var(--pastel-mint-border); }
+.course-card:nth-child(3n+3) { background: var(--pastel-peach); border-color: var(--pastel-peach-border); }
+
+.course-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--stroke-teal);
+}
+
+.course-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.course-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal-mid);
+  background: var(--teal-pale);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(26,74,71,0.15);
+}
+
+.course-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.course-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+  
+}
+
+.course-meta span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+/*---------progress-----------*/
+.progress-container {
+  margin-top: 6px;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6a5cff, #00d4ff);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+
 /* ── TRANSACTION BOX ─────────────────────────────────────── */
 .transaction-box {
   padding: 14px 16px;

@@ -1,4 +1,5 @@
 import { markAttendanceOnChain } from "./blockchain.js";
+import { renderCourses } from "./courses.js";
 import {
   getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
@@ -73,6 +74,7 @@ function bindMarkButtons() {
           });
           return state;
         });
+        renderCourses();
         
         setTransaction("Success", `Attendance marked for ${course.code}`, "Attendance recorded through connected wallet.", result.txId);
         showToast("Attendance marked", result.txId, "success");

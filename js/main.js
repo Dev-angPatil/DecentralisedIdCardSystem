@@ -24,14 +24,71 @@ const ADMIN_NAV_ITEMS = [
 
 /* ─── Sample Data (used for seeding) ─────────── */
 const SEED_COURSES = [
-  { id:'cs101', code:'CS101', name:'Data Structures & Algorithms',    credits:4, instructor:'Dr. Priya Sharma',   days:['Mon','Wed','Fri'], time:'9:00 AM',  room:'LH-201',    color:'blue'     },
-  { id:'cs201', code:'CS201', name:'Database Management Systems',     credits:3, instructor:'Prof. Rahul Verma',  days:['Tue','Thu'],       time:'11:00 AM', room:'LH-102',    color:'pink'     },
-  { id:'cs301', code:'CS301', name:'Computer Networks',               credits:4, instructor:'Dr. Anjali Nair',   days:['Mon','Wed','Fri'], time:'2:00 PM',  room:'LH-305',    color:'mint'     },
-  { id:'cs401', code:'CS401', name:'Operating Systems',               credits:4, instructor:'Prof. Vikram Singh', days:['Tue','Thu'],      time:'9:00 AM',  room:'LH-203',    color:'peach'    },
-  { id:'ma101', code:'MA101', name:'Engineering Mathematics IV',      credits:3, instructor:'Dr. Meena Krishnan', days:['Mon','Wed','Fri'], time:'11:00 AM', room:'LH-101',    color:'lavender' },
-  { id:'cs501', code:'CS501', name:'Machine Learning',                credits:3, instructor:'Dr. Arjun Patel',   days:['Tue','Thu'],       time:'2:00 PM',  room:'ML-Lab-1',  color:'violet'   },
-  { id:'cs601', code:'CS601', name:'Blockchain Technology',           credits:3, instructor:'Prof. Deepa Menon', days:['Wed','Fri'],        time:'4:00 PM',  room:'LH-404',    color:'rose'     },
-  { id:'cs701', code:'CS701', name:'Web Development',                 credits:3, instructor:'Dr. Suresh Kumar',  days:['Mon','Thu'],        time:'4:00 PM',  room:'CS-Lab-2',  color:'amber'    },
+  { id:'cs101', code:'CS101', name:'Data Structures & Algorithms',    credits:4, instructor:'Dr. Priya Sharma',   days:['Mon','Wed','Fri'], time:'9:00 AM',  room:'LH-201',    color:'blue' , syllabus: [
+    "Arrays & Linked Lists",
+    "Stacks & Queues",
+    "Trees (BST, AVL)",
+    "Graph Algorithms",
+    "Sorting & Searching"
+  ],
+  prereq: "Basic Programming in C/C++"    },
+  { id:'cs201', code:'CS201', name:'Database Management Systems',     credits:3, instructor:'Prof. Rahul Verma',  days:['Tue','Thu'],       time:'11:00 AM', room:'LH-102',    color:'pink' ,syllabus: [
+    "Blockchain Fundamentals",
+    "Cryptographic Hashing",
+    "Consensus Mechanisms",
+    "Smart Contracts",
+    "Solana Architecture & dApps"
+  ],
+  prereq: "Computer Networks"    },
+  { id:'cs301', code:'CS301', name:'Computer Networks',               credits:4, instructor:'Dr. Anjali Nair',   days:['Mon','Wed','Fri'], time:'2:00 PM',  room:'LH-305',    color:'mint' ,syllabus: [
+    "Introduction & Physical Layer",
+    "Data Link Layer",
+    "Network Layer",
+    "Transport Layer",
+    "Application Layer & Security"
+  ],
+  prereq: "A foundational understanding of operating systems, basic computer architecture, and binary/hexadecimal systems"    },
+  { id:'cs401', code:'CS401', name:'Operating Systems',               credits:4, instructor:'Prof. Vikram Singh', days:['Tue','Thu'],      time:'9:00 AM',  room:'LH-203',    color:'peach' ,syllabus: [
+    "Process Management",
+    "CPU Scheduling",
+    "Memory Management",
+    "File Systems",
+    "Deadlocks"
+  ],
+  prereq: "Data Structures"   },
+  { id:'ma101', code:'MA101', name:'Engineering Mathematics IV',      credits:3, instructor:'Dr. Meena Krishnan', days:['Mon','Wed','Fri'], time:'11:00 AM', room:'LH-101',    color:'lavender',syllabus: [
+    "Numerical Methods for ODEs", 
+    "Complex Variables & Integration",
+     "Probability Distributions & Sampling", 
+     "Partial Differential Equations", 
+     "Markov Chains & Stochastic Processes" 
+  ], 
+    prereq: "Engineering Mathematics III" },
+  { id:'cs501', code:'CS501', name:'Machine Learning',                credits:3, instructor:'Dr. Arjun Patel',   days:['Tue','Thu'],       time:'2:00 PM',  room:'ML-Lab-1',  color:'violet' ,syllabus: [
+    "Supervised & Unsupervised Learning", 
+    "Linear & Logistic Regression", 
+    "Neural Networks & Deep Learning",
+     "Decision Trees & Random Forests",
+      "Dimensionality Reduction & PCA"
+     ], 
+     prereq: "Engineering Mathematics IV & Python Programming"
+  },
+  { id:'cs601', code:'CS601', name:'Blockchain Technology',           credits:3, instructor:'Prof. Deepa Menon', days:['Wed','Fri'],        time:'4:00 PM',  room:'LH-404',    color:'rose' , syllabus: [
+    "Blockchain Fundamentals",
+    "Cryptographic Hashing",
+    "Consensus Mechanisms",
+    "Smart Contracts",
+    "Solana Architecture & dApps"
+  ],
+  prereq: "Computer Networks"   },
+  { id:'cs701', code:'CS701', name:'Web Development',                 credits:3, instructor:'Dr. Suresh Kumar',  days:['Mon','Thu'],        time:'4:00 PM',  room:'CS-Lab-2',  color:'amber' ,syllabus: [
+    "Front-End Fundamentals",
+    "Responsive Design & Frameworks",
+    "Back-End Development",
+    "Database Management",
+    "Version Control & Deployment"
+  ],
+  prereq: " Fundamental Understanding of networks"   },
 ];
 
 const SEED_EVENTS = [
@@ -59,6 +116,8 @@ const defaultState = {
   walletAddress:'', student:{},
   lastTransaction:{ status:'Idle', label:'No transaction yet', message:'', txId:'' },
   notifications:[], attendanceRecords:[], events:[], courses:[], enrolledCourses:[], txLog:[], seeded:false,
+  totalCredits: 0,
+  maxCredits: 24
 };
 
 /* ═══════════════ STATE ════════════════════════════════════ */
