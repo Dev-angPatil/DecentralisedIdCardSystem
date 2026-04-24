@@ -1,18 +1,20 @@
 import { markAttendanceOnChain } from "./blockchain.js";
 import {
-  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
+  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState, fetchCourses, fetchAttendance
 } from "./main.js";
 
 
 
-function renderAttendance() {
+async function renderAttendance() {
   const target = document.querySelector("[data-attendance-list]");
   if (!target) return;
 
+  target.innerHTML = '<p class="small-copy">Loading attendance records from database...</p>';
+
   const state = getState();
-  const records = state.attendanceRecords || [];
+  const records = await fetchAttendance();
   const enrolledIds = state.enrolledCourses || [];
-  const allCourses = state.courses || [];
+  const allCourses = await fetchCourses();
   
   const enrolledCourses = allCourses.filter(c => enrolledIds.includes(c.id));
 
@@ -44,17 +46,16 @@ function renderAttendance() {
     `;
   }).join("");
 
-  bindMarkButtons();
+  bindMarkButtons(allCourses);
 }
 
-function bindMarkButtons() {
+function bindMarkButtons(allCourses) {
   document.querySelectorAll('[data-mark-btn]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!(await requireConnectedWallet({ message: "Connect your wallet before marking attendance." }))) return;
 
       const courseId = btn.dataset.markBtn;
-      const state = getState();
-      const course = (state.courses || []).find(c => c.id === courseId);
+      const course = allCourses.find(c => c.id === courseId);
       
       setButtonPending(btn, true, "Verifying...", "Mark Attendance");
       setTransaction("Pending", `Attendance: ${course.code}`, "Student attendance transaction submitted.", "");

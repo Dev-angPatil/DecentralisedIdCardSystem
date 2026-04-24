@@ -1,17 +1,21 @@
 import { 
-  getState, updateState, requireConnectedWallet, setButtonPending, setTransaction, showToast, addToTxLog 
+  getState, updateState, requireConnectedWallet, setButtonPending, setTransaction, showToast, addToTxLog, fetchCourses, fetchEvents 
 } from "./main.js";
 import { createCourseOnChain, createEventOnChain } from "./blockchain.js";
 
 /* ─── DASHBOARD ───────────────────────────────────────────── */
-function renderAdminDashboard() {
+async function renderAdminDashboard() {
   const statsEl = document.querySelector('[data-admin-stats]');
   if (!statsEl) return;
 
   const state = getState();
   const studentsCount = (JSON.parse(localStorage.getItem('chainCampusUsers') || '[]')).filter(u => !u.isAdmin).length;
-  const coursesCount = (state.courses || []).length;
-  const eventsCount = (state.events || []).length;
+  
+  const coursesList = await fetchCourses();
+  const eventsList = await fetchEvents();
+  
+  const coursesCount = coursesList.length;
+  const eventsCount = eventsList.length;
   const txCount = (state.txLog || []).length;
 
   statsEl.innerHTML = `
@@ -69,12 +73,13 @@ function initCourseManagement() {
   });
 }
 
-function renderAdminCoursesList() {
+async function renderAdminCoursesList() {
   const target = document.querySelector('[data-courses-list]');
   if (!target) return;
 
-  const state = getState();
-  target.innerHTML = (state.courses || []).map(c => `
+  target.innerHTML = '<p class="small-copy">Loading courses...</p>';
+  const coursesList = await fetchCourses();
+  target.innerHTML = coursesList.map(c => `
     <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px">
       <div>
         <strong style="color:var(--brand-primary)">${c.code}</strong>: ${c.name}
@@ -137,12 +142,13 @@ function initEventManagement() {
   });
 }
 
-function renderAdminEventsList() {
+async function renderAdminEventsList() {
   const target = document.querySelector('[data-events-list]');
   if (!target) return;
 
-  const state = getState();
-  target.innerHTML = (state.events || []).map(e => `
+  target.innerHTML = '<p class="small-copy">Loading events...</p>';
+  const eventsList = await fetchEvents();
+  target.innerHTML = eventsList.map(e => `
     <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px">
       <div>
         <strong>${e.title}</strong>

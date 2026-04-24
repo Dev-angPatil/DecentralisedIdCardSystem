@@ -37,7 +37,7 @@ function initLoginPage(){
       return;
     }
 
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
     if(!user || user.password !== password){
       showError(errMsg, 'Invalid email or password.');
       markInvalid(form.email);
@@ -60,7 +60,7 @@ function initLoginPage(){
     if(!addr){ return; }
 
     pendingUser.walletAddress = addr;
-    saveUser(pendingUser);
+    await saveUser(pendingUser);
     updateState(s => { s.walletAddress = addr; return s; });
 
     setSession(pendingUser);

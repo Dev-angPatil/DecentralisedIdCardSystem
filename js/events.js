@@ -6,17 +6,20 @@ import {
   setButtonPending,
   setTransaction,
   showToast,
-  updateState
+  updateState,
+  fetchEvents
 } from "./main.js";
 
-function renderEvents() {
+async function renderEvents() {
   const target = document.querySelector("[data-events-list]");
   if (!target) {
     return;
   }
 
-  const state = getState();
-  target.innerHTML = state.events
+  target.innerHTML = '<p class="small-copy">Loading events from database...</p>';
+  const events = await fetchEvents();
+
+  target.innerHTML = events
     .map(
       (event) => `
         <article class="event-card glass-card" data-event-card="${event.id}">
@@ -40,12 +43,12 @@ function renderEvents() {
         </article>
       `
     )
-    .join("");
+    .join("") || '<p class="small-copy">No events found.</p>';
 
-  bindEventButtons();
+  bindEventButtons(events);
 }
 
-function bindEventButtons() {
+function bindEventButtons(events) {
   document.querySelectorAll("[data-register-event]").forEach((button) => {
     button.onclick = async () => {
       if (!(await requireConnectedWallet({
@@ -55,8 +58,7 @@ function bindEventButtons() {
       }
 
       const eventId = button.dataset.registerEvent;
-      const state = getState();
-      const eventItem = state.events.find((item) => item.id === eventId);
+      const eventItem = events.find((item) => item.id === eventId);
 
       if (!eventItem || eventItem.verified) {
         return;

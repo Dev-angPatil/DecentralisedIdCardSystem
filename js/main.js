@@ -69,18 +69,9 @@ export function updateState(fn){
   return saveState(next);
 }
 
-/* ═══════════════ USERS / SESSION ══════════════════════════ */
-export function getUsers(){
-  const raw = localStorage.getItem(USERS_KEY);
-  return raw ? JSON.parse(raw) : [];
-}
-export function saveUser(user){
-  const users = getUsers();
-  const i = users.findIndex(u => u.email === user.email);
-  if(i >= 0) users[i] = user; else users.push(user);
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-export function getUserByEmail(email){ return getUsers().find(u => u.email === email) || null; }
+import { fetchUsers, saveUser, getUserByEmail, fetchEvents, fetchCourses, fetchAttendance } from './db.js';
+
+export { fetchUsers, saveUser, getUserByEmail, fetchEvents, fetchCourses, fetchAttendance };
 
 export function getSession(){ const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; }
 export function setSession(user){ 
@@ -111,10 +102,11 @@ export function requireAuth(){
 }
 
 /* ═══════════════ SEED ══════════════════════════════════════ */
-function seedData(){
+async function seedData(){
   const s = getState();
-  if(!getUserByEmail('admin@college.edu')){
-    saveUser({ email:'admin@college.edu', password:'Admin()09', name:'System Admin', isAdmin:true });
+  const adminExists = await getUserByEmail('admin@college.edu');
+  if(!adminExists){
+    await saveUser({ email:'admin@college.edu', password:'Admin()09', name:'System Admin', isAdmin:true });
   }
 
   if(s.seeded) return;
@@ -420,13 +412,15 @@ export function renderSharedElements(){
   bindGlobal();
 }
 
-function populateDashboardStats() {
+async function populateDashboardStats() {
   const statsPanel = document.querySelector("[data-dashboard-stats]");
   const state = getState();
   
   if (statsPanel) {
-    const eventCount = state.events ? state.events.length : 12;
-    const attendanceCount = state.attendanceRecords ? state.attendanceRecords.length : 3;
+    const eventsList = await fetchEvents();
+    const attendanceList = await fetchAttendance();
+    const eventCount = eventsList.length;
+    const attendanceCount = attendanceList.length;
 
     statsPanel.innerHTML = `
       <div class="stat-card glass-card">
@@ -477,6 +471,7 @@ function populateHomeSummary() {
 }
 
 async function init() {
+  await seedData();
   saveState(getState());
   renderSharedElements();
   

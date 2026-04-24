@@ -1,15 +1,17 @@
 import { enrollCourseOnChain } from "./blockchain.js";
 import {
-  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
+  getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState, fetchCourses
 } from "./main.js";
 
-function renderCourses() {
+async function renderCourses() {
   const target = document.querySelector('[data-courses-list]');
   if (!target) return;
 
+  target.innerHTML = '<p class="small-copy">Loading courses from database...</p>';
+
   const state = getState();
   const enrolledIds = state.enrolledCourses || [];
-  const coursesList = state.courses || [];
+  const coursesList = await fetchCourses();
 
   target.innerHTML = coursesList.map(course => {
     const isEnrolled = enrolledIds.includes(course.id);
@@ -34,19 +36,18 @@ function renderCourses() {
         </div>
       </div>
     `;
-  }).join('');
+  }).join('') || '<p class="small-copy">No courses found.</p>';
 
-  bindEnrollButtons();
+  bindEnrollButtons(coursesList);
 }
 
-function bindEnrollButtons() {
+function bindEnrollButtons(coursesList) {
   document.querySelectorAll('[data-enroll-btn]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!(await requireConnectedWallet({ message: 'Connect wallet to enroll in courses.' }))) return;
 
       const courseId = btn.dataset.enrollBtn;
-      const state = getState();
-      const course = (state.courses || []).find(c => c.id === courseId);
+      const course = coursesList.find(c => c.id === courseId);
       if (!course) return;
 
       setButtonPending(btn, true, 'Processing...', 'Enroll (On-Chain)');
