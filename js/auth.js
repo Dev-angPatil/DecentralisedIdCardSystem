@@ -78,7 +78,6 @@ function initLoginPage(){
     const target = pendingUser.isAdmin ? 'admin_dashboard.html' : 'dashboard.html';
     setTimeout(()=>{ window.location.href = target; }, 600);
   });
-
   updateWalletCopy();
 }
 

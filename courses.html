@@ -31,6 +31,21 @@
               </div>
               <span class="pill">Enrollment Open</span>
             </div>
+            -------------------
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin:10px 0;">
+  <input 
+    type="text" 
+    id="course-search" 
+    placeholder="Search courses..." 
+    style="flex:1; padding:10px; border-radius:8px;"
+  />
+
+  <div class="credit-panel glass-card" style="padding:10px 15px;">
+    <p style="margin:0;">
+      Credits: <span id="credit-count">0</span> / 24
+    </p>
+  </div>
+</div>
             
             <div class="cards-grid" data-courses-list style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
               <!-- Courses rendered here -->
