@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Manage Scholarships</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="admin_scholarships">
+    <div class="site-shell">
+      <header data-site-header></header>
+
+      <main class="page-content">
+        <section class="hero-panel glass-card">
+          <div class="hero-copy">
+            <span class="chain-tag">Scholarship Admin</span>
+            <h1>Manage scholarship applications and approvals.</h1>
+            <p>Review submitted student applications, approve eligible entries, or reject incomplete requests.</p>
+          </div>
+          <div class="hero-rail">
+            <div class="rail-card">
+              <p>Total Applications</p>
+              <strong data-scholarship-total>0</strong>
+            </div>
+            <div class="rail-card">
+              <p>Pending Review</p>
+              <strong data-scholarship-pending>0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-card section-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Applications</p>
+              <h2>Review Queue</h2>
+            </div>
+            <span class="pill">Approve / Reject</span>
+          </div>
+          <div class="stack-list" data-admin-scholarship-applications></div>
+        </section>
+      </main>
+
+      <footer data-site-footer></footer>
+    </div>
+
+    <div class="toast-stack" data-toast-stack></div>
+
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

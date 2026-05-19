@@ -22,6 +22,7 @@ pub struct RegisterForEvent<'info> {
 }
 
 pub fn handler(ctx: Context<RegisterForEvent>) -> Result<()> {
+    let event_key = ctx.accounts.event.key();
     let event = &mut ctx.accounts.event;
     
     // Check capacity
@@ -31,7 +32,7 @@ pub fn handler(ctx: Context<RegisterForEvent>) -> Result<()> {
 
     let registration = &mut ctx.accounts.registration;
     registration.student = ctx.accounts.student.key();
-    registration.event = ctx.accounts.event.key();
+    registration.event = event_key;
     registration.timestamp = Clock::get()?.unix_timestamp;
     registration.bump = ctx.bumps.registration;
 

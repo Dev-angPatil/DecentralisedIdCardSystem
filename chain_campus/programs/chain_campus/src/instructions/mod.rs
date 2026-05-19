@@ -5,6 +5,9 @@ pub mod mark_attendance;
 pub mod verify_attendance;
 pub mod enroll_course;
 pub mod create_course;
+pub mod create_scholarship;
+pub mod apply_scholarship;
+pub mod review_scholarship_application;
 
 pub use register_student::*;
 pub use create_event::*;
@@ -13,3 +16,6 @@ pub use mark_attendance::*;
 pub use verify_attendance::*;
 pub use enroll_course::*;
 pub use create_course::*;
+pub use create_scholarship::*;
+pub use apply_scholarship::*;
+pub use review_scholarship_application::*;
