@@ -1,28 +1,24 @@
 # ChainCampus (Decentralised ID Card System)
 
-ChainCampus is a Web3-ready student platform for our college MVP presentation. It demonstrates student identity, courses, events, attendance, scholarships, admin workflows, Phantom wallet connection, mock blockchain transactions, local Anchor smart contract code, and SQLite-backed demo persistence.
+ChainCampus is a minimalist Web3-ready student platform built for our college MVP presentation. It demonstrates student identity, wallet connection, courses, events, attendance, scholarship applications, admin workflows, local smart contract code, and basic SQLite persistence.
 
-## Current MVP Status
+## MVP Status: What's Currently Working?
 
-The project is demo-ready in local/mock mode. Smart contract code is present locally, but it has not yet been deployed to Solana localnet/devnet.
+The project is currently demo-ready in local/mock mode. The frontend flow works without needing deployed Solana smart contracts or real transaction fees.
 
-### Working Student Features
+### 1. Functional User Interfaces
 
-- **Login / Signup**: Student accounts can be created and used for login.
-- **Student Dashboard (`dashboard.html`)**: Shows student overview, transaction log, and last blockchain action.
-- **Profile / ID Card (`profile.html`)**: Shows student identity details and wallet status.
+- **Student Login / Signup**: Students can create accounts and log in.
+- **Student Dashboard (`dashboard.html`)**: Shows student overview, transaction log, last transaction, and scholarship applications.
+- **Profile (`profile.html`)**: Shows student identity details and wallet status.
 - **Courses (`courses.html`)**: Students can enroll in courses through the blockchain abstraction layer.
 - **Events (`events.html`)**: Students can register for events through the blockchain abstraction layer.
 - **Attendance (`attendance.html`)**: Attendance UI and local demo records are available.
-- **Scholarships (`schol.html`)**: Students can browse scholarships, apply on-chain through mock mode, and get redirected to **My Applications**.
-- **My Applications**: Submitted scholarship applications appear on the student dashboard with status updates.
-
-### Working Admin Features
-
-- **Admin Dashboard (`admin_dashboard.html`)**: Shows admin-level metrics and quick actions.
-- **Manage Courses (`admin_courses.html`)**: Admin can create courses through the blockchain abstraction layer.
-- **Manage Events (`admin_events.html`)**: Admin can create events through the blockchain abstraction layer.
-- **Manage Scholarships (`admin_scholarships.html`)**: Admin can view student scholarship applications and approve/reject them.
+- **Scholarships (`schol.html`)**: Students can browse scholarships and apply through the on-chain/mock flow.
+- **Admin Dashboard (`admin_dashboard.html`)**: Shows admin metrics and management shortcuts.
+- **Manage Courses (`admin_courses.html`)**: Admin can create courses.
+- **Manage Events (`admin_events.html`)**: Admin can create events.
+- **Manage Scholarships (`admin_scholarships.html`)**: Admin can view scholarship applications and approve/reject them.
 
 Admin login:
 
@@ -31,11 +27,22 @@ Email: admin@college.edu
 Password: Admin()09
 ```
 
-### Blockchain / Smart Contract Status
+### 2. Web3 Mock Mode & Phantom Integration
 
-The frontend uses `js/blockchain.js` as a single abstraction layer for all blockchain actions. Right now it works in mock/auto mode so the demo runs smoothly without fees or deployed programs.
+- The frontend connects to Phantom wallet through `js/main.js`.
+- Blockchain actions go through `js/blockchain.js`.
+- The app currently runs in mock/auto mode for smooth demo transactions.
+- Actions generate mock transaction IDs and update the dashboard transaction log.
 
-Local Anchor smart contract code exists for:
+### 3. Smart Contract Blueprints
+
+Anchor/Rust smart contract code exists locally inside:
+
+```text
+chain_campus/programs/chain_campus/src/
+```
+
+Local smart contract code exists for:
 
 - student registration
 - event creation
@@ -48,7 +55,7 @@ Local Anchor smart contract code exists for:
 - scholarship application
 - scholarship approval/rejection
 
-Important status:
+Current blockchain status:
 
 ```text
 Smart contract code: Present locally
@@ -57,9 +64,9 @@ Solana deployment: Not deployed yet
 Frontend mode: Mock/auto demo mode
 ```
 
-### SQLite Demo Storage
+### 4. SQLite Demo Storage
 
-The project now includes a tiny Python SQLite backend:
+The project includes a basic Python SQLite backend:
 
 ```text
 server.py
@@ -71,17 +78,7 @@ It stores demo data in:
 data/chaincampus.db
 ```
 
-SQLite currently stores data as JSON snapshots for demo persistence:
-
-- users
-- current session
-- app state
-- wallet address
-- events
-- courses
-- attendance records
-- transaction log
-- scholarship applications
+SQLite currently stores demo data such as users, sessions, app state, transactions, courses, events, attendance records, and scholarship applications. This is intentionally simple and demo-friendly.
 
 Tables used:
 
@@ -90,9 +87,18 @@ app_store
 audit_log
 ```
 
-This is intentionally basic and FY-friendly. It is not a fully normalized production database yet.
+## Done
 
-## How To Run
+- Scholarship smart contract state and instruction files added.
+- Scholarship actions connected into the Anchor program entrypoint.
+- Scholarship apply flow connected to `js/blockchain.js`.
+- Student **My Applications** section added to the dashboard.
+- Separate admin **Manage Scholarships** page added.
+- Admin approval/rejection flow added for scholarship applications.
+- Basic SQLite persistence added using `server.py` and `js/db.js`.
+- README updated with current run steps and teammate tasks.
+
+## How To Run and Test The MVP
 
 Use the SQLite-backed demo server:
 
@@ -107,94 +113,85 @@ Then open:
 http://localhost:8000
 ```
 
-For a static preview without SQLite persistence, you can still run:
+For only a static UI preview without SQLite persistence, run:
 
 ```bash
 python -m http.server 8000
 ```
 
-## What Was Added Recently
+## Demo Flow
 
-- Added scholarship smart contract files in the Anchor program.
-- Added scholarship application and review instructions.
-- Connected scholarship functions into `lib.rs`, `instructions/mod.rs`, `state/mod.rs`, and `constants.rs`.
-- Connected scholarship apply flow to `js/blockchain.js`.
-- Added `js/scholarships.js` for student scholarship applications.
-- Added **My Applications** section on the student dashboard.
-- Added separate **Manage Scholarships** admin page.
-- Added admin approval/rejection flow for scholarship applications.
-- Added SQLite-backed persistence using `server.py` and `js/db.js`.
-- Updated the README and run instructions for the new SQLite server.
-
-## Teammates To-Do List
-
-### Demo Testing Team
-
-1. Test student signup and login.
-2. Test admin login.
-3. Test wallet connect/skip flow.
-4. Apply for a scholarship as a student.
+1. Sign up or log in as a student.
+2. Connect Phantom wallet or skip wallet for demo.
+3. Open **Scholarships**.
+4. Apply for a scholarship.
 5. Confirm the student is redirected to **My Applications**.
-6. Login as admin and approve/reject the application in **Manage Scholarships**.
-7. Login again as student and confirm the application status changed.
-8. Test course enrollment and event registration.
-9. Check that data remains after refresh when running `python server.py`.
+6. Log in as admin.
+7. Open **Manage Scholarships**.
+8. Approve or reject the application.
+9. Log back in as student and check updated application status.
 
-### UI / Presentation Team
+## Teammates To-Do List & Next Steps
 
-1. Fix any remaining weird encoded symbols in page text.
-2. Make sure all pages look clean on laptop screen size.
-3. Prepare a short demo script:
-   - student login
-   - wallet connect
-   - scholarship apply
-   - admin approval
-   - student status update
-4. Add screenshots to the project report if needed.
+### Demo Testing
 
-### Backend / Database Team
+1. Test student signup/login.
+2. Test admin login.
+3. Test course enrollment.
+4. Test event registration.
+5. Test scholarship apply flow.
+6. Test admin scholarship approval/rejection.
+7. Confirm SQLite persistence works after refresh when using `python server.py`.
 
-1. Keep current SQLite as basic demo persistence.
-2. Optional future upgrade: convert JSON storage into proper tables:
-   - `users`
-   - `courses`
-   - `events`
-   - `scholarships`
-   - `scholarship_applications`
-   - `transactions`
-   - `attendance_records`
-3. Add a simple admin database viewer only if time permits.
+### UI Polish
 
-### Blockchain Team
+1. Check all pages on laptop screen size.
+2. Fix any remaining text/encoding issues.
+3. Prepare a short demo script for presentation.
+4. Add screenshots to the report if needed.
+
+### SQLite Improvements
+
+Current SQLite is basic JSON-style persistence. Future improvement can convert it into proper relational tables:
+
+- `users`
+- `courses`
+- `events`
+- `attendance_records`
+- `scholarships`
+- `scholarship_applications`
+- `transactions`
+
+### Blockchain Deployment
+
+To move from mock mode to real Solana localnet/devnet:
 
 1. Install Rust, Solana CLI, and Anchor in WSL Ubuntu.
-2. Run:
+2. Build the contract:
    ```bash
    anchor build
    ```
-3. Start local Solana validator:
+3. Start local validator:
    ```bash
    solana-test-validator
    ```
-4. Deploy to localnet:
+4. Deploy:
    ```bash
    anchor deploy
    ```
-5. Update the deployed Program ID in:
+5. Update Program ID in:
    - `chain_campus/programs/chain_campus/src/lib.rs`
    - `chain_campus/Anchor.toml`
    - `js/blockchain.js`
-6. Import/configure the generated IDL from:
+6. Connect the generated IDL from:
    ```text
    chain_campus/target/idl/
    ```
-7. Configure real PDA accounts for frontend Anchor mode.
 
 ## Future Scope
 
-- Deploy contracts to Solana devnet.
-- Replace mock mode with real Anchor transactions.
+- Deploy smart contracts to Solana devnet.
+- Replace mock transactions with real Anchor transactions.
 - Add QR/NFC-based student ID verification.
 - Normalize SQLite into proper relational tables.
-- Add role-based backend authentication.
 - Add document upload/verification for scholarship applications.
