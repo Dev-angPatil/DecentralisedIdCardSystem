@@ -21,7 +21,7 @@ Browse verified scholarships with clear eligibility criteria. Complete on-chain 
 </p>
 <div class="hero-actions">
 <button class="primary-btn" onclick="showAllScholarships()">Browse All Scholarships</button>
-<a class="secondary-btn" href="dashboard.html">My Applications</a>
+<a class="secondary-btn" href="dashboard.html#applications">My Applications</a>
 </div>
 </div>
 
@@ -267,8 +267,8 @@ function showScholarshipDetail(id) {
     </div>
 
     <div class="hero-actions" style="margin-top: 24px;">
-      <button class="primary-btn" onclick="applyScholarship('${id}')">
-        Apply On-Chain → 
+      <button class="primary-btn" data-apply-scholarship="${id}" onclick="applyScholarship('${id}')">
+        Apply On-Chain
       </button>
       <a class="secondary-btn" href="https://scholarship-portal.example.com" target="_blank">
         Official Portal
@@ -297,7 +297,7 @@ function applyScholarship(id) {
     toast.remove();
   }, 4000);
   
-  // TODO: Integrate with your blockchain.js
+  // Replaced by js/scholarships.js when module scripts load.
   console.log('Applying for scholarship:', id);
 }
 
@@ -353,5 +353,6 @@ document.head.appendChild(style);
 </script>
 
 <script type="module" src="js/main.js"></script>
+<script type="module" src="js/scholarships.js"></script>
 </body>
 </html>

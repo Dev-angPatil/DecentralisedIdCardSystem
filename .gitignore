@@ -1,6 +1,10 @@
 node_modules/
 frontend/node_modules/
 backend/node_modules/
+chain_campus/target/
 .DS_Store
+__pycache__/
 dist/
 .codex
+data/*.db
+data/*.db-journal

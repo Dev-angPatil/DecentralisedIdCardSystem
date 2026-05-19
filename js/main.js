@@ -1,9 +1,11 @@
+import { loadDatabaseSnapshot, persistSession, persistState, persistUsers } from "./db.js";
+
 const STORAGE_KEY   = "chainCampusState";
 const USERS_KEY     = "chainCampusUsers";
 const SESSION_KEY   = "chainCampusSession";
 const TOAST_MS      = 3200;
 
-const PROTECTED = ['dashboard','register','events','attendance','profile','courses','timetable'];
+const PROTECTED = ['dashboard','register','events','attendance','profile','courses','timetable','scholarships'];
 
 /* ─── Navigation ──────────────────────────────────────────── */
 const NAV_ITEMS = [
@@ -19,7 +21,8 @@ const NAV_ITEMS = [
 const ADMIN_NAV_ITEMS = [
   ["admin_dashboard.html", "Admin Dashboard", "admin_dashboard"],
   ["admin_courses.html", "Manage Courses", "admin_courses"],
-  ["admin_events.html", "Manage Events", "admin_events"]
+  ["admin_events.html", "Manage Events", "admin_events"],
+  ["admin_scholarships.html", "Manage Scholarships", "admin_scholarships"]
 ];
 
 /* ─── Sample Data (used for seeding) ─────────── */
@@ -58,7 +61,7 @@ const SEED_ENROLLED = ['cs101','cs601','cs501','ma101','cs301'];
 const defaultState = {
   walletAddress:'', student:{},
   lastTransaction:{ status:'Idle', label:'No transaction yet', message:'', txId:'' },
-  notifications:[], attendanceRecords:[], events:[], courses:[], enrolledCourses:[], txLog:[], seeded:false,
+  notifications:[], attendanceRecords:[], events:[], courses:[], enrolledCourses:[], scholarshipApplications:[], txLog:[], seeded:false,
 };
 
 /* ═══════════════ STATE ════════════════════════════════════ */
@@ -68,7 +71,11 @@ export function getState(){
   const raw = localStorage.getItem(STORAGE_KEY);
   return raw ? mergeState(JSON.parse(raw)) : { ...defaultState };
 }
-function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); return s; }
+function saveState(s){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  persistState(s);
+  return s;
+}
 export function updateState(fn){
   const cur = getState();
   const next = typeof fn === 'function' ? fn({ ...cur }) : fn;
@@ -85,17 +92,23 @@ export function saveUser(user){
   const i = users.findIndex(u => u.email === user.email);
   if(i >= 0) users[i] = user; else users.push(user);
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  persistUsers(users);
 }
 export function getUserByEmail(email){ return getUsers().find(u => u.email === email) || null; }
 
 export function getSession(){ const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; }
-export function setSession(user){ 
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ 
+export function setSession(user){
+  const session = {
     email:user.email, name:user.name, studentId:user.studentId, college:user.college, 
     program:user.program, year:user.year, isAdmin:user.isAdmin, loggedIn:true 
-  })); 
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  persistSession(session);
 }
-export function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+export function clearSession(){
+  localStorage.removeItem(SESSION_KEY);
+  persistSession(null);
+}
 export function isLoggedIn(){ const s = getSession(); return !!(s && s.loggedIn); }
 
 export function requireAuth(){
@@ -320,6 +333,7 @@ export function renderDashboard(){
 
   /* TX Log */
   renderTxLog();
+  renderScholarshipApplications();
 
   /* Last Transaction */
   const txBox = document.querySelector('[data-last-transaction]');
@@ -351,6 +365,47 @@ function renderTxLog(){
         <p class="small-copy">${t.ts}</p>
       </div>
     </div>`).join('');
+}
+
+async function hydrateFromDatabase(){
+  const snapshot = await loadDatabaseSnapshot();
+  if(!snapshot) return;
+
+  if(snapshot.chainCampusUsers){
+    localStorage.setItem(USERS_KEY, JSON.stringify(snapshot.chainCampusUsers));
+  }
+  if(snapshot.chainCampusState){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeState(snapshot.chainCampusState)));
+  }
+  if(snapshot.chainCampusSession){
+    localStorage.setItem(SESSION_KEY, JSON.stringify(snapshot.chainCampusSession));
+  }
+}
+
+function renderScholarshipApplications(){
+  const el = document.querySelector('[data-scholarship-applications]');
+  if(!el) return;
+
+  const session = getSession();
+  const applications = (getState().scholarshipApplications || [])
+    .filter(app => !session?.studentId || app.studentId === session.studentId);
+
+  if(!applications.length){
+    el.innerHTML = '<p class="small-copy">No scholarship applications yet. Apply from the Scholarships page to see them here.</p>';
+    return;
+  }
+
+  el.innerHTML = applications.map(app => `
+    <div class="info-row">
+      <div>
+        <strong>${app.title}</strong>
+        <p class="small-copy">${app.amount || ''} ${app.type ? '· ' + app.type : ''}</p>
+        <p class="small-copy">Applied: ${app.appliedAt || 'Just now'}</p>
+        ${app.txId ? `<p class="small-copy tx-id">🔗 ${app.txId}</p>` : ''}
+      </div>
+      <span class="status-badge ${app.status === 'Approved' ? 'success' : app.status === 'Rejected' ? 'failed' : 'pending'}">${app.status || 'Pending'}</span>
+    </div>
+  `).join('');
 }
 
 /* ─── PROFILE / ID CARD ───────────────────────────────────── */
@@ -486,6 +541,7 @@ function populateHomeSummary() {
 }
 
 async function init() {
+  await hydrateFromDatabase();
   seedData();
   saveState(getState());
   if(!requireAuth()) return;

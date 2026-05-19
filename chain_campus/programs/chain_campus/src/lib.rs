@@ -55,4 +55,35 @@ pub mod chain_campus {
     ) -> Result<()> {
         instructions::create_course::handler(ctx, course_id, name, credits, instructor)
     }
+
+    pub fn create_scholarship(
+        ctx: Context<CreateScholarship>,
+        scholarship_id: String,
+        title: String,
+        description: String,
+        eligibility: String,
+        amount: u64,
+        deadline: i64,
+    ) -> Result<()> {
+        instructions::create_scholarship::handler(
+            ctx,
+            scholarship_id,
+            title,
+            description,
+            eligibility,
+            amount,
+            deadline,
+        )
+    }
+
+    pub fn apply_scholarship(ctx: Context<ApplyScholarship>, statement: String) -> Result<()> {
+        instructions::apply_scholarship::handler(ctx, statement)
+    }
+
+    pub fn review_scholarship_application(
+        ctx: Context<ReviewScholarshipApplication>,
+        approved: bool,
+    ) -> Result<()> {
+        instructions::review_scholarship_application::handler(ctx, approved)
+    }
 }
