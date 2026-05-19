@@ -1,7 +1,7 @@
 import { 
   getState, updateState, requireConnectedWallet, setButtonPending, setTransaction, showToast, addToTxLog 
 } from "./main.js";
-import { createCourseOnChain, createEventOnChain } from "./blockchain.js";
+import { createCourseOnChain, createEventOnChain, reviewScholarshipApplicationOnChain } from "./blockchain.js";
 
 /* ─── DASHBOARD ───────────────────────────────────────────── */
 function renderAdminDashboard() {
@@ -12,14 +12,105 @@ function renderAdminDashboard() {
   const studentsCount = (JSON.parse(localStorage.getItem('chainCampusUsers') || '[]')).filter(u => !u.isAdmin).length;
   const coursesCount = (state.courses || []).length;
   const eventsCount = (state.events || []).length;
+  const scholarshipApplicationsCount = (state.scholarshipApplications || []).length;
   const txCount = (state.txLog || []).length;
 
   statsEl.innerHTML = `
     <div class="metric-card"><span>Total Students</span><strong>${studentsCount}</strong></div>
     <div class="metric-card"><span>Active Courses</span><strong>${coursesCount}</strong></div>
     <div class="metric-card"><span>Total Events</span><strong>${eventsCount}</strong></div>
+    <div class="metric-card"><span>Scholarship Apps</span><strong>${scholarshipApplicationsCount}</strong></div>
     <div class="metric-card"><span>Blockchain Txns</span><strong>${txCount}</strong></div>
   `;
+}
+
+function renderScholarshipReviewQueue() {
+  const target = document.querySelector('[data-admin-scholarship-applications]');
+  renderScholarshipStats();
+  if (!target) return;
+
+  const applications = getState().scholarshipApplications || [];
+  if (!applications.length) {
+    target.innerHTML = '<p class="small-copy">No scholarship applications submitted yet.</p>';
+    return;
+  }
+
+  target.innerHTML = applications.map(app => {
+    const reviewed = app.status === 'Approved' || app.status === 'Rejected';
+    const badgeClass = app.status === 'Approved' ? 'success' : app.status === 'Rejected' ? 'failed' : 'pending';
+
+    return `
+      <div class="info-row" style="align-items:flex-start; gap:14px">
+        <div>
+          <strong>${app.title}</strong>
+          <p class="small-copy">Student ID: ${app.studentId || 'Unknown'} · ${app.amount || ''} ${app.type ? '· ' + app.type : ''}</p>
+          <p class="small-copy">Applied: ${app.appliedAt || 'Recently'}</p>
+          ${app.reviewedAt ? `<p class="small-copy">Reviewed: ${app.reviewedAt}</p>` : ''}
+          ${app.txId ? `<p class="small-copy tx-id">🔗 ${app.txId}</p>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end">
+          <span class="status-badge ${badgeClass}">${app.status || 'Pending'}</span>
+          <button type="button" class="secondary-btn" data-review-scholarship="${app.id}" data-review-status="Approved" ${reviewed ? 'disabled' : ''}>Approve</button>
+          <button type="button" class="secondary-btn" data-review-scholarship="${app.id}" data-review-status="Rejected" ${reviewed ? 'disabled' : ''}>Reject</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  bindScholarshipReviewButtons();
+}
+
+function bindScholarshipReviewButtons() {
+  document.querySelectorAll('[data-review-scholarship]').forEach(btn => {
+    btn.onclick = async () => {
+      if (!(await requireConnectedWallet({ message: 'Connect admin wallet to review scholarship applications.' }))) return;
+
+      const applicationId = btn.dataset.reviewScholarship;
+      const nextStatus = btn.dataset.reviewStatus;
+      const application = (getState().scholarshipApplications || []).find(app => app.id === applicationId);
+      if (!application || application.status === 'Approved' || application.status === 'Rejected') return;
+
+      setButtonPending(btn, true, 'Reviewing...', nextStatus);
+      setTransaction('Pending', `${nextStatus} Scholarship: ${application.title}`, 'Submitting scholarship review transaction.', '');
+
+      try {
+        const result = await reviewScholarshipApplicationOnChain({
+          applicationId,
+          scholarshipId: application.scholarshipId,
+          approved: nextStatus === 'Approved'
+        });
+
+        updateState(state => {
+          state.scholarshipApplications = (state.scholarshipApplications || []).map(app =>
+            app.id === applicationId
+              ? { ...app, status: nextStatus, reviewTxId: result.txId, reviewedAt: new Date().toLocaleString() }
+              : app
+          );
+          return state;
+        });
+
+        setTransaction('Success', `${nextStatus}: ${application.title}`, 'Scholarship application review completed.', result.txId);
+        showToast(`Application ${nextStatus}`, result.txId, 'success');
+        renderAdminDashboard();
+        renderScholarshipReviewQueue();
+      } catch (err) {
+        setTransaction('Failed', 'Scholarship Review Failed', err.message || 'Could not review application.', '');
+        showToast('Review failed', 'Check wallet and try again.', 'failed');
+        setButtonPending(btn, false, 'Reviewing...', nextStatus);
+      }
+    };
+  });
+}
+
+function renderScholarshipStats() {
+  const applications = getState().scholarshipApplications || [];
+  const totalEl = document.querySelector('[data-scholarship-total]');
+  const pendingEl = document.querySelector('[data-scholarship-pending]');
+
+  if (totalEl) totalEl.textContent = applications.length;
+  if (pendingEl) {
+    pendingEl.textContent = applications.filter(app => !app.status || app.status === 'Pending').length;
+  }
 }
 
 /* ─── COURSES ─────────────────────────────────────────────── */
@@ -155,5 +246,6 @@ function renderAdminEventsList() {
 
 /* ─── INIT ────────────────────────────────────────────────── */
 renderAdminDashboard();
+renderScholarshipReviewQueue();
 initCourseManagement();
 initEventManagement();

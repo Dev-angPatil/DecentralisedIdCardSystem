@@ -17,7 +17,10 @@ const DEFAULT_ACTION_METHODS = {
   markAttendanceOnChain: "markAttendance",
   createEventOnChain: "createEvent",
   enrollCourseOnChain: "enrollCourse",
-  createCourseOnChain: "createCourse"
+  createCourseOnChain: "createCourse",
+  createScholarshipOnChain: "createScholarship",
+  applyScholarshipOnChain: "applyScholarship",
+  reviewScholarshipApplicationOnChain: "reviewScholarshipApplication"
 };
 
 let blockchainConfig = {
@@ -150,6 +153,19 @@ function resolveArgs(actionName, payload, actionConfig, context) {
         payload.credits || 0, 
         payload.instructor || ""
       ];
+    case "createScholarshipOnChain":
+      return [
+        payload.scholarshipId || payload.id || "",
+        payload.title || "",
+        payload.description || "",
+        payload.eligibility || "",
+        payload.amountLamports || payload.amount || 0,
+        payload.deadlineTimestamp || payload.deadline || 0
+      ];
+    case "applyScholarshipOnChain":
+      return [payload.statement || ""];
+    case "reviewScholarshipApplicationOnChain":
+      return [Boolean(payload.approved)];
     default:
       return [];
   }
@@ -312,4 +328,16 @@ export async function enrollCourseOnChain(data) {
 
 export async function createCourseOnChain(data) {
   return runChainAction("createCourseOnChain", data);
+}
+
+export async function createScholarshipOnChain(data) {
+  return runChainAction("createScholarshipOnChain", data);
+}
+
+export async function applyScholarshipOnChain(data) {
+  return runChainAction("applyScholarshipOnChain", data);
+}
+
+export async function reviewScholarshipApplicationOnChain(data) {
+  return runChainAction("reviewScholarshipApplicationOnChain", data);
 }

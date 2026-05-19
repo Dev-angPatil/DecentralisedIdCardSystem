@@ -1,61 +1,200 @@
 # ChainCampus (Decentralised ID Card System)
 
-ChainCampus is a minimalist, Web3-ready student platform built for our college MVP presentation. It features a modern user interface geared towards student identity, event registration, and scholarship applications integrated tightly with Solana blockchain abstractions.
+ChainCampus is a Web3-ready student platform for our college MVP presentation. It demonstrates student identity, courses, events, attendance, scholarships, admin workflows, Phantom wallet connection, mock blockchain transactions, local Anchor smart contract code, and SQLite-backed demo persistence.
 
-## 🚀 MVP Status: What's Currently Working?
+## Current MVP Status
 
-We have established a robust Minimum Viable Product (MVP) aimed at demonstrating the flow and user experience without needing active smart contracts deployed or transaction fees.
+The project is demo-ready in local/mock mode. Smart contract code is present locally, but it has not yet been deployed to Solana localnet/devnet.
 
-### 1. Functional User Interfaces
-- **Student Dashboard (`dashboard.html`)**: Real-time mock data aggregations showing active Web3 status, total registered events, and attendance.
-- **Identity Registration (`register.html`)**: Forms capture core student fields: Name, College, Program, Year, Semester, Department, and Email.
-- **Event Admin (`events.html`)**: Event creation with specific details like capacity, descriptions, venue, and date.
-- **Scholarships Portal (`schol.html`)**: A beautiful, dynamic UI prototype listing various scholarships with details and eligibility. (Note: This is currently UI-only and represents future implementation scope).
-- **UI Architecture**: Fully responsive, glassmorphism design utilizing `css/styles.css`.
+### Working Student Features
 
-### 2. Web3 "Mock Mode" & Phantom Integration
-- **Persistent Wallet Sessions**: The frontend successfully connects to the Phantom wallet browser extension via `js/main.js`. Even upon refreshing the page, session persistence maintains the login state smoothly.
-- **Mock Transactions**: To facilitate easy demonstrations and testing by professors or non-crypto native users, the UI currently operates under a "Mock State". This means pressing "Register (On-Chain)" simulates a Solana transaction layer perfectly across `js/blockchain.js`, presenting a UI loader, and generating a mock transaction signature.
+- **Login / Signup**: Student accounts can be created and used for login.
+- **Student Dashboard (`dashboard.html`)**: Shows student overview, transaction log, and last blockchain action.
+- **Profile / ID Card (`profile.html`)**: Shows student identity details and wallet status.
+- **Courses (`courses.html`)**: Students can enroll in courses through the blockchain abstraction layer.
+- **Events (`events.html`)**: Students can register for events through the blockchain abstraction layer.
+- **Attendance (`attendance.html`)**: Attendance UI and local demo records are available.
+- **Scholarships (`schol.html`)**: Students can browse scholarships, apply on-chain through mock mode, and get redirected to **My Applications**.
+- **My Applications**: Submitted scholarship applications appear on the student dashboard with status updates.
 
-### 3. Smart Contract Blueprints (Anchor / Solana)
-The mathematical foundations of our Solana smart contract have been written in Rust but are not yet compiled or deployed to localnet/devnet.
-- **Schema Mapping**: The `Student` struct and `Event` struct in `chain_campus/programs/chain_campus/src/state` have been expanded and mapped exactly to match the current HTML forms.
+### Working Admin Features
 
----
+- **Admin Dashboard (`admin_dashboard.html`)**: Shows admin-level metrics and quick actions.
+- **Manage Courses (`admin_courses.html`)**: Admin can create courses through the blockchain abstraction layer.
+- **Manage Events (`admin_events.html`)**: Admin can create events through the blockchain abstraction layer.
+- **Manage Scholarships (`admin_scholarships.html`)**: Admin can view student scholarship applications and approve/reject them.
 
-## 🛠️ How To Run and Test The MVP
+Admin login:
 
-This frontend is lightweight. There's no need to install Node, run Docker, or deploy Solana programs for a simple visual demonstration.
+```text
+Email: admin@college.edu
+Password: Admin()09
+```
 
-1. Clone the repository and navigate into the folder.
-2. Spin up a basic local static server. If you have Python installed, run this in your terminal:
-   ```bash
-   python -m http.server 8000
-   ```
-3. Open your browser and navigate to `http://localhost:8000`.
-4. Once loaded, click **Connect Wallet** using the Phantom Extension.
-5. You can now explore the dashboard, "Register" a fake student, or "Create" an event to witness how the app mimics blockchain boundaries flawlessly.
+### Blockchain / Smart Contract Status
 
----
+The frontend uses `js/blockchain.js` as a single abstraction layer for all blockchain actions. Right now it works in mock/auto mode so the demo runs smoothly without fees or deployed programs.
 
-## 📝 Teammates To-Do List & Next Steps
+Local Anchor smart contract code exists for:
 
-If you are picking up this project, your goal is to transition the frontend away from "Mock Mode" into a compiled, deployment-ready Solana project.
+- student registration
+- event creation
+- event registration
+- attendance marking
+- attendance verification
+- course creation
+- course enrollment
+- scholarship creation
+- scholarship application
+- scholarship approval/rejection
 
-### Phase 1: Smart Contract Compilation (Rust/Solana Devs)
-The underlying Solana smart contracts reside within the `chain_campus/` directory.
+Important status:
 
-1. **Setup Your Environment**: Install [Rust](https://rustup.rs/) and the [Solana CLI tools](https://docs.solana.com/cli/install-solana-cli-tools). **Important Tip:** If you are on Windows, you should strictly use WSL (Ubuntu Terminal) to develop Anchor scripts, as natively installing Anchor on Windows is highly unstable and unsupported.
-2. **Build the Contract**: Open your terminal in the `chain_campus` directory and compile the rust code into a deployed binary schema by running:
+```text
+Smart contract code: Present locally
+Anchor build: Not completed with Anchor CLI
+Solana deployment: Not deployed yet
+Frontend mode: Mock/auto demo mode
+```
+
+### SQLite Demo Storage
+
+The project now includes a tiny Python SQLite backend:
+
+```text
+server.py
+```
+
+It stores demo data in:
+
+```text
+data/chaincampus.db
+```
+
+SQLite currently stores data as JSON snapshots for demo persistence:
+
+- users
+- current session
+- app state
+- wallet address
+- events
+- courses
+- attendance records
+- transaction log
+- scholarship applications
+
+Tables used:
+
+```text
+app_store
+audit_log
+```
+
+This is intentionally basic and FY-friendly. It is not a fully normalized production database yet.
+
+## How To Run
+
+Use the SQLite-backed demo server:
+
+```bash
+cd DecentralisedIdCardSystem
+python server.py
+```
+
+Then open:
+
+```text
+http://localhost:8000
+```
+
+For a static preview without SQLite persistence, you can still run:
+
+```bash
+python -m http.server 8000
+```
+
+## What Was Added Recently
+
+- Added scholarship smart contract files in the Anchor program.
+- Added scholarship application and review instructions.
+- Connected scholarship functions into `lib.rs`, `instructions/mod.rs`, `state/mod.rs`, and `constants.rs`.
+- Connected scholarship apply flow to `js/blockchain.js`.
+- Added `js/scholarships.js` for student scholarship applications.
+- Added **My Applications** section on the student dashboard.
+- Added separate **Manage Scholarships** admin page.
+- Added admin approval/rejection flow for scholarship applications.
+- Added SQLite-backed persistence using `server.py` and `js/db.js`.
+- Updated the README and run instructions for the new SQLite server.
+
+## Teammates To-Do List
+
+### Demo Testing Team
+
+1. Test student signup and login.
+2. Test admin login.
+3. Test wallet connect/skip flow.
+4. Apply for a scholarship as a student.
+5. Confirm the student is redirected to **My Applications**.
+6. Login as admin and approve/reject the application in **Manage Scholarships**.
+7. Login again as student and confirm the application status changed.
+8. Test course enrollment and event registration.
+9. Check that data remains after refresh when running `python server.py`.
+
+### UI / Presentation Team
+
+1. Fix any remaining weird encoded symbols in page text.
+2. Make sure all pages look clean on laptop screen size.
+3. Prepare a short demo script:
+   - student login
+   - wallet connect
+   - scholarship apply
+   - admin approval
+   - student status update
+4. Add screenshots to the project report if needed.
+
+### Backend / Database Team
+
+1. Keep current SQLite as basic demo persistence.
+2. Optional future upgrade: convert JSON storage into proper tables:
+   - `users`
+   - `courses`
+   - `events`
+   - `scholarships`
+   - `scholarship_applications`
+   - `transactions`
+   - `attendance_records`
+3. Add a simple admin database viewer only if time permits.
+
+### Blockchain Team
+
+1. Install Rust, Solana CLI, and Anchor in WSL Ubuntu.
+2. Run:
    ```bash
    anchor build
    ```
-3. **Deploy to Devnet**: Ensure you have funded your local Solana configuration with SOL and deploy the resulting programs to Solana's `devnet`. 
-   > **Critical Step**: You must grab the `Target Program ID` generated after your first deployment and insert it into the `declare_id!(...)` string block in `chain_campus/src/lib.rs`. Then build it one last time!
+3. Start local Solana validator:
+   ```bash
+   solana-test-validator
+   ```
+4. Deploy to localnet:
+   ```bash
+   anchor deploy
+   ```
+5. Update the deployed Program ID in:
+   - `chain_campus/programs/chain_campus/src/lib.rs`
+   - `chain_campus/Anchor.toml`
+   - `js/blockchain.js`
+6. Import/configure the generated IDL from:
+   ```text
+   chain_campus/target/idl/
+   ```
+7. Configure real PDA accounts for frontend Anchor mode.
 
-### Phase 2: Frontend Abstraction Integration (JS Devs)
-Once the Smart Contract is built, `anchor build` will spit out an `IDL (Interface Description Language)` JSON file containing your contract's ABI. 
+## Future Scope
 
-1. **Swap to Anchor Mode**: Open `js/blockchain.js`. Find or configure `window.CHAIN_CAMPUS_SOLANA_CONFIG` so `mode:` becomes `"anchor"`.
-2. **Import the IDL**: Import the `.json` IDL file exported from step 1 into the `js/blockchain.js` configuration object. This forces the UI HTML elements to format their arguments exactly how the smart contract expects them over the RPC.
-3. **Finish the Scholarships Prototype**: `schol.html` operates robustly, but it needs an anchor foundation. You need to write a new `scholarship.rs` state struct inside the `chain_campus/programs/chain_campus/src/state/` folder and hook it into `js/blockchain.js`'s methods.
+- Deploy contracts to Solana devnet.
+- Replace mock mode with real Anchor transactions.
+- Add QR/NFC-based student ID verification.
+- Normalize SQLite into proper relational tables.
+- Add role-based backend authentication.
+- Add document upload/verification for scholarship applications.
