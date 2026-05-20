@@ -103,7 +103,7 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--text-main);
+  color: var(--text);
   background: var(--bg);
   /* Subtle soft radial highlights on light bg */
   background-image:

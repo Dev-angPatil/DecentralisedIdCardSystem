@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChainCampus | Profile</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body data-page="profile">
     <div class="site-shell">
@@ -24,9 +25,30 @@
           </article>
 
           <aside class="glass-card section-card">
-            <p class="eyebrow">View On-Chain Data</p>
-            <h2>Mock blockchain mirror</h2>
-            <div class="stack-list" data-onchain-details></div>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">On-Chain Ledger</p>
+                <h2>Blockchain Identity Mirror</h2>
+              </div>
+              <span class="pill">Solana network</span>
+            </div>
+            
+            <div class="profile-stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+              <div class="metric-card" style="padding: 14px; margin: 0; background: var(--pastel-mint); border-color: var(--pastel-mint-border);">
+                <span>Identity Status</span>
+                <strong id="profile-identity-status" style="font-size: 1.15rem; margin-top: 4px; color: var(--teal);">Checking...</strong>
+              </div>
+              <div class="metric-card" style="padding: 14px; margin: 0; background: var(--pastel-lavender); border-color: var(--pastel-lavender-border);">
+                <span>On-Chain Txns</span>
+                <strong id="profile-tx-count" style="font-size: 1.15rem; margin-top: 4px; color: var(--teal);">0</strong>
+              </div>
+            </div>
+
+            <div class="stack-list" data-onchain-details style="margin-bottom: 15px;"></div>
+
+            <div style="position: relative; height: 180px; width: 100%;">
+              <canvas id="profileActivityChart"></canvas>
+            </div>
           </aside>
         </section>
       </main>

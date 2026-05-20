@@ -73,6 +73,8 @@ import { fetchUsers, saveUser, getUserByEmail, fetchEvents, fetchCourses, fetchA
 
 export { fetchUsers, saveUser, getUserByEmail, fetchEvents, fetchCourses, fetchAttendance };
 
+import { renderAttendanceChart, renderTransactionChart, renderProfileActivityChart } from './charts.js';
+
 export function getSession(){ const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; }
 export function setSession(user){ 
   localStorage.setItem(SESSION_KEY, JSON.stringify({ 
@@ -384,6 +386,17 @@ export function renderProfile(){
       <div class="info-row"><span>Total Transactions</span><strong>${txCount}</strong></div>
       <div class="info-row"><span>Identity Status</span><strong>${verified?'Verified ✓':'Pending wallet link'}</strong></div>`;
   }
+
+  // Populate new ID metrics on profile page
+  const identityStatusEl = document.getElementById('profile-identity-status');
+  const txCountEl = document.getElementById('profile-tx-count');
+  if (identityStatusEl) {
+    identityStatusEl.textContent = verified ? 'Verified ✓' : 'Not Linked';
+    identityStatusEl.style.color = verified ? 'var(--emerald)' : 'var(--red)';
+  }
+  if (txCountEl) {
+    txCountEl.textContent = state.txLog?.length || 0;
+  }
 }
 
 /* ─── HOME SUMMARY ────────────────────────────────────────── */
@@ -421,20 +434,14 @@ async function populateDashboardStats() {
     const attendanceList = await fetchAttendance();
     const eventCount = eventsList.length;
     const attendanceCount = attendanceList.length;
+    const enrolled = state.enrolledCourses?.length || 0;
+    const wallet = state.walletAddress ? '🟢 Connected' : '⚪ Not Connected';
 
     statsPanel.innerHTML = `
-      <div class="stat-card glass-card">
-        <p>Total Registered Events</p>
-        <h2>${eventCount}</h2>
-      </div>
-      <div class="stat-card glass-card">
-        <p>Total Attendances</p>
-        <h2>${attendanceCount}</h2>
-      </div>
-      <div class="stat-card glass-card">
-        <p>Wallet Status</p>
-        <h2>${state.walletAddress ? 'Active' : 'Missing'}</h2>
-      </div>
+      <div class="metric-card"><span>Courses Enrolled</span><strong>${enrolled}</strong></div>
+      <div class="metric-card"><span>Attendance Rate</span><strong>${attendanceCount ? Math.round((attendanceList.filter(a => a.status === 'Verified').length / 30) * 100) : 0}%</strong></div>
+      <div class="metric-card"><span>Total Events</span><strong>${eventCount}</strong></div>
+      <div class="metric-card"><span>Wallet Status</span><strong style="font-size:1rem">${wallet}</strong></div>
     `;
   }
 
@@ -475,8 +482,21 @@ async function init() {
   saveState(getState());
   renderSharedElements();
   
-  populateDashboardStats();
-  populateHomeSummary();
+  const page = document.body.dataset.page || '';
+  if (page === 'dashboard') {
+    renderDashboard();
+    await populateDashboardStats();
+    const state = getState();
+    renderAttendanceChart('attendanceChart', state.attendanceRecords || []);
+    renderTransactionChart('transactionChart', state.txLog || []);
+  } else if (page === 'profile') {
+    renderProfile();
+    const state = getState();
+    renderProfileActivityChart('profileActivityChart', state);
+  } else {
+    populateDashboardStats();
+    populateHomeSummary();
+  }
 
   if (window.solana && window.solana.isPhantom) {
     try {
@@ -486,8 +506,17 @@ async function init() {
         return state;
       });
       renderSharedElements();
-      populateDashboardStats();
-      populateHomeSummary();
+      if (page === 'dashboard') {
+        renderDashboard();
+        await populateDashboardStats();
+        const state = getState();
+        renderAttendanceChart('attendanceChart', state.attendanceRecords || []);
+        renderTransactionChart('transactionChart', state.txLog || []);
+      } else if (page === 'profile') {
+        renderProfile();
+        const state = getState();
+        renderProfileActivityChart('profileActivityChart', state);
+      }
     } catch(err) {
       // Not yet authorized
     }

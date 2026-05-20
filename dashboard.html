@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChainCampus | Dashboard</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body data-page="dashboard">
     <div class="site-shell">
@@ -20,6 +21,34 @@
         </section>
 
         <section class="stats-grid" data-dashboard-stats></section>
+
+        <section class="content-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 6px;">
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Attendance Analysis</p>
+                <h2>Attendance Trend</h2>
+              </div>
+              <span class="pill">Verified On-Chain</span>
+            </div>
+            <div style="position: relative; height: 200px; width: 100%;">
+              <canvas id="attendanceChart"></canvas>
+            </div>
+          </article>
+
+          <article class="glass-card section-card">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">On-Chain Activity</p>
+                <h2>Transaction Frequency</h2>
+              </div>
+              <span class="pill">Solana Devnet</span>
+            </div>
+            <div style="position: relative; height: 200px; width: 100%;">
+              <canvas id="transactionChart"></canvas>
+            </div>
+          </article>
+        </section>
 
         <section class="content-grid">
           <article class="glass-card section-card">

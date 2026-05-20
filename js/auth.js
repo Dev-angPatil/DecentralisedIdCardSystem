@@ -26,7 +26,7 @@ function initLoginPage(){
   let pendingUser = null;
 
   /* Step 1 — credentials */
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
     clearError(errMsg);
     const email    = form.email.value.trim();

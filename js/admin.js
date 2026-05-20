@@ -80,9 +80,9 @@ async function renderAdminCoursesList() {
   target.innerHTML = '<p class="small-copy">Loading courses...</p>';
   const coursesList = await fetchCourses();
   target.innerHTML = coursesList.map(c => `
-    <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px">
+    <div class="info-row" style="background:var(--bg-soft); border-radius:var(--r-md); margin-bottom:8px">
       <div>
-        <strong style="color:var(--brand-primary)">${c.code}</strong>: ${c.name}
+        <strong style="color:var(--teal)">${c.code}</strong>: ${c.name}
         <p class="small-copy">${c.instructor} · ${c.credits} Credits</p>
       </div>
       <span class="pill">${c.room}</span>
@@ -149,7 +149,7 @@ async function renderAdminEventsList() {
   target.innerHTML = '<p class="small-copy">Loading events...</p>';
   const eventsList = await fetchEvents();
   target.innerHTML = eventsList.map(e => `
-    <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px">
+    <div class="info-row" style="background:var(--bg-soft); border-radius:var(--r-md); margin-bottom:8px">
       <div>
         <strong>${e.title}</strong>
         <p class="small-copy">${e.date} · ${e.venue}</p>
