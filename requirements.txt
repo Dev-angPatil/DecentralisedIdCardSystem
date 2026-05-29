@@ -1,0 +1,10 @@
+# ChainCampus Backend Dependencies
+# This project uses only the Python standard library, so no external pip packages are required.
+# 
+# Python Standard Library Modules Used:
+# - http.server (HTTP server and router)
+# - sqlite3 (Relational database client)
+# - json (State serialization)
+# - hashlib (Cryptographic signatures)
+# - pathlib (Asset paths)
+# - random, time (Onboarding helpers)
