@@ -1,8 +1,15 @@
 import os
+import re
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json
 import sqlite3
+
+# Try to import psycopg2 for Postgres support on Render
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
 
 
 ROOT = Path(__file__).resolve().parent
@@ -10,9 +17,135 @@ DB_DIR = Path(os.environ.get("DB_DIR", ROOT / "data"))
 DB_PATH = DB_DIR / "chaincampus.db"
 
 
+TABLE_PRIMARY_KEYS = {
+    "app_store": ["key"],
+    "users": ["email"],
+    "courses": ["id"],
+    "events": ["id"],
+    "attendance_records": ["id"],
+    "enrolled_courses": ["studentId", "courseId"],
+    "scholarship_applications": ["id"],
+    "transactions": ["txId"],
+    "session": ["email"],
+    "app_metadata": ["key"]
+}
+
+
+def translate_query(sql, params, is_postgres):
+    if not is_postgres:
+        return sql, params
+
+    # Convert ? placeholders to %s for postgres
+    sql = sql.replace("?", "%s")
+
+    # Rewrite SQLite AUTOINCREMENT to Postgres SERIAL
+    sql = re.sub(r"\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b", "SERIAL PRIMARY KEY", sql, flags=re.IGNORECASE)
+
+    # Rewrite TEXT DEFAULT CURRENT_TIMESTAMP to TEXT DEFAULT CURRENT_TIMESTAMP::text
+    sql = re.sub(r"\bTEXT\s+DEFAULT\s+CURRENT_TIMESTAMP\b", "TEXT DEFAULT CURRENT_TIMESTAMP::text", sql, flags=re.IGNORECASE)
+
+    # Rewrite INSERT OR REPLACE INTO table (cols) VALUES (vals)
+    match = re.match(r"^\s*INSERT\s+OR\s+REPLACE\s+INTO\s+(\w+)\s*\((.*?)\)\s*VALUES\s*\((.*?)\)", sql, re.IGNORECASE | re.DOTALL)
+    if match:
+        table_name = match.group(1)
+        cols_str = match.group(2)
+        vals_str = match.group(3)
+        cols = [c.strip() for c in cols_str.split(",")]
+        
+        # Get primary key(s)
+        pks = TABLE_PRIMARY_KEYS.get(table_name.lower(), ["id"])
+        
+        # Build ON CONFLICT clause
+        pk_str = ", ".join(pks)
+        update_cols = [c for c in cols if c not in pks]
+        if update_cols:
+            update_str = ", ".join(f"{c} = EXCLUDED.{c}" for c in update_cols)
+            sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({vals_str}) ON CONFLICT ({pk_str}) DO UPDATE SET {update_str}"
+        else:
+            sql = f"INSERT INTO {table_name} ({cols_str}) VALUES ({vals_str}) ON CONFLICT ({pk_str}) DO NOTHING"
+
+    return sql, params
+
+
+class DBWrapper:
+    def __init__(self, conn, is_postgres=False):
+        self.conn = conn
+        self.is_postgres = is_postgres
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            self.rollback()
+        else:
+            self.commit()
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        try:
+            self.conn.rollback()
+        except:
+            pass
+
+    def close(self):
+        self.conn.close()
+
+    def execute(self, sql, params=None):
+        sql, params = translate_query(sql, params, self.is_postgres)
+        
+        if self.is_postgres:
+            cur = self.conn.cursor()
+            try:
+                cur.execute(sql, params or ())
+                return CursorWrapper(cur)
+            except Exception as e:
+                try:
+                    self.conn.rollback()
+                except:
+                    pass
+                raise e
+        else:
+            if params is not None:
+                return CursorWrapper(self.conn.execute(sql, params))
+            return CursorWrapper(self.conn.execute(sql))
+
+
+class CursorWrapper:
+    def __init__(self, cursor_res):
+        self.res = cursor_res
+
+    def fetchone(self):
+        return self.res.fetchone()
+
+    def fetchall(self):
+        return self.res.fetchall()
+
+    def __iter__(self):
+        return iter(self.res)
+
+    def __del__(self):
+        try:
+            self.res.close()
+        except:
+            pass
+
+
 def get_db():
-    DB_DIR.mkdir(exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url and psycopg2:
+        print("Connecting to PostgreSQL database...")
+        conn = psycopg2.connect(database_url)
+        wrapped_conn = DBWrapper(conn, is_postgres=True)
+    else:
+        print("Connecting to SQLite database...")
+        DB_DIR.mkdir(exist_ok=True)
+        conn = sqlite3.connect(DB_PATH)
+        wrapped_conn = DBWrapper(conn, is_postgres=False)
+        
+    conn = wrapped_conn
     
     # 1. Create original tables for compatibility / audit
     conn.execute(
@@ -168,15 +301,15 @@ def get_db():
     # Run dynamic migrations to ensure compatibility if db already exists
     try:
         conn.execute("ALTER TABLE users ADD COLUMN virtualBalance REAL DEFAULT 5.00")
-    except sqlite3.OperationalError:
+    except Exception:
         pass
     try:
         conn.execute("ALTER TABLE session ADD COLUMN virtualBalance REAL DEFAULT 5.00")
-    except sqlite3.OperationalError:
+    except Exception:
         pass
     try:
         conn.execute("ALTER TABLE session ADD COLUMN walletAddress TEXT")
-    except sqlite3.OperationalError:
+    except Exception:
         pass
         
     conn.commit()
