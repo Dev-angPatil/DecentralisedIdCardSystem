@@ -2,6 +2,7 @@ import { markAttendanceOnChain } from "./blockchain.js";
 import {
   getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
+import { markAttendanceOnServer, addTransactionOnServer } from "./db.js";
 
 
 
@@ -61,13 +62,33 @@ function bindMarkButtons() {
 
       try {
         const result = await markAttendanceOnChain({ courseId: course.id, mode: 'student' });
+        const recordId = "att_" + Date.now();
+        const dateStr = new Date().toLocaleDateString();
+
+        // Sync to relational backend
+        await markAttendanceOnServer({
+          id: recordId,
+          courseId: course.id,
+          courseName: course.name,
+          subject: "Daily Lecture",
+          date: dateStr,
+          status: "Verified",
+          verifier: "Smart Contract"
+        });
+
+        await addTransactionOnServer({
+          txId: result.txId,
+          action: `Attendance: ${course.code}`,
+          status: "success"
+        });
+
         updateState((state) => {
           state.attendanceRecords.unshift({
-            id: "att_" + Date.now(),
+            id: recordId,
             courseId: course.id,
             courseName: course.name,
             subject: "Daily Lecture",
-            date: new Date().toLocaleDateString(),
+            date: dateStr,
             status: "Verified",
             verifier: "Smart Contract"
           });

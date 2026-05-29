@@ -2,6 +2,9 @@ import {
   getState, updateState, requireConnectedWallet, setButtonPending, setTransaction, showToast, addToTxLog 
 } from "./main.js";
 import { createCourseOnChain, createEventOnChain, reviewScholarshipApplicationOnChain } from "./blockchain.js";
+import { 
+  reviewScholarshipOnServer, createCourseOnServer, createEventOnServer, addTransactionOnServer, transferSOLOnServer
+} from "./db.js";
 
 /* ─── DASHBOARD ───────────────────────────────────────────── */
 function renderAdminDashboard() {
@@ -80,6 +83,27 @@ function bindScholarshipReviewButtons() {
           approved: nextStatus === 'Approved'
         });
 
+        // 1. If approved, execute closed-loop SOL transfer from University Treasury
+        if (nextStatus === 'Approved') {
+          const amtStr = application.amount || "5.00";
+          const amount = parseFloat(amtStr.replace(/[^0-9.]/g, '')) || 5.0;
+          showToast('Triggering Payout', `Transferring ${amount} SOL to student wallet...`, 'pending');
+          await transferSOLOnServer(application.studentId, amount, `Scholarship Payout: ${application.title}`);
+        }
+
+        // 2. Sync to relational backend review queue
+        await reviewScholarshipOnServer({
+          id: applicationId,
+          status: nextStatus,
+          reviewTxId: result.txId
+        });
+
+        await addTransactionOnServer({
+          txId: result.txId,
+          action: `${nextStatus} Scholarship: ${application.title}`,
+          status: "success"
+        });
+
         updateState(state => {
           state.scholarshipApplications = (state.scholarshipApplications || []).map(app =>
             app.id === applicationId
@@ -139,6 +163,15 @@ function initCourseManagement() {
         name: payload.name,
         credits: payload.credits,
         instructor: payload.instructor
+      });
+
+      // Sync to relational backend
+      await createCourseOnServer(payload);
+
+      await addTransactionOnServer({
+        txId: result.txId,
+        action: `Create Course: ${payload.code}`,
+        status: "success"
       });
 
       updateState(s => {
@@ -207,6 +240,18 @@ function initEventManagement() {
         capacity: payload.capacity,
         start_time: start,
         end_time: end
+      });
+
+      // Sync to relational backend
+      await createEventOnServer({
+        ...payload,
+        verified: true
+      });
+
+      await addTransactionOnServer({
+        txId: result.txId,
+        action: `Create Event: ${payload.title}`,
+        status: "success"
       });
 
       updateState(s => {

@@ -1,6 +1,31 @@
 const SOLANA_WEB3_IMPORT_URL = "https://esm.sh/@solana/web3.js@1.98.4";
 const ANCHOR_IMPORT_URL = "https://esm.sh/@coral-xyz/anchor@0.30.1";
 
+import { deductGasOnServer } from "./db.js";
+
+export function getOrCreateVirtualWallet() {
+  let address = localStorage.getItem("chainCampusVirtualAddress");
+  if (!address) {
+    const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let randomPart = "";
+    for (let i = 0; i < 36; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    address = "CCvW" + randomPart;
+    localStorage.setItem("chainCampusVirtualAddress", address);
+    localStorage.setItem("chainCampusWalletType", "virtual");
+  }
+  return address;
+}
+
+export function getActiveWalletAddress() {
+  const type = localStorage.getItem("chainCampusWalletType") || "virtual";
+  if (type === "phantom" && window.solana && window.solana.isPhantom) {
+    return window.solana.publicKey?.toBase58() || "";
+  }
+  return getOrCreateVirtualWallet();
+}
+
 const DEFAULT_CONFIG = {
   mode: "auto",
   network: "localhost",
@@ -48,7 +73,16 @@ function resolveConfig() {
   };
 }
 
-function simulateTransaction(action, payload) {
+async function simulateTransaction(action, payload) {
+  try {
+    const isVirtual = localStorage.getItem("chainCampusWalletType") !== "phantom";
+    if (isVirtual) {
+      await deductGasOnServer(0.005, `Gas fee for ${action}`);
+    }
+  } catch (error) {
+    console.warn("[blockchain] Failed to deduct gas fee on server:", error);
+  }
+  
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -59,7 +93,7 @@ function simulateTransaction(action, payload) {
         network: "mock",
         source: "mock"
       });
-    }, 1500);
+    }, 1000);
   });
 }
 

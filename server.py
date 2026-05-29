@@ -46,7 +46,8 @@ def get_db():
             program TEXT,
             year TEXT,
             isAdmin INTEGER DEFAULT 0,
-            walletAddress TEXT
+            walletAddress TEXT,
+            virtualBalance REAL DEFAULT 5.00
         )
         """
     )
@@ -137,7 +138,9 @@ def get_db():
             program TEXT,
             year TEXT,
             isAdmin INTEGER DEFAULT 0,
-            loggedIn INTEGER DEFAULT 0
+            loggedIn INTEGER DEFAULT 0,
+            walletAddress TEXT,
+            virtualBalance REAL DEFAULT 5.00
         )
         """
     )
@@ -149,6 +152,21 @@ def get_db():
         )
         """
     )
+    
+    # Run dynamic migrations to ensure compatibility if db already exists
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN virtualBalance REAL DEFAULT 5.00")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE session ADD COLUMN virtualBalance REAL DEFAULT 5.00")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE session ADD COLUMN walletAddress TEXT")
+    except sqlite3.OperationalError:
+        pass
+        
     conn.commit()
 
     # 3. Migrate any existing data in app_store into relational tables
@@ -339,7 +357,7 @@ def read_store():
     data = {}
     with get_db() as conn:
         # 1. Users
-        users_rows = conn.execute("SELECT email, password, name, studentId, college, program, year, isAdmin, walletAddress FROM users").fetchall()
+        users_rows = conn.execute("SELECT email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users").fetchall()
         users_list = []
         for r in users_rows:
             users_list.append({
@@ -351,12 +369,13 @@ def read_store():
                 'program': r[5],
                 'year': r[6],
                 'isAdmin': bool(r[7]),
-                'walletAddress': r[8]
+                'walletAddress': r[8],
+                'virtualBalance': r[9]
             })
         data['chainCampusUsers'] = users_list
 
         # 2. Session
-        session_row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, loggedIn FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+        session_row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
         if session_row:
             data['chainCampusSession'] = {
                 'email': session_row[0],
@@ -366,7 +385,9 @@ def read_store():
                 'program': session_row[4],
                 'year': session_row[5],
                 'isAdmin': bool(session_row[6]),
-                'loggedIn': bool(session_row[7])
+                'loggedIn': bool(session_row[7]),
+                'walletAddress': session_row[8],
+                'virtualBalance': session_row[9]
             }
             active_student_id = session_row[2]
         else:
@@ -485,7 +506,9 @@ def read_store():
                     'studentId': student_user['studentId'],
                     'college': student_user['college'],
                     'program': student_user['program'],
-                    'year': student_user['year']
+                    'year': student_user['year'],
+                    'walletAddress': student_user['walletAddress'],
+                    'virtualBalance': student_user['virtualBalance']
                 }
 
         data['chainCampusState'] = state
@@ -514,8 +537,8 @@ def write_store(key, value):
             for u in value:
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO users (email, password, name, studentId, college, program, year, isAdmin, walletAddress)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO users (email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         u.get('email'),
@@ -526,7 +549,8 @@ def write_store(key, value):
                         u.get('program'),
                         u.get('year'),
                         1 if u.get('isAdmin') else 0,
-                        u.get('walletAddress')
+                        u.get('walletAddress'),
+                        u.get('virtualBalance', 5.00)
                     )
                 )
         
@@ -535,8 +559,8 @@ def write_store(key, value):
             if value and value.get('loggedIn'):
                 conn.execute(
                     """
-                    INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         value.get('email'),
@@ -546,7 +570,9 @@ def write_store(key, value):
                         value.get('program'),
                         value.get('year'),
                         1 if value.get('isAdmin') else 0,
-                        1 if value.get('loggedIn') else 0
+                        1 if value.get('loggedIn') else 0,
+                        value.get('walletAddress'),
+                        value.get('virtualBalance', 5.00)
                     )
                 )
                 if value.get('email'):
@@ -703,22 +729,515 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
-        routes = {
-            "/api/state": "chainCampusState",
-            "/api/users": "chainCampusUsers",
-            "/api/session": "chainCampusSession",
-        }
-        key = routes.get(self.path)
-        if not key:
-            self.send_json(404, {"error": "Not found"})
+        # 1. Web3 Auth: Wallet Lookup
+        if self.path == "/api/auth/wallet":
+            try:
+                payload = self.read_json_body()
+                wallet_addr = payload.get("walletAddress")
+                if not wallet_addr:
+                    self.send_json(400, {"error": "walletAddress required"})
+                    return
+                
+                with get_db() as conn:
+                    row = conn.execute(
+                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users WHERE walletAddress = ?",
+                        (wallet_addr,)
+                    ).fetchone()
+                    
+                    if row:
+                        user = {
+                            "email": row[0],
+                            "name": row[1],
+                            "studentId": row[2],
+                            "college": row[3],
+                            "program": row[4],
+                            "year": row[5],
+                            "isAdmin": bool(row[6]),
+                            "walletAddress": row[7],
+                            "virtualBalance": row[8],
+                            "loggedIn": True
+                        }
+                        
+                        # Set active session
+                        conn.execute("DELETE FROM session")
+                        conn.execute(
+                            """
+                            INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                            """,
+                            (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                        )
+                        conn.commit()
+                        self.send_json(200, {"ok": True, "user": user})
+                    else:
+                        self.send_json(200, {"ok": False, "reason": "unregistered"})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
             return
 
-        try:
-            payload = self.read_json_body()
-            write_store(key, payload)
-            self.send_json(200, {"ok": True, "key": key})
-        except Exception as error:
-            self.send_json(500, {"error": str(error)})
+        # 2. Web3 Auth: Onboard and Create Profile
+        if self.path == "/api/auth/register-profile":
+            try:
+                payload = self.read_json_body()
+                email = payload.get("email")
+                name = payload.get("name")
+                student_id = payload.get("studentId")
+                college = payload.get("college")
+                program = payload.get("program")
+                year = payload.get("year")
+                wallet_addr = payload.get("walletAddress")
+                virtual_balance = float(payload.get("virtualBalance", 5.00))
+                
+                if not student_id:
+                    import time, random
+                    student_id = f"CC-{time.strftime('%Y')}-{random.randint(1000, 9999)}"
+                
+                if not email or not name or not wallet_addr:
+                    self.send_json(400, {"error": "Missing required fields (email, name, walletAddress)"})
+                    return
+                
+                password = payload.get("password", "Web3OnlyAuthToken")
+                
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO users (email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                        """,
+                        (email, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                    )
+                    
+                    user = {
+                        "email": email,
+                        "name": name,
+                        "studentId": student_id,
+                        "college": college,
+                        "program": program,
+                        "year": year,
+                        "isAdmin": False,
+                        "walletAddress": wallet_addr,
+                        "virtualBalance": virtual_balance,
+                        "loggedIn": True
+                    }
+                    
+                    conn.execute("DELETE FROM session")
+                    conn.execute(
+                        """
+                        INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
+                        VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, ?)
+                        """,
+                        (email, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                    )
+                    conn.commit()
+                    self.send_json(200, {"ok": True, "user": user})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 3. Credentials Auth (for Admin bypass)
+        if self.path == "/api/auth/credentials":
+            try:
+                payload = self.read_json_body()
+                email = payload.get("email")
+                password = payload.get("password")
+                
+                if not email or not password:
+                    self.send_json(400, {"error": "Email and password required"})
+                    return
+                
+                with get_db() as conn:
+                    row = conn.execute(
+                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users WHERE email = ? AND password = ?",
+                        (email, password)
+                    ).fetchone()
+                    
+                    if row:
+                        user = {
+                            "email": row[0],
+                            "name": row[1],
+                            "studentId": row[2],
+                            "college": row[3],
+                            "program": row[4],
+                            "year": row[5],
+                            "isAdmin": bool(row[6]),
+                            "walletAddress": row[7],
+                            "virtualBalance": row[8],
+                            "loggedIn": True
+                        }
+                        
+                        conn.execute("DELETE FROM session")
+                        conn.execute(
+                            """
+                            INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                            """,
+                            (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                        )
+                        conn.commit()
+                        self.send_json(200, {"ok": True, "user": user})
+                    else:
+                        self.send_json(200, {"ok": False, "reason": "invalid"})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 4. Auth Logout
+        if self.path == "/api/auth/logout":
+            try:
+                with get_db() as conn:
+                    conn.execute("DELETE FROM session")
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 5. Relational Courses: Enroll
+        if self.path == "/api/courses/enroll":
+            try:
+                payload = self.read_json_body()
+                course_id = payload.get("courseId")
+                if not course_id:
+                    self.send_json(400, {"error": "courseId required"})
+                    return
+                
+                with get_db() as conn:
+                    session_row = conn.execute("SELECT studentId FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+                    if not session_row:
+                        self.send_json(401, {"error": "Unauthorized session"})
+                        return
+                    
+                    student_id = session_row[0]
+                    # Check duplicate
+                    exists = conn.execute("SELECT 1 FROM enrolled_courses WHERE studentId = ? AND courseId = ?", (student_id, course_id)).fetchone()
+                    if exists:
+                        self.send_json(400, {"error": "Already enrolled in this course"})
+                        return
+                    
+                    conn.execute(
+                        "INSERT OR REPLACE INTO enrolled_courses (studentId, courseId) VALUES (?, ?)",
+                        (student_id, course_id)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 6. Relational Events: Register
+        if self.path == "/api/events/register":
+            try:
+                payload = self.read_json_body()
+                event_id = payload.get("eventId") or payload.get("id")
+                if not event_id:
+                    self.send_json(400, {"error": "eventId required"})
+                    return
+                
+                with get_db() as conn:
+                    row = conn.execute("SELECT capacity FROM events WHERE id = ?", (event_id,)).fetchone()
+                    if row:
+                        if row[0] <= 0:
+                            self.send_json(400, {"error": "Event is already at full capacity"})
+                            return
+                        cap = max(0, row[0] - 1)
+                        conn.execute("UPDATE events SET capacity = ? WHERE id = ?", (cap, event_id))
+                        conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 6a. Wallet Airdrop
+        if self.path == "/api/wallet/airdrop":
+            try:
+                payload = self.read_json_body()
+                amount = float(payload.get("amount", 1.0))
+                with get_db() as conn:
+                    session_row = conn.execute("SELECT email FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+                    if not session_row:
+                        self.send_json(401, {"error": "Unauthorized session"})
+                        return
+                    
+                    email = session_row[0]
+                    conn.execute("UPDATE users SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, email))
+                    conn.execute("UPDATE session SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, email))
+                    
+                    new_bal = conn.execute("SELECT virtualBalance FROM users WHERE email = ?", (email,)).fetchone()[0]
+                    conn.commit()
+                self.send_json(200, {"ok": True, "virtualBalance": new_bal})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 6b. Wallet Transfer (closed-loop admin payout)
+        if self.path == "/api/wallet/transfer":
+            try:
+                payload = self.read_json_body()
+                recipient_id = payload.get("recipientId")
+                amount = float(payload.get("amount", 0.0))
+                action_desc = payload.get("action", "Scholarship Payout")
+                
+                if not recipient_id or amount <= 0:
+                    self.send_json(400, {"error": "recipientId and positive amount required"})
+                    return
+                
+                with get_db() as conn:
+                    session_row = conn.execute("SELECT isAdmin FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+                    if not session_row or not session_row[0]:
+                        self.send_json(403, {"error": "Admin access required"})
+                        return
+                    
+                    rec_row = conn.execute(
+                        "SELECT email, walletAddress, studentId FROM users WHERE studentId = ? OR walletAddress = ? OR email = ?",
+                        (recipient_id, recipient_id, recipient_id)
+                    ).fetchone()
+                    
+                    if not rec_row:
+                        self.send_json(404, {"error": "Recipient user not found"})
+                        return
+                    
+                    rec_email, rec_wallet, rec_student_id = rec_row
+                    conn.execute("UPDATE users SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, rec_email))
+                    conn.execute("UPDATE session SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, rec_email))
+                    
+                    import time
+                    tx_id = f"tx_transfer_{int(time.time())}"
+                    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                    conn.execute(
+                        "INSERT INTO transactions (txId, action, status, ts) VALUES (?, ?, 'success', ?)",
+                        (tx_id, f"{action_desc} of {amount} SOL to {rec_wallet or rec_student_id}", ts)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True, "txId": tx_id, "amount": amount})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 6c. Wallet Deduct Gas
+        if self.path == "/api/wallet/deduct-gas":
+            try:
+                payload = self.read_json_body()
+                amount = float(payload.get("amount", 0.005))
+                action = payload.get("action", "Transaction Gas Fee")
+                
+                with get_db() as conn:
+                    session_row = conn.execute("SELECT email, virtualBalance FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+                    if not session_row:
+                        self.send_json(401, {"error": "Unauthorized session"})
+                        return
+                    
+                    email, current_bal = session_row
+                    if current_bal < amount:
+                        self.send_json(400, {"error": "Insufficient virtual balance for transaction gas"})
+                        return
+                    
+                    conn.execute("UPDATE users SET virtualBalance = virtualBalance - ? WHERE email = ?", (amount, email))
+                    conn.execute("UPDATE session SET virtualBalance = virtualBalance - ? WHERE email = ?", (amount, email))
+                    
+                    import time
+                    tx_id = f"tx_gas_{int(time.time())}"
+                    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                    conn.execute(
+                        "INSERT INTO transactions (txId, action, status, ts) VALUES (?, ?, 'success', ?)",
+                        (tx_id, f"{action} (Gas: {amount} SOL)", ts)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True, "txId": tx_id, "gasDeducted": amount})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 7. Relational Scholarships: Apply
+        if self.path == "/api/scholarships/apply":
+            try:
+                payload = self.read_json_body()
+                schol_id = payload.get("scholarshipId")
+                title = payload.get("title")
+                amount = payload.get("amount")
+                schol_type = payload.get("type")
+                tx_id = payload.get("txId")
+                
+                if not schol_id or not title:
+                    self.send_json(400, {"error": "scholarshipId and title required"})
+                    return
+                
+                import time
+                app_id = f"app_{int(time.time())}"
+                applied_at = time.strftime("%Y-%m-%d %H:%M:%S")
+                
+                with get_db() as conn:
+                    session_row = conn.execute("SELECT studentId FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+                    if not session_row:
+                        self.send_json(401, {"error": "Unauthorized session"})
+                        return
+                    
+                    student_id = session_row[0]
+                    conn.execute(
+                        """
+                        INSERT INTO scholarship_applications (id, scholarshipId, title, amount, type, studentId, status, txId, appliedAt)
+                        VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?)
+                        """,
+                        (app_id, schol_id, title, amount, schol_type, student_id, tx_id, applied_at)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True, "applicationId": app_id})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 8. Relational Scholarships: Review
+        if self.path == "/api/scholarships/review":
+            try:
+                payload = self.read_json_body()
+                app_id = payload.get("id") or payload.get("applicationId")
+                status = payload.get("status")
+                review_tx_id = payload.get("reviewTxId")
+                
+                if not app_id or not status:
+                    self.send_json(400, {"error": "applicationId (id) and status required"})
+                    return
+                
+                import time
+                reviewed_at = time.strftime("%Y-%m-%d %H:%M:%S")
+                
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        UPDATE scholarship_applications
+                        SET status = ?, reviewTxId = ?, reviewedAt = ?
+                        WHERE id = ?
+                        """,
+                        (status, review_tx_id, reviewed_at, app_id)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 9. Relational Transactions: Add
+        if self.path == "/api/transactions/add":
+            try:
+                payload = self.read_json_body()
+                tx_id = payload.get("txId")
+                action = payload.get("action")
+                status = payload.get("status", "success")
+                
+                if not tx_id or not action:
+                    self.send_json(400, {"error": "txId and action required"})
+                    return
+                
+                import time
+                ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                
+                with get_db() as conn:
+                    conn.execute(
+                        "INSERT OR REPLACE INTO transactions (txId, action, status, ts) VALUES (?, ?, ?, ?)",
+                        (tx_id, action, status, ts)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 10. Relational Events: Create (Admin)
+        if self.path == "/api/events/create":
+            try:
+                payload = self.read_json_body()
+                event_id = payload.get("id") or payload.get("eventId")
+                title = payload.get("title")
+                date = payload.get("date")
+                venue = payload.get("venue")
+                capacity = payload.get("capacity", 100)
+                description = payload.get("description", "")
+                verified = payload.get("verified", 0)
+                
+                if not event_id or not title:
+                    self.send_json(400, {"error": "id and title required"})
+                    return
+                
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (event_id, title, date, venue, capacity, description, 1 if verified else 0)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 11. Relational Courses: Create (Admin)
+        if self.path == "/api/courses/create":
+            try:
+                payload = self.read_json_body()
+                course_id = payload.get("id") or payload.get("courseId")
+                code = payload.get("code")
+                name = payload.get("name")
+                credits = payload.get("credits", 3)
+                instructor = payload.get("instructor")
+                days = payload.get("days", [])
+                time = payload.get("time")
+                room = payload.get("room")
+                color = payload.get("color", "blue")
+                
+                if not course_id or not name:
+                    self.send_json(400, {"error": "id and name required"})
+                    return
+                
+                import json
+                days_json = json.dumps(days)
+                
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (course_id, code, name, credits, instructor, days_json, time, room, color)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 12. Relational Attendance: Mark
+        if self.path == "/api/attendance/mark":
+            try:
+                payload = self.read_json_body()
+                att_id = payload.get("id")
+                course_id = payload.get("courseId")
+                course_name = payload.get("courseName")
+                subject = payload.get("subject")
+                date = payload.get("date")
+                status = payload.get("status")
+                verifier = payload.get("verifier")
+                
+                if not att_id or not course_id:
+                    self.send_json(400, {"error": "id and courseId required"})
+                    return
+                
+                with get_db() as conn:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO attendance_records (id, courseId, courseName, subject, date, status, verifier)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (att_id, course_id, course_name, subject, date, status, verifier)
+                    )
+                    conn.commit()
+                self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # Fallback 404 for unmatched routes
+        self.send_json(404, {"error": "Endpoint not found"})
 
 
 if __name__ == "__main__":

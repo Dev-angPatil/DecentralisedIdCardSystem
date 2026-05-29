@@ -1,4 +1,4 @@
-import { loadDatabaseSnapshot, persistSession, persistState, persistUsers } from "./db.js";
+import { loadDatabaseSnapshot, logoutOnServer } from "./db.js";
 
 const STORAGE_KEY   = "chainCampusState";
 const USERS_KEY     = "chainCampusUsers";
@@ -73,7 +73,6 @@ export function getState(){
 }
 function saveState(s){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  persistState(s);
   return s;
 }
 export function updateState(fn){
@@ -92,7 +91,6 @@ export function saveUser(user){
   const i = users.findIndex(u => u.email === user.email);
   if(i >= 0) users[i] = user; else users.push(user);
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  persistUsers(users);
 }
 export function getUserByEmail(email){ return getUsers().find(u => u.email === email) || null; }
 
@@ -103,11 +101,9 @@ export function setSession(user){
     program:user.program, year:user.year, isAdmin:user.isAdmin, loggedIn:true 
   };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  persistSession(session);
 }
 export function clearSession(){
   localStorage.removeItem(SESSION_KEY);
-  persistSession(null);
 }
 export function isLoggedIn(){ const s = getSession(); return !!(s && s.loggedIn); }
 
@@ -239,13 +235,38 @@ function renderHeader(){
     `<a href="${href}" class="${page===cur?'active':''}">${label}</a>`
   ).join('');
 
+  const themeToggleHtml = `
+    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme" style="background:transparent; border:none; cursor:pointer; font-size:1.15rem; padding:6px; margin-right:5px; border-radius:50%; display:grid; place-items:center; transition:transform 0.4s var(--ease-spring); color:var(--text-on-teal-soft);">
+      🌓
+    </button>
+  `;
+
+  const isStudent = session && session.loggedIn && !session.isAdmin;
+  const virtualAddress = state.student?.walletAddress || state.walletAddress || session?.walletAddress || 'CCvW...';
+  const virtualBalance = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
+
   const authArea = session && session.loggedIn ? `
+    ${themeToggleHtml}
     <span class="user-chip" style="${session.isAdmin?'background:var(--warning)':''}">${getInitials(session.name)}</span>
-    <span class="wallet-chip">${state.walletAddress ? '🟢 '+truncate(state.walletAddress,12) : '⚪ No Wallet'}</span>
-    <button class="secondary-btn" id="logout-btn">Sign Out</button>
+    ${isStudent ? `
+      <div class="virtual-wallet-hud glass-card" style="display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);">
+        <span class="wallet-addr-hud" data-copy-hud-addr="${virtualAddress}" style="cursor:pointer; font-family:monospace; font-size:0.8rem; color:var(--text-on-teal-soft); display:flex; align-items:center; gap:4px;" title="Click to copy Address">
+          🟢 ${truncate(virtualAddress, 10)}
+        </span>
+        <span class="wallet-bal-hud" style="font-weight:600; font-size:0.85rem; color:#4ade80;">
+          💎 ${Number(virtualBalance).toFixed(3)} SOL
+        </span>
+        <button class="airdrop-hud-btn" id="airdrop-hud-btn" style="border:none; background:rgba(74, 222, 128, 0.15); color:#4ade80; cursor:pointer; font-weight:bold; font-size:0.75rem; padding:4px 8px; border-radius:8px; transition:transform 0.15s var(--ease-spring), background 0.15s; display:flex; align-items:center; gap:2px;" title="Request free virtual airdrop">
+          ⚡ +1 SOL
+        </button>
+      </div>
+    ` : `
+      <span class="wallet-chip">${state.walletAddress ? '🟢 '+truncate(state.walletAddress,12) : '⚪ No Wallet'}</span>
+    `}
+    <button class="secondary-btn" id="logout-btn" style="margin-left:5px;">Sign Out</button>
   ` : `
+    ${themeToggleHtml}
     <a href="login.html" class="secondary-btn">Login</a>
-    <a href="signup.html" class="primary-btn">Sign Up</a>
   `;
 
   header.innerHTML = `
@@ -258,10 +279,141 @@ function renderHeader(){
       <div class="nav-actions">${authArea}</div>
     </nav>`;
 
-  document.getElementById('logout-btn')?.addEventListener('click', ()=>{
+  // Copy address listener
+  const addrHud = header.querySelector('[data-copy-hud-addr]');
+  if(addrHud) {
+    addrHud.addEventListener('click', () => {
+      const fullAddr = addrHud.dataset.copyHudAddr;
+      navigator.clipboard.writeText(fullAddr);
+      
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: rgba(74, 222, 128, 0.95);
+        color: #0b1f15;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 12px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        z-index: 99999;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+      `;
+      toast.textContent = "📋 Address copied to clipboard!";
+      document.body.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+      });
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    });
+  }
+
+  // Airdrop listener
+  const airdropBtn = header.querySelector('#airdrop-hud-btn');
+  if(airdropBtn) {
+    airdropBtn.addEventListener('click', async () => {
+      airdropBtn.style.transform = 'scale(0.9)';
+      setTimeout(() => { if(airdropBtn) airdropBtn.style.transform = 'none'; }, 150);
+      
+      airdropBtn.disabled = true;
+      airdropBtn.innerHTML = `🌀 ...`;
+      
+      try {
+        const { airdropSOLOnServer } = await import("./db.js");
+        const res = await airdropSOLOnServer(1.0);
+        if(res.ok) {
+          updateState(s => {
+            if(s.student) s.student.virtualBalance = res.virtualBalance;
+            return s;
+          });
+          const currentSession = getSession();
+          if(currentSession) {
+            currentSession.virtualBalance = res.virtualBalance;
+            setSession(currentSession);
+          }
+          
+          renderHeader();
+          
+          // Re-render profile if active to sync card flip details
+          if(typeof renderProfile === 'function') {
+            try {
+              renderProfile();
+            } catch(e) {}
+          }
+          
+          const toast = document.createElement('div');
+          toast.style.cssText = `
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.95);
+            color: #4ade80;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            z-index: 99999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+          `;
+          toast.innerHTML = `💸 Received Airdrop of <span style="font-weight:800; text-decoration: underline;">1.00 SOL</span>!`;
+          document.body.appendChild(toast);
+          
+          requestAnimationFrame(() => {
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+          });
+          
+          setTimeout(() => {
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+          }, 3000);
+        }
+      } catch(err) {
+        console.error("Airdrop failed:", err);
+      } finally {
+        if(airdropBtn) {
+          airdropBtn.disabled = false;
+          airdropBtn.innerHTML = `⚡ +1 SOL`;
+        }
+      }
+    });
+  }
+
+  document.getElementById('logout-btn')?.addEventListener('click', async ()=>{
+    try {
+      await logoutOnServer();
+    } catch(e) {
+      console.warn("[main] Server logout failed:", e);
+    }
     clearSession();
     updateState(s => { s.walletAddress=''; return s; });
     window.location.href = 'login.html';
+  });
+
+  document.getElementById('theme-toggle')?.addEventListener('click', (e)=>{
+    const btn = e.currentTarget;
+    btn.style.transform = 'rotate(180deg)';
+    toggleTheme();
+    setTimeout(() => { btn.style.transform = 'none'; }, 400);
   });
 }
 
@@ -416,33 +568,70 @@ export function renderProfile(){
   if(!cardEl || !session) return;
 
   const initials = getInitials(session.name);
-  const wallet   = state.walletAddress || 'Not Connected';
+  const wallet = state.student?.walletAddress || state.walletAddress || session?.walletAddress || 'Not Connected';
+  const virtualBalance = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
   const wShort   = wallet !== 'Not Connected' ? truncate(wallet,20) : wallet;
-  const verified = !!state.walletAddress;
+  const verified = wallet !== 'Not Connected';
 
   cardEl.innerHTML = `
-    <div class="id-card">
-      <div class="id-card-header">
-        <div class="id-avatar">${initials}</div>
-        <div>
-          <p class="eyebrow">Student Identity Card</p>
-          <h2 class="id-name">${session.name || '—'}</h2>
-          <span class="id-badge ${verified?'success':'pending'}">${verified?'⛓ Blockchain Verified':'⚠ Wallet Not Linked'}</span>
+    <div class="flip-card-container" id="student-flip-card">
+      <div class="flip-card-inner">
+        <!-- Front Side -->
+        <div class="id-card flip-card-front">
+          <div class="id-card-header">
+            <div class="id-avatar">${initials}</div>
+            <div>
+              <p class="eyebrow">Student Identity Card</p>
+              <h2 class="id-name">${session.name || '—'}</h2>
+              <span class="id-badge ${verified?'success':'pending'}">${verified?'⛓ Blockchain Verified':'⚠ Wallet Not Linked'}</span>
+            </div>
+            <div class="id-logo">CC</div>
+          </div>
+          <div class="id-body">
+            <div class="id-field"><span>Student ID</span><strong>${session.studentId || '—'}</strong></div>
+            <div class="id-field"><span>College</span><strong>${session.college || '—'}</strong></div>
+            <div class="id-field"><span>Program</span><strong>${session.program || '—'}</strong></div>
+            <div class="id-field"><span>Year</span><strong>${session.year || '—'}</strong></div>
+            <div class="id-field wide"><span>Wallet Address</span><strong class="mono">${wShort}</strong></div>
+          </div>
+          <div class="id-footer">
+            <span class="small-copy">🔒 ChainCampus · Click to Flip Card</span>
+            <div class="qr-placeholder">QR</div>
+          </div>
         </div>
-        <div class="id-logo">CC</div>
-      </div>
-      <div class="id-body">
-        <div class="id-field"><span>Student ID</span><strong>${session.studentId || '—'}</strong></div>
-        <div class="id-field"><span>College</span><strong>${session.college || '—'}</strong></div>
-        <div class="id-field"><span>Program</span><strong>${session.program || '—'}</strong></div>
-        <div class="id-field"><span>Year</span><strong>${session.year || '—'}</strong></div>
-        <div class="id-field wide"><span>Wallet Address</span><strong class="mono">${wShort}</strong></div>
-      </div>
-      <div class="id-footer">
-        <span class="small-copy">ChainCampus · Solana Devnet</span>
-        <div class="qr-placeholder">QR</div>
+
+        <!-- Back Side -->
+        <div class="flip-card-back">
+          <div class="card-magnetic-strip"></div>
+          <div class="chip-placeholder"></div>
+          
+          <div style="margin-top: 50px; text-align: left; padding: 0 10px;">
+            <p class="eyebrow" style="color:var(--amber); letter-spacing: 0.1em; font-size: 0.65rem;">On-Chain Cryptographic Proof</p>
+            <h3 style="font-size: 1rem; font-weight: 700; margin: 4px 0 10px; color:#fff;">Solana Academic Record</h3>
+            
+            <div style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; display:grid; gap:6px; opacity:0.85; color:#e2e8f0;">
+              <div><span style="opacity:0.6">PROGRAM: </span>${truncate('Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd', 22)}</div>
+              <div><span style="opacity:0.6">OWNER PDA: </span>${truncate(wallet, 22)}</div>
+              <div><span style="opacity:0.6">STUDENT SEED: </span>${session.studentId || '—'}</div>
+              <div><span style="opacity:0.6">VIRTUAL BALANCE: </span><span style="color:#4ade80; font-weight:bold;">💎 ${Number(virtualBalance).toFixed(3)} SOL</span></div>
+              <div><span style="opacity:0.6">SYSTEM STATUS: </span>Verified & Signed</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; color:#fff;">
+            <span style="font-size: 0.62rem; font-family: 'JetBrains Mono', monospace; opacity: 0.7;">SECURITY VERIFIED ✓</span>
+            <span style="font-size: 0.75rem; font-family: 'Syne', sans-serif; font-weight: 800; color:var(--amber)">ChainCampus</span>
+          </div>
+        </div>
       </div>
     </div>`;
+
+  // Attach flip click listener
+  document.getElementById('student-flip-card')?.addEventListener('click', (e) => {
+    const inner = e.currentTarget.querySelector('.flip-card-inner');
+    inner?.classList.toggle('is-flipped');
+    showToast('Identity Verified 🔐', 'Viewing secure smart contract parameters.', 'success');
+  });
 
   /* On-chain details */
   const onChain = document.querySelector('[data-onchain-details]');
@@ -540,7 +729,23 @@ function populateHomeSummary() {
   `;
 }
 
+export function initTheme() {
+  const saved = localStorage.getItem("chainCampusTheme") || "light";
+  document.documentElement.setAttribute("data-theme", saved);
+  document.body.className = `theme-${saved}`;
+}
+
+export function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+  document.body.className = `theme-${next}`;
+  localStorage.setItem("chainCampusTheme", next);
+  showToast("Theme switched", `${next.charAt(0).toUpperCase() + next.slice(1)} mode active`, "success");
+}
+
 async function init() {
+  initTheme();
   await hydrateFromDatabase();
   seedData();
   saveState(getState());
@@ -568,4 +773,5 @@ async function init() {
   }
 }
 
+initTheme();
 init();

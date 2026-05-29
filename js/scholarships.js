@@ -7,6 +7,7 @@ import {
   showToast,
   updateState
 } from "./main.js";
+import { applyScholarshipOnServer } from "./db.js";
 
 const SCHOLARSHIP_CATALOG = {
   merit: {
@@ -104,6 +105,15 @@ window.applyScholarship = async function applyScholarship(scholarshipId) {
       scholarshipId,
       title: scholarship.title,
       statement
+    });
+
+    // Sync to relational backend
+    await applyScholarshipOnServer({
+      scholarshipId,
+      title: scholarship.title,
+      amount: scholarship.amount,
+      type: scholarship.type,
+      txId: result.txId
     });
 
     updateState((state) => {

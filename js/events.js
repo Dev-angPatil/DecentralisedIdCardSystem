@@ -8,6 +8,7 @@ import {
   showToast,
   updateState
 } from "./main.js";
+import { registerEventOnServer } from "./db.js";
 
 function renderEvents() {
   const target = document.querySelector("[data-events-list]");
@@ -77,6 +78,10 @@ function bindEventButtons() {
 
       try {
         const result = await registerForEventOnChain(eventItem);
+        
+        // Sync to relational backend
+        await registerEventOnServer(eventItem.id);
+
         updateState((nextState) => {
           nextState.events = nextState.events.map((item) =>
             item.id === eventId ? { ...item, verified: true } : item

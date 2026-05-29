@@ -2,6 +2,7 @@ import { enrollCourseOnChain } from "./blockchain.js";
 import {
   getState, requireConnectedWallet, setButtonPending, setTransaction, showToast, updateState
 } from "./main.js";
+import { enrollCourseOnServer } from "./db.js";
 
 function renderCourses() {
   const target = document.querySelector('[data-courses-list]');
@@ -55,6 +56,9 @@ function bindEnrollButtons() {
       try {
         const result = await enrollCourseOnChain({ courseId: course.id });
         
+        // Sync to relational backend
+        await enrollCourseOnServer(course.id);
+
         updateState(s => {
           if (!s.enrolledCourses) s.enrolledCourses = [];
           if (!s.enrolledCourses.includes(courseId)) {
