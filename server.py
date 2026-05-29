@@ -944,7 +944,9 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
             return
 
         if self.path == "/api/health":
-            self.send_json(200, {"ok": True, "database": str(DB_PATH)})
+            db_type = "PostgreSQL" if os.environ.get("DATABASE_URL") else "SQLite"
+            db_location = "Render Cloud" if os.environ.get("DATABASE_URL") else str(DB_PATH)
+            self.send_json(200, {"ok": True, "database_type": db_type, "database_location": db_location})
             return
 
         super().do_GET()
