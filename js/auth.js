@@ -1,12 +1,11 @@
 import { registerStudentOnChain } from "./blockchain.js";
 import {
-  connectWallet, renderStatusPanel,
-  setButtonPending, setTransaction, showToast, updateState,
-  updateWalletCopy, getSession, setSession, clearSession,
+  setButtonPending, showToast, updateState,
+  getSession, setSession, clearSession,
   isLoggedIn
 } from "./main.js";
 import {
-  loginWithWalletOnServer, registerProfileOnServer,
+  registerProfileOnServer,
   loginWithCredentialsOnServer, addTransactionOnServer
 } from "./db.js";
 
@@ -16,20 +15,29 @@ function initLoginPage() {
   const tabAdmin      = document.getElementById('tab-admin');
   const studentTab    = document.getElementById('student-tab-content');
   const adminTab      = document.getElementById('admin-tab-content');
-  const authTitle     = document.getElementById('auth-title');
-  const authPill      = document.getElementById('auth-pill');
 
-  const btnAccessVirtual = document.getElementById('btn-access-virtual');
-  const btnConnectPhantom = document.getElementById('btn-connect-phantom');
-  const phaseConnect  = document.getElementById('wallet-connect-phase');
-  const phaseOnboard  = document.getElementById('wallet-onboard-phase');
-  const onboardForm   = document.getElementById('onboard-form');
-  const onboardError  = document.getElementById('onboard-error');
-  const btnOnboard    = document.getElementById('btn-submit-onboard');
+  // Student Authentication Phases
+  const phaseLogin     = document.getElementById('student-login-phase');
+  const studentForm    = document.getElementById('student-credentials-form');
+  const studentError   = document.getElementById('student-login-error');
+  const btnSubmitStudent = document.getElementById('btn-submit-student');
+  const linkShowRegister = document.getElementById('link-show-register');
 
-  const adminForm     = document.getElementById('admin-login-form');
-  const adminError    = document.getElementById('admin-login-error');
-  const btnAdmin      = document.getElementById('btn-submit-admin');
+  const phaseOnboard   = document.getElementById('wallet-onboard-phase');
+  const onboardForm    = document.getElementById('onboard-form');
+  const onboardError   = document.getElementById('onboard-error');
+  const btnOnboard     = document.getElementById('btn-submit-onboard');
+  const linkShowLogin  = document.getElementById('link-show-login');
+
+  const phaseSuccess   = document.getElementById('credentials-success-phase');
+  const genUsernameDisplay = document.getElementById('generated-username-display');
+  const genPasswordDisplay = document.getElementById('generated-password-display');
+  const btnProceedLogin    = document.getElementById('btn-proceed-login');
+
+  // Admin Authentication
+  const adminForm      = document.getElementById('admin-login-form');
+  const adminError     = document.getElementById('admin-login-error');
+  const btnAdmin       = document.getElementById('btn-submit-admin');
 
   if (!studentTab) return; // Only run on login.html
 
@@ -40,7 +48,8 @@ function initLoginPage() {
     return;
   }
 
-  let connectedWalletAddress = "";
+  let generatedUser = null;
+  let generatedPass = "";
 
   /* ── Tab Switcher Logic (new HTML uses inline switchTab fn) ── */
   tabStudent?.addEventListener('click', () => {
@@ -57,94 +66,72 @@ function initLoginPage() {
     studentTab.classList.add('step-hidden');
   });
 
-  /* ── Student Phase 1: Connect Wallet ── */
-  
-  // Access instantly via Virtual Wallet (Frictionless Sandbox)
-  btnAccessVirtual?.addEventListener('click', async () => {
-    setButtonPending(btnAccessVirtual, true, 'Generating Wallet…', 'Access instantly via Virtual Wallet');
-    
-    try {
-      const { getOrCreateVirtualWallet } = await import("./blockchain.js");
-      const addr = getOrCreateVirtualWallet();
-      localStorage.setItem("chainCampusWalletType", "virtual");
-      
-      connectedWalletAddress = addr;
-      showToast('Virtual Wallet Generated ✓', addr.slice(0, 10) + '...' + addr.slice(-10), 'success');
+  /* ── Switch between Student Sign-In / Register ── */
+  linkShowRegister?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (onboardError) onboardError.style.display = 'none';
+    phaseLogin?.classList.add('step-hidden');
+    phaseOnboard?.classList.remove('step-hidden');
+  });
 
-      // Query database for this virtual wallet address
-      const res = await loginWithWalletOnServer(addr);
-      
+  linkShowLogin?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (studentError) studentError.style.display = 'none';
+    phaseOnboard?.classList.add('step-hidden');
+    phaseLogin?.classList.remove('step-hidden');
+  });
+
+  /* ── Student Sign In Flow ── */
+  studentForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (studentError) {
+      studentError.style.display = 'none';
+      studentError.textContent = '';
+    }
+
+    const username = studentForm.username.value.trim();
+    const password = studentForm.password.value;
+
+    if (!username || !password) {
+      showStudentError('Username or email and password are required.');
+      return;
+    }
+
+    setButtonPending(btnSubmitStudent, true, 'Signing In…', 'Sign In →');
+
+    try {
+      const res = await loginWithCredentialsOnServer(username, password);
+
       if (res.ok && res.user) {
+        // Hydrate virtual wallet address locally
+        const walletAddress = res.user.walletAddress || 'CCvWmock_addr';
+        localStorage.setItem("chainCampusWalletType", "virtual");
+        localStorage.setItem("chainCampusVirtualAddress", walletAddress);
+
         setSession(res.user);
-        updateState(s => { s.walletAddress = addr; return s; });
-        showToast('Access Granted 🎉', `Welcome back, ${res.user.name}!`, 'success');
+        updateState(s => {
+          s.walletAddress = walletAddress;
+          s.student = res.user;
+          return s;
+        });
+
+        showToast('Sign In Successful 🎉', `Welcome back, ${res.user.name}!`, 'success');
         
         setTimeout(() => {
           window.location.href = 'dashboard.html';
         }, 1200);
       } else {
-        showToast('Onboarding Required', 'Please complete your academic profile.', 'pending');
-        
-        const idField = onboardForm.querySelector('[name="studentId"]');
-        if (idField) {
-          idField.value = 'CC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
-        }
-
-        phaseConnect.classList.add('step-hidden');
-        phaseOnboard.classList.remove('step-hidden');
+        showStudentError('Invalid student username/email or password.');
+        setButtonPending(btnSubmitStudent, false, '', 'Sign In →');
       }
     } catch (err) {
-      showToast('Connection Failed', err.message || 'Verification failed.', 'failed');
-    } finally {
-      setButtonPending(btnAccessVirtual, false, '', 'Access instantly via Virtual Wallet');
+      showStudentError(err.message || 'Authentication error. Please retry.');
+      setButtonPending(btnSubmitStudent, false, '', 'Sign In →');
     }
   });
 
-  // Link Phantom Extension (Advanced Option)
-  btnConnectPhantom?.addEventListener('click', async () => {
-    setButtonPending(btnConnectPhantom, true, 'Connecting Phantom…', 'Link Phantom Extension (Advanced)');
-    
-    try {
-      localStorage.setItem("chainCampusWalletType", "phantom");
-      const addr = await connectWallet();
-      if (!addr) {
-        setButtonPending(btnConnectPhantom, false, '', 'Link Phantom Extension (Advanced)');
-        return;
-      }
-      
-      connectedWalletAddress = addr;
-      showToast('Phantom Wallet Connected ✓', addr.slice(0, 10) + '...' + addr.slice(-10), 'success');
-
-      const res = await loginWithWalletOnServer(addr);
-      
-      if (res.ok && res.user) {
-        setSession(res.user);
-        updateState(s => { s.walletAddress = addr; return s; });
-        showToast('Access Granted 🎉', `Welcome back, ${res.user.name}!`, 'success');
-        
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1200);
-      } else {
-        showToast('Onboarding Required', 'Please complete your academic profile.', 'pending');
-        
-        const idField = onboardForm.querySelector('[name="studentId"]');
-        if (idField) {
-          idField.value = 'CC-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
-        }
-
-        phaseConnect.classList.add('step-hidden');
-        phaseOnboard.classList.remove('step-hidden');
-      }
-    } catch (err) {
-      showToast('Phantom Connection Failed', err.message || 'Verification failed. Make sure Phantom is installed.', 'failed');
-    } finally {
-      setButtonPending(btnConnectPhantom, false, '', 'Link Phantom Extension (Advanced)');
-    }
-  });
-
-  /* ── Student Phase 2: Complete Onboarding ── */
-  onboardForm.addEventListener('submit', async (e) => {
+  /* ── Student Registration & Credentials Generation ── */
+  onboardForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (onboardError) {
       onboardError.style.display = 'none';
@@ -153,60 +140,109 @@ function initLoginPage() {
 
     const name = onboardForm.name.value.trim();
     const email = onboardForm.email.value.trim();
-    const studentId = onboardForm.studentId.value.trim();
     const college = onboardForm.college.value.trim();
-    const program = onboardForm.program.value.trim();
+    const program = onboardForm.program.value.trim(); // Branch
     const year = onboardForm.year.value;
 
     if (!name || !email || !college || !program) {
-      showOnboardError('All fields marked required are mandatory.');
+      showOnboardError('All profile details are required.');
       return;
     }
 
-    setButtonPending(btnOnboard, true, 'Marking On-Chain…', 'Complete Onboarding (On-Chain)');
-    
+    setButtonPending(btnOnboard, true, 'Generating Credentials…', 'Register & Generate Credentials →');
+
     try {
-      // 1. Submit mock/real on-chain student registration transaction
-      const txResult = await registerStudentOnChain({ studentId, name });
-      
-      // 2. Post registration metadata to relational backend
+      // 1. Pre-generate virtual Solana address for the local Sandbox in background
+      const { getOrCreateVirtualWallet } = await import("./blockchain.js");
+      const localWallet = getOrCreateVirtualWallet();
+
+      // 2. Submit student metadata to relational server to generate secure credentials
       const res = await registerProfileOnServer({
         email,
         name,
-        studentId,
         college,
         program,
         year,
-        walletAddress: connectedWalletAddress
+        walletAddress: localWallet
       });
 
-      if (res.ok && res.user) {
-        setSession(res.user);
-        updateState(s => {
-          s.walletAddress = connectedWalletAddress;
-          s.student = { name, studentId, college, program, year };
-          return s;
-        });
+      if (res.ok && res.username && res.password) {
+        generatedUser = res.user;
+        generatedPass = res.password;
 
-        // Add to transaction log
+        // 3. Complete simulated student registration on-chain with generated academic ID
+        const studentId = res.user.studentId || 'CC-TEMP-ID';
+        const txResult = await registerStudentOnChain({ studentId, name });
+
+        // Log transaction to Sandbox ledger
         await addTransactionOnServer({
           txId: txResult.txId,
           action: "Student Web3 Registration",
           status: "success"
         });
 
-        showToast('Identity Secured! 🚀', 'Your profile is registered on-chain.', 'success');
+        // 4. Update the UI to display the generated username and password
+        if (genUsernameDisplay) genUsernameDisplay.value = res.username;
+        if (genPasswordDisplay) genPasswordDisplay.value = res.password;
+
+        phaseOnboard.classList.add('step-hidden');
+        phaseSuccess?.classList.remove('step-hidden');
+
+        showToast('Registration Successful ✓', 'Generated credentials displayed.', 'success');
+      } else {
+        throw new Error(res.error || "Profile registration failed.");
+      }
+    } catch (err) {
+      console.error("[auth] Onboarding registration error:", err);
+      showOnboardError(err.message || 'Registration failed. Check details or email conflicts.');
+      setButtonPending(btnOnboard, false, '', 'Register & Generate Credentials →');
+    }
+  });
+
+  /* ── Proceed Auto Sign In ── */
+  btnProceedLogin?.addEventListener('click', async () => {
+    if (!generatedUser || !generatedPass) {
+      phaseSuccess?.classList.add('step-hidden');
+      phaseLogin?.classList.remove('step-hidden');
+      return;
+    }
+
+    setButtonPending(btnProceedLogin, true, 'Auto Signing In…', 'Auto Sign In & Launch Portal →');
+
+    try {
+      const res = await loginWithCredentialsOnServer(generatedUser.username, generatedPass);
+      if (res.ok && res.user) {
+        const walletAddress = res.user.walletAddress || 'CCvWmock_addr';
+        localStorage.setItem("chainCampusWalletType", "virtual");
+        localStorage.setItem("chainCampusVirtualAddress", walletAddress);
+
+        setSession(res.user);
+        updateState(s => {
+          s.walletAddress = walletAddress;
+          s.student = res.user;
+          return s;
+        });
+
+        showToast('Portal Activated! 🎓', `Signed in as ${res.user.name}`, 'success');
         
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 1500);
+        }, 1200);
       } else {
-        throw new Error(res.error || "Server profile creation failed.");
+        throw new Error("Auto login failed.");
       }
     } catch (err) {
-      console.error("[auth] Onboarding error:", err);
-      showOnboardError(err.message || 'On-chain registration failed. Try again.');
-      setButtonPending(btnOnboard, false, '', 'Complete Onboarding (On-Chain)');
+      showToast('Manual Sign In Required', 'Auto sign-in failed. Please enter your credentials manually.', 'pending');
+      phaseSuccess?.classList.add('step-hidden');
+      phaseLogin?.classList.remove('step-hidden');
+
+      // Pre-fill
+      const userField = studentForm.querySelector('[name="username"]');
+      const passField = studentForm.querySelector('[name="password"]');
+      if (userField) userField.value = generatedUser.username;
+      if (passField) passField.value = generatedPass;
+    } finally {
+      setButtonPending(btnProceedLogin, false, '', 'Auto Sign In & Launch Portal →');
     }
   });
 
@@ -248,6 +284,13 @@ function initLoginPage() {
     }
   });
 
+  function showStudentError(msg) {
+    if (studentError) {
+      studentError.textContent = msg;
+      studentError.style.display = 'block';
+    }
+  }
+
   function showOnboardError(msg) {
     if (onboardError) {
       onboardError.textContent = msg;
@@ -265,55 +308,7 @@ function initLoginPage() {
 
 /* ══════════════ LEGACY REGISTER PAGE (FALLBACK) ════════════ */
 function initRegisterPage() {
-  const form         = document.querySelector('[data-register-form]');
-  const submitButton = document.querySelector('[data-register-submit]');
-  if (!form || !submitButton) return;
-
-  renderStatusPanel('[data-register-status]', {
-    title: 'Ready for submission', badge: 'ON-CHAIN',
-    message: 'Submitting will call registerStudentOnChain() from js/blockchain.js.'
-  }, 'pending');
-
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const payload = Object.fromEntries(new FormData(form).entries());
-    setButtonPending(submitButton, true, 'Transaction Pending…', 'Register (On-Chain)');
-    setTransaction('Pending', 'Student registration', 'Registration submitted through wallet-linked flow.', '');
-    renderStatusPanel('[data-register-status]', { title: 'Transaction submitted', badge: 'PENDING', message: 'Your wallet is authorising the student registration.' }, 'pending');
-
-    try {
-      const result = await registerStudentOnChain(payload);
-      
-      // Update locally and notify server
-      await registerProfileOnServer({
-        email: payload.email || 'legacy@lumina.edu',
-        name: payload.name,
-        studentId: payload.studentId,
-        college: payload.college,
-        program: payload.program,
-        year: payload.year || '3rd Year',
-        walletAddress: getState().walletAddress || 'mock_addr'
-      });
-
-      await addTransactionOnServer({
-        txId: result.txId,
-        action: "Student registration (legacy page)",
-        status: "success"
-      });
-
-      updateState(s => { s.student = { ...s.student, ...payload }; return s; });
-      setTransaction('Success', 'Student registration confirmed', 'Identity linked to connected wallet.', result.txId);
-      renderStatusPanel('[data-register-status]', { title: 'Registration successful', badge: 'SUCCESS', message: 'Student registered on-chain successfully.', txId: result.txId }, 'success');
-      showToast('Registration confirmed ✓', result.txId, 'success');
-      form.reset();
-    } catch (err) {
-      setTransaction('Failed', 'Student registration failed', 'Wallet could not complete registration.', '');
-      renderStatusPanel('[data-register-status]', { title: 'Registration failed', badge: 'FAILED', message: 'Check wallet connection and retry.' }, 'failed');
-      showToast('Registration failed', 'Check your wallet and try again.', 'failed');
-    } finally {
-      setButtonPending(submitButton, false, 'Transaction Pending…', 'Register (On-Chain)');
-    }
-  });
+  // Legacy stub, page not actively used in modern overhauled flow
 }
 
 initLoginPage();

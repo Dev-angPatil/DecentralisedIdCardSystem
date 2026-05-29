@@ -39,6 +39,7 @@ def get_db():
         """
         CREATE TABLE IF NOT EXISTS users (
             email TEXT PRIMARY KEY,
+            username TEXT UNIQUE,
             password TEXT NOT NULL,
             name TEXT NOT NULL,
             studentId TEXT,
@@ -51,6 +52,16 @@ def get_db():
         )
         """
     )
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN username TEXT")
+        conn.commit()
+    except Exception:
+        pass
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+        conn.commit()
+    except Exception:
+        pass
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS courses (
@@ -783,7 +794,7 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 name = payload.get("name")
                 student_id = payload.get("studentId")
                 college = payload.get("college")
-                program = payload.get("program")
+                program = payload.get("program") # Branch
                 year = payload.get("year")
                 wallet_addr = payload.get("walletAddress")
                 virtual_balance = float(payload.get("virtualBalance", 5.00))
@@ -792,23 +803,45 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     import time, random
                     student_id = f"CC-{time.strftime('%Y')}-{random.randint(1000, 9999)}"
                 
-                if not email or not name or not wallet_addr:
-                    self.send_json(400, {"error": "Missing required fields (email, name, walletAddress)"})
+                if not email or not name:
+                    self.send_json(400, {"error": "Missing required fields (email, name)"})
                     return
                 
-                password = payload.get("password", "Web3OnlyAuthToken")
+                # Generate unique username
+                import random
+                clean_name = "".join(c for c in name.split()[0].lower() if c.isalnum())
+                clean_prog = "".join(c for c in program.lower() if c.isalnum())[:5]
+                rand_num = random.randint(100, 999)
+                username = f"{clean_name}_{clean_prog}_{rand_num}"
+                
+                # Generate readable password
+                words = ["Lumina", "Solana", "Chain", "Campus", "Secure", "Block", "Ledger", "Oxford", "Tech", "Smart", "Devnet", "Crypto", "Global", "Verified", "Access"]
+                password = f"{random.choice(words)}#{random.randint(1000, 9999)}"
+                
+                # Auto-generate a virtual wallet address if none is provided
+                if not wallet_addr:
+                    import hashlib
+                    h = hashlib.sha256(f"{email}-{username}".encode()).hexdigest()
+                    wallet_addr = f"CCvW{h[:36]}"
                 
                 with get_db() as conn:
+                    # check if email already exists
+                    existing = conn.execute("SELECT email FROM users WHERE email = ?", (email,)).fetchone()
+                    if existing:
+                        self.send_json(400, {"error": "A student profile with this email address is already registered."})
+                        return
+                    
                     conn.execute(
                         """
-                        INSERT OR REPLACE INTO users (email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                        INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
                         """,
-                        (email, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                        (email, username, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
                     )
                     
                     user = {
                         "email": email,
+                        "username": username,
                         "name": name,
                         "studentId": student_id,
                         "college": college,
@@ -817,38 +850,34 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                         "isAdmin": False,
                         "walletAddress": wallet_addr,
                         "virtualBalance": virtual_balance,
-                        "loggedIn": True
+                        "loggedIn": False # Auto-fill in UI instead of immediate login so they can copy credentials!
                     }
-                    
-                    conn.execute("DELETE FROM session")
-                    conn.execute(
-                        """
-                        INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
-                        VALUES (?, ?, ?, ?, ?, ?, 0, 1, ?, ?)
-                        """,
-                        (email, name, student_id, college, program, year, wallet_addr, virtual_balance)
-                    )
                     conn.commit()
-                    self.send_json(200, {"ok": True, "user": user})
+                    self.send_json(200, {
+                        "ok": True,
+                        "username": username,
+                        "password": password,
+                        "user": user
+                    })
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return
 
-        # 3. Credentials Auth (for Admin bypass)
+        # 3. Credentials Auth (Supports generated username OR email)
         if self.path == "/api/auth/credentials":
             try:
                 payload = self.read_json_body()
-                email = payload.get("email")
+                email = payload.get("email") # Accepts username or email
                 password = payload.get("password")
                 
                 if not email or not password:
-                    self.send_json(400, {"error": "Email and password required"})
+                    self.send_json(400, {"error": "Username/Email and password required"})
                     return
                 
                 with get_db() as conn:
                     row = conn.execute(
-                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users WHERE email = ? AND password = ?",
-                        (email, password)
+                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, username FROM users WHERE (email = ? OR username = ?) AND password = ?",
+                        (email, email, password)
                     ).fetchone()
                     
                     if row:
@@ -862,6 +891,7 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                             "isAdmin": bool(row[6]),
                             "walletAddress": row[7],
                             "virtualBalance": row[8],
+                            "username": row[9],
                             "loggedIn": True
                         }
                         

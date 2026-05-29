@@ -627,10 +627,10 @@ export function renderProfile(){
 function renderHomeSummary(){
   const el = document.querySelector('[data-home-summary]');
   if(!el) return;
-  el.innerHTML = `
+    el.innerHTML = `
     <div class="info-row"><span>Blockchain Mode</span><strong>Mock (Devnet-ready)</strong></div>
     <div class="info-row"><span>Smart Contract Layer</span><strong>js/blockchain.js</strong></div>
-    <div class="info-row"><span>Wallet Integration</span><strong>Phantom (Solana)</strong></div>
+    <div class="info-row"><span>Sandbox Wallet</span><strong>In-Browser (Solana)</strong></div>
     <div class="info-row"><span>Student Actions</span><strong>Register · Events · Attendance</strong></div>`;
 }
 
@@ -733,20 +733,6 @@ async function init() {
   renderDashboard();
   renderProfile();
 
-  if (window.solana && window.solana.isPhantom) {
-    try {
-      const res = await window.solana.connect({ onlyIfTrusted: true });
-      updateState((state) => {
-        state.walletAddress = res.publicKey.toString();
-        return state;
-      });
-      renderSharedElements();
-      populateDashboardStats();
-      populateHomeSummary();
-    } catch(err) {
-      // Not yet authorized
-    }
-  }
 }
 
 initTheme();

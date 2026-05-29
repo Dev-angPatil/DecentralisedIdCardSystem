@@ -59,40 +59,37 @@
 
           <!-- STUDENT SECTION -->
           <div id="student-tab-content">
-            <!-- Connect Phase -->
-            <div id="wallet-connect-phase" class="auth-phase">
-              <div class="auth-box-title">Welcome back</div>
-              <p class="auth-box-sub">Choose how you'd like to connect to ChainCampus</p>
+            <!-- Sign In Phase (default) -->
+            <div id="student-login-phase" class="auth-phase">
+              <div class="auth-box-title">Student Sign In</div>
+              <p class="auth-box-sub">Enter your generated credentials to access your portal</p>
 
-              <!-- Primary: Virtual Wallet -->
-              <button type="button" class="wallet-connect-btn primary-wallet" id="btn-access-virtual">
-                <div class="wallet-icon-ring">⚡</div>
-                <div class="wallet-connect-text">
-                  <strong>Virtual Wallet (Instant)</strong>
-                  <span>No download required · Start immediately</span>
+              <form id="student-credentials-form">
+                <div class="form-group">
+                  <label for="student-username">Username or Email</label>
+                  <input type="text" id="student-username" name="username" placeholder="aarav_cs_124 or student@college.edu" required autocomplete="username" />
                 </div>
-                <span style="font-size:1rem;opacity:0.8;">→</span>
-              </button>
-
-              <!-- Secondary: Phantom -->
-              <button type="button" class="wallet-connect-btn" id="btn-connect-phantom">
-                <div class="wallet-icon-ring" style="background:var(--stroke-soft);border-color:var(--stroke);">👻</div>
-                <div class="wallet-connect-text">
-                  <strong>Phantom Extension</strong>
-                  <span>Advanced · Requires browser extension</span>
+                <div class="form-group">
+                  <label for="student-password">Password</label>
+                  <input type="password" id="student-password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
                 </div>
-                <span style="font-size:1rem;opacity:0.5;">→</span>
-              </button>
 
-              <p style="text-align:center;margin-top:20px;font-size:0.78rem;color:var(--text-muted);">
-                New here? Connect your wallet to complete onboarding.
+                <div class="error-msg" id="student-login-error" style="display:none;margin-top:10px;"></div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="btn-submit-student" style="margin-top:20px;">
+                  Sign In →
+                </button>
+              </form>
+
+              <p style="text-align:center;margin-top:24px;font-size:0.8rem;color:var(--text-muted);">
+                New student? <a href="#" id="link-show-register" style="color:var(--teal-light);font-weight:600;text-decoration:underline;">Register Profile Here</a>
               </p>
             </div>
 
-            <!-- Onboarding Phase (hidden by default) -->
+            <!-- Onboarding/Register Phase (hidden by default) -->
             <div id="wallet-onboard-phase" class="auth-phase step-hidden">
-              <div class="auth-box-title">Create your identity</div>
-              <p class="auth-box-sub" style="margin-bottom:24px;">New to ChainCampus? Complete your academic profile to get started.</p>
+              <div class="auth-box-title">Student Registration</div>
+              <p class="auth-box-sub">Complete your profile to register and generate secure login credentials.</p>
 
               <form id="onboard-form">
                 <div class="form-group">
@@ -105,19 +102,15 @@
                 </div>
 
                 <div style="border-top:1px solid var(--stroke);margin:16px 0;"></div>
-                <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:14px;">Academic Details</p>
+                <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:12px;">Academic Details</p>
 
-                <div class="form-group">
-                  <label for="onboard-studentid">Student ID <span style="font-weight:400;opacity:0.6;">(auto-generated if blank)</span></label>
-                  <input type="text" id="onboard-studentid" name="studentId" placeholder="Will be auto-generated" />
-                </div>
                 <div class="form-group">
                   <label for="onboard-college">College / University</label>
                   <input type="text" id="onboard-college" name="college" placeholder="Lumina College of Technology" required />
                 </div>
                 <div class="form-grid" style="margin-bottom:0;">
                   <div class="form-group" style="margin-bottom:0;">
-                    <label for="onboard-program">Program</label>
+                    <label for="onboard-program">Branch / Program</label>
                     <input type="text" id="onboard-program" name="program" placeholder="B.Tech Computer Science" required />
                   </div>
                   <div class="form-group" style="margin-bottom:0;">
@@ -135,9 +128,40 @@
                 <div class="error-msg" id="onboard-error" style="display:none;margin-top:10px;"></div>
 
                 <button type="submit" class="btn btn-primary btn-full" id="btn-submit-onboard" style="margin-top:20px;">
-                  Complete Onboarding →
+                  Register & Generate Credentials →
                 </button>
               </form>
+
+              <p style="text-align:center;margin-top:24px;font-size:0.8rem;color:var(--text-muted);">
+                Already have credentials? <a href="#" id="link-show-login" style="color:var(--teal-light);font-weight:600;text-decoration:underline;">Sign In Here</a>
+              </p>
+            </div>
+
+            <!-- Credentials Success Phase (hidden by default) -->
+            <div id="credentials-success-phase" class="auth-phase step-hidden">
+              <div class="auth-box-title" style="color:#14b8a6;">✓ Registration Successful</div>
+              <p class="auth-box-sub">Your student profile and virtual Solana wallet have been created. Copy your generated login credentials below:</p>
+
+              <div style="background:rgba(255,255,255,0.02);border:1px solid var(--stroke);border-radius:12px;padding:18px;margin-bottom:20px;">
+                <div class="form-group" style="margin-bottom:14px;">
+                  <label style="font-size:0.7rem;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Generated Username</label>
+                  <div style="display:flex;gap:8px;margin-top:6px;">
+                    <input type="text" id="generated-username-display" readonly style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;background:rgba(0,0,0,0.3);flex-grow:1;border:1px solid var(--stroke);padding:10px;border-radius:6px;color:#fff;" />
+                    <button class="btn btn-ghost" type="button" onclick="copyText('generated-username-display')" style="padding:0 12px;border:1px solid var(--stroke);border-radius:6px;background:rgba(255,255,255,0.02);">📋</button>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label style="font-size:0.7rem;text-transform:uppercase;color:var(--text-muted);font-weight:600;">Generated Password</label>
+                  <div style="display:flex;gap:8px;margin-top:6px;">
+                    <input type="text" id="generated-password-display" readonly style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;background:rgba(0,0,0,0.3);flex-grow:1;border:1px solid var(--stroke);padding:10px;border-radius:6px;color:#fff;" />
+                    <button class="btn btn-ghost" type="button" onclick="copyText('generated-password-display')" style="padding:0 12px;border:1px solid var(--stroke);border-radius:6px;background:rgba(255,255,255,0.02);">📋</button>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-full" id="btn-proceed-login" type="button">
+                Auto Sign In & Launch Portal →
+              </button>
             </div>
           </div>
 
@@ -176,6 +200,18 @@
         document.getElementById('tab-admin').classList.toggle('active', !isStudent);
         document.getElementById('student-tab-content').classList.toggle('step-hidden', !isStudent);
         document.getElementById('admin-tab-content').classList.toggle('step-hidden', isStudent);
+      }
+      function copyText(id) {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value);
+        
+        // Dynamically trigger beautiful custom springy toast
+        import('./js/main.js').then(m => {
+          m.showToast('Credentials Copied ✓', 'Pasted to your clipboard.', 'success');
+        });
       }
     </script>
     <script type="module" src="js/main.js"></script>
