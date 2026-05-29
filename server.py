@@ -1,3 +1,4 @@
+import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json
@@ -5,7 +6,7 @@ import sqlite3
 
 
 ROOT = Path(__file__).resolve().parent
-DB_DIR = ROOT / "data"
+DB_DIR = Path(os.environ.get("DB_DIR", ROOT / "data"))
 DB_PATH = DB_DIR / "chaincampus.db"
 
 
@@ -183,7 +184,80 @@ def get_db():
     # 3. Migrate any existing data in app_store into relational tables
     migrate_data(conn)
 
+    # 4. Seed default data if database is empty
+    seed_db(conn)
+
     return conn
+
+
+def seed_db(conn):
+    # Seed default admin if users table is empty
+    count = conn.execute("SELECT count(*) FROM users").fetchone()[0]
+    if count == 0:
+        print("Seeding default admin user...")
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+            """,
+            (
+                "admin@college.edu",
+                "admin",
+                "Admin()09",
+                "System Admin",
+                "AD-001",
+                "ChainCampus",
+                "Administration",
+                "N/A",
+                "CCvWAdmin",
+                5.00
+            )
+        )
+        conn.commit()
+
+    # Seed default courses if courses table is empty
+    count_courses = conn.execute("SELECT count(*) FROM courses").fetchone()[0]
+    if count_courses == 0:
+        print("Seeding default courses...")
+        default_courses = [
+            ("cs101", "CS101", "Data Structures & Algorithms", 4, "Dr. Priya Sharma", '["Mon","Wed","Fri"]', "9:00 AM", "LH-201", "blue"),
+            ("cs201", "CS201", "Database Management Systems", 3, "Prof. Rahul Verma", '["Tue","Thu"]', "11:00 AM", "LH-102", "pink"),
+            ("cs301", "CS301", "Computer Networks", 4, "Dr. Anjali Nair", '["Mon","Wed","Fri"]', "2:00 PM", "LH-305", "mint"),
+            ("cs401", "CS401", "Operating Systems", 4, "Prof. Vikram Singh", '["Tue","Thu"]', "9:00 AM", "LH-203", "peach"),
+            ("ma101", "MA101", "Engineering Mathematics IV", 3, "Dr. Meena Krishnan", '["Mon","Wed","Fri"]', "11:00 AM", "LH-101", "lavender"),
+            ("cs501", "CS501", "Machine Learning", 3, "Dr. Arjun Patel", '["Tue","Thu"]', "2:00 PM", "ML-Lab-1", "violet"),
+            ("cs601", "CS601", "Blockchain Technology", 3, "Prof. Deepa Menon", '["Wed","Fri"]', "4:00 PM", "LH-404", "rose"),
+            ("cs701", "CS701", "Web Development", 3, "Dr. Suresh Kumar", '["Mon","Thu"]', "4:00 PM", "CS-Lab-2", "amber")
+        ]
+        for c in default_courses:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                c
+            )
+        conn.commit()
+
+    # Seed default events if events table is empty
+    count_events = conn.execute("SELECT count(*) FROM events").fetchone()[0]
+    if count_events == 0:
+        print("Seeding default events...")
+        default_events = [
+            ("evt1", "Blockchain Hackathon 2026", "May 10, 2026", "Innovation Hub", 100, "Build decentralised apps on Solana and compete for prizes.", 0),
+            ("evt2", "Web3 Summit", "May 18, 2026", "Main Auditorium", 500, "Industry leaders discuss Web3, DeFi, and decentralised identity.", 0),
+            ("evt3", "AI × Blockchain Workshop", "June 2, 2026", "CS Lab 1", 50, "Hands-on workshop combining AI agents with blockchain-verified data.", 0),
+            ("evt4", "Annual Tech Fest 2026", "June 15, 2026", "Campus Grounds", 1000, "The biggest campus tech event with competitions, talks & networking.", 0)
+        ]
+        for ev in default_events:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                ev
+            )
+        conn.commit()
 
 
 def migrate_data(conn):
@@ -1270,7 +1344,8 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     get_db().close()
-    server = ThreadingHTTPServer(("127.0.0.1", 8000), ChainCampusHandler)
-    print("ChainCampus running at http://127.0.0.1:8000")
+    port = int(os.environ.get("PORT", 8000))
+    server = ThreadingHTTPServer(("0.0.0.0", port), ChainCampusHandler)
+    print(f"ChainCampus running at http://0.0.0.0:{port}")
     print(f"SQLite database: {DB_PATH}")
     server.serve_forever()
