@@ -1,84 +1,190 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChainCampus | Student Platform</title>
+    <title>ChainCampus | Student Identity on Solana</title>
+    <meta name="description" content="ChainCampus — Blockchain-powered student identity, attendance, and scholarship management on Solana." />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="home">
-    <div class="site-shell">
-      <header data-site-header></header>
+    <div class="mesh-bg"></div>
 
-      <main class="page-content">
-        <section class="hero-panel glass-card">
-          <div class="hero-copy">
-            <span class="chain-tag">Solana-ready student actions</span>
-            <h1>Student registration, event participation, and attendance with a clear on-chain path.</h1>
-            <p>
-              ChainCampus keeps the interface simple while making blockchain touchpoints
-              impossible to miss. Every core action is already designed to route through
-              <code>js/blockchain.js</code>.
-            </p>
-            <div class="hero-actions">
-              <a class="primary-btn" href="signup.html">Get Started</a>
-              <a class="secondary-btn" href="#overview">Learn More</a>
+    <!-- Landing has no sidebar — standalone hero layout -->
+    <nav style="position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:rgba(8,12,20,0.80);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#14b8a6);display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:0.9rem;">CC</div>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:#fff;">ChainCampus</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:24px;">
+        <a href="#features" style="color:rgba(255,255,255,0.6);text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">Features</a>
+        <a href="#overview" style="color:rgba(255,255,255,0.6);text-decoration:none;font-size:0.875rem;font-weight:500;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">Overview</a>
+        <a href="login.html" class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.2);">Sign In</a>
+        <a href="login.html" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-section" style="padding-top:140px;">
+      <div class="hero-inner">
+        <div class="hero-copy" style="animation:fadeInUp 0.6s var(--ease-out) both;">
+          <div class="hero-tag">
+            <span>⛓</span> Powered by Solana Blockchain
+          </div>
+          <h1 class="hero-title">
+            Your academic identity,<br>
+            <span class="gradient-text">secured on-chain.</span>
+          </h1>
+          <p class="hero-body">
+            ChainCampus gives students a cryptographically-verified digital identity. 
+            Manage courses, track attendance, apply for scholarships — all anchored to a permanent blockchain record.
+          </p>
+          <div class="hero-actions">
+            <a href="login.html" class="btn btn-primary btn-lg">
+              Launch App →
+            </a>
+            <a href="#overview" class="btn btn-ghost btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.15);">
+              Learn More
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual" style="animation:fadeInUp 0.6s 0.15s var(--ease-out) both;">
+          <div class="hero-glow"></div>
+          <!-- Floating ID Card Demo -->
+          <div class="id-card-scene" style="animation:card-float 6s ease-in-out infinite;">
+            <div class="id-card-flipper" id="hero-card">
+              <div class="id-face id-front">
+                <div class="id-top-row">
+                  <div class="id-chip"></div>
+                  <div class="id-brand">ChainCampus<span>Student Identity</span></div>
+                  <div class="id-nfc-icon">📶</div>
+                </div>
+                <div class="id-mid-row">
+                  <div class="id-card-number">CCvW•••• •••• •••• 4D2F</div>
+                </div>
+                <div class="id-bottom-row">
+                  <div class="id-name-block">
+                    <div class="id-label-xs">Cardholder</div>
+                    <div class="id-cardholder-name">DEMO STUDENT</div>
+                  </div>
+                  <div class="id-verified-badge">✓ Verified</div>
+                </div>
+              </div>
+              <div class="id-face id-back">
+                <div class="id-mag-strip"></div>
+                <div class="id-back-content">
+                  <div class="id-back-row">
+                    <span class="id-back-key">PROGRAM:</span>
+                    <span class="id-back-val">B.Tech Computer Science</span>
+                  </div>
+                  <div class="id-back-row">
+                    <span class="id-back-key">NETWORK:</span>
+                    <span class="id-back-val" style="color:#2dd4bf;">Solana Devnet</span>
+                  </div>
+                  <div class="id-back-row">
+                    <span class="id-back-key">STATUS:</span>
+                    <span class="id-back-val" style="color:#34d399;">Active & Verified</span>
+                  </div>
+                </div>
+                <div class="id-back-footer">
+                  <span class="id-security-text">SECURITY CODE: 4D2F•••</span>
+                  <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:0.8rem;color:#fbbf24;">ChainCampus</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="hero-rail">
-            <div class="rail-card">
-              <p>Student Registration</p>
-              <strong>registerStudentOnChain()</strong>
-            </div>
-            <div class="rail-card">
-              <p>Event Registration</p>
-              <strong>registerForEventOnChain()</strong>
-            </div>
-            <div class="rail-card">
-              <p>Attendance</p>
-              <strong>markAttendanceOnChain()</strong>
-            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" style="background:var(--surface-alt);padding:80px 0;position:relative;z-index:1;">
+      <div style="max-width:1100px;margin:0 auto;padding:0 48px;">
+        <div style="text-align:center;margin-bottom:48px;">
+          <p class="eyebrow" style="margin-bottom:8px;">Platform Capabilities</p>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-0.03em;color:var(--text);">Everything a student needs.</h2>
+          <p style="color:var(--text-soft);margin-top:10px;font-size:0.95rem;max-width:520px;margin-inline:auto;">
+            Built for modern academic institutions that want blockchain transparency without complexity.
+          </p>
+        </div>
+        <div class="feature-grid" style="padding:0;">
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">🪪</div>
+            <div class="feature-title">Digital ID Card</div>
+            <p class="feature-body">A premium 3D student identity card backed by your Solana wallet address. Flip to reveal your on-chain credentials.</p>
           </div>
-        </section>
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">📋</div>
+            <div class="feature-title">Attendance Ledger</div>
+            <p class="feature-body">Every class attended is logged as a verifiable transaction. Your attendance record is tamper-proof and permanent.</p>
+          </div>
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">🏆</div>
+            <div class="feature-title">Scholarship Portal</div>
+            <p class="feature-body">Apply for scholarships with on-chain verification. Approved payouts are sent directly to your virtual wallet.</p>
+          </div>
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">📚</div>
+            <div class="feature-title">Course Enrollment</div>
+            <p class="feature-body">Enroll in courses with a blockchain transaction. Your academic record is always up-to-date and verifiable.</p>
+          </div>
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">Virtual Wallet</div>
+            <p class="feature-body">No external wallet required. Use our built-in virtual Solana wallet with airdrop capability to get started instantly.</p>
+          </div>
+          <div class="feature-card stagger-item">
+            <div class="feature-icon">🔐</div>
+            <div class="feature-title">Admin Controls</div>
+            <p class="feature-body">Administrators can manage courses, events, scholarships, and approve or reject student applications securely.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <section class="content-grid" id="overview">
-          <article class="glass-card section-card">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Platform Overview</p>
-                <h2>What this website is designed to do</h2>
-              </div>
-              <span class="pill">Blockchain-first UX</span>
-            </div>
-            <div class="feature-grid">
-              <div class="feature-card">
-                <span>On-Chain Registration</span>
-                <strong>Students register through a mock transaction flow today.</strong>
-              </div>
-              <div class="feature-card">
-                <span>Verified Events</span>
-                <strong>Event joins show a verified state after blockchain placeholder success.</strong>
-              </div>
-              <div class="feature-card">
-                <span>Attendance Ledger</span>
-                <strong>Student and admin attendance actions share one chain abstraction layer.</strong>
-              </div>
-            </div>
-          </article>
+    <!-- CTA -->
+    <section id="overview" style="padding:100px 48px;text-align:center;max-width:700px;margin:0 auto;position:relative;z-index:1;">
+      <p class="eyebrow" style="margin-bottom:12px;">Get Started Today</p>
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:2.4rem;letter-spacing:-0.04em;color:var(--text);margin-bottom:16px;">
+        Join the <span class="gradient-text">future of academic identity</span>
+      </h2>
+      <p style="color:var(--text-soft);margin-bottom:32px;line-height:1.7;">
+        No wallet download. No crypto knowledge required. Just connect instantly using our virtual wallet and start building your on-chain academic record.
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="login.html" class="btn btn-primary btn-lg">Launch ChainCampus →</a>
+      </div>
+    </section>
 
-          <aside class="glass-card section-card">
-            <p class="eyebrow">Live Status</p>
-            <h2>Current platform summary</h2>
-            <div data-home-summary class="stack-list"></div>
-          </aside>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
-    </div>
+    <!-- Footer -->
+    <footer style="border-top:1px solid var(--stroke);padding:32px 48px;display:flex;justify-content:space-between;align-items:center;background:var(--surface-alt);position:relative;z-index:1;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6366f1,#14b8a6);display:grid;place-items:center;font-weight:800;color:#fff;font-size:0.75rem;">CC</div>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text);">ChainCampus</span>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-muted);">Decentralised Student Identity on Solana · Mock blockchain mode</p>
+    </footer>
 
     <div class="toast-stack" data-toast-stack></div>
 
+    <style>
+      @keyframes card-float {
+        0%, 100% { transform: translateY(0) rotate(-1deg); }
+        50% { transform: translateY(-12px) rotate(1deg); }
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+
     <script type="module" src="js/main.js"></script>
+    <script>
+      // Hero card flip on click
+      document.getElementById('hero-card')?.addEventListener('click', function() {
+        this.querySelector('.id-card-flipper').classList.toggle('flipped');
+      });
+    </script>
   </body>
 </html>

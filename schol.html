@@ -1,358 +1,240 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ChainCampus | Scholarships</title>
-<link rel="stylesheet" href="css/styles.css" />
-</head>
-<body data-page="scholarships">
-<div class="site-shell">
-<header data-site-header></header>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChainCampus | Scholarships</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body data-page="scholarships">
+    <div class="mesh-bg"></div>
+    <div class="app-shell">
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+      <div class="main-content">
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;">Scholarships</span>
+          <div></div>
+        </div>
+        <main class="page-content">
+          <div class="page-header">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <p class="eyebrow">On-Chain Applications</p>
+                <div class="page-title">Scholarships</div>
+                <p class="page-subtitle">Discover, apply, and track your scholarship status in real-time</p>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="pill pill-emerald">127 Active</span>
+                <a href="dashboard.html#applications" class="btn btn-secondary btn-sm">My Applications</a>
+              </div>
+            </div>
+          </div>
 
-<main class="page-content">
-<!-- Hero Section with Scholarship Overview -->
-<section class="hero-panel glass-card dashboard-hero">
-<div class="hero-copy">
-<span class="chain-tag">On-Chain Scholarship Applications</span>
-<h1>Discover & Apply for Scholarships</h1>
-<p>
-Browse verified scholarships with clear eligibility criteria. Complete on-chain applications with document verification. Track your status in real-time.
-</p>
-<div class="hero-actions">
-<button class="primary-btn" onclick="showAllScholarships()">Browse All Scholarships</button>
-<a class="secondary-btn" href="dashboard.html#applications">My Applications</a>
-</div>
-</div>
+          <!-- Stats row -->
+          <div class="stats-grid" style="margin-bottom:24px;">
+            <div class="metric-card stagger-item">
+              <div class="metric-icon">🏆</div>
+              <div class="metric-label">Available</div>
+              <div class="metric-value">127</div>
+            </div>
+            <div class="metric-card stagger-item">
+              <div class="metric-icon">📅</div>
+              <div class="metric-label">Closing Soon</div>
+              <div class="metric-value">12</div>
+            </div>
+            <div class="metric-card stagger-item">
+              <div class="metric-icon">⛓</div>
+              <div class="metric-label">On-Chain Verified</div>
+              <div class="metric-value">89%</div>
+            </div>
+            <div class="metric-card stagger-item">
+              <div class="metric-icon">💰</div>
+              <div class="metric-label">Total Value</div>
+              <div class="metric-value" style="font-size:1.4rem;">₹2.4M</div>
+            </div>
+          </div>
 
-<!-- Scholarship Stats -->
-<div class="hero-rail">
-<div class="rail-card">
-<p>Available Scholarships</p>
-<strong>127</strong>
-</div>
-<div class="rail-card">
-<p>Application Deadline</p>
-<strong>Dec 31, 2026</strong>
-</div>
-<div class="rail-card">
-<p>On-Chain Verified</p>
-<strong>89%</strong>
-</div>
-</div>
-</section>
+          <!-- Scholarship grid -->
+          <div class="card card-p" style="border-radius:var(--r-xl);" id="scholarships-wrapper">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Browse All</p>
+                <h2>Available Scholarships</h2>
+              </div>
+            </div>
+            <div class="cards-grid" id="scholarships-grid">
+              <!-- Scholarship Cards -->
+              <div class="scholarship-card stagger-item" data-scholarship="merit">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Merit-Based</span>
+                  <span class="status-badge success">Open</span>
+                </div>
+                <div class="scholarship-amount">₹50,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">Prime Merit Scholarship</div>
+                <p class="small-copy">Full academic year support for top-performing students.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Dec 15, 2026</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
 
-<!-- Scholarships Grid -->
-<section class="content-grid">
-<article class="glass-card section-card">
-<div class="section-head">
-<h2>All Scholarships</h2>
-<span class="status-badge success">127 Active</span>
-</div>
+              <div class="scholarship-card stagger-item" data-scholarship="need">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Need-Based</span>
+                  <span class="status-badge pending">Closing Soon</span>
+                </div>
+                <div class="scholarship-amount">₹25,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">Student Welfare Fund</div>
+                <p class="small-copy">Semester support for economically disadvantaged students.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Nov 30, 2026</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
 
-<!-- Canvas-style Scholarship Cards -->
-<div class="cards-grid" id="scholarships-grid">
-<!-- Scholarship 1 -->
-<div class="scholarship-card metric-card" data-scholarship="merit">
-<div class="card-top">
-<div>
-<span class="chain-tag">Merit-Based</span>
-<h3>Prime Merit Scholarship</h3>
-<p class="small-copy">₹50,000 - Full Academic Year</p>
-</div>
-<div class="status-badge success">Open</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Dec 15, 2026</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
+              <div class="scholarship-card stagger-item" data-scholarship="tech">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Tech Excellence</span>
+                  <span class="status-badge success">Open</span>
+                </div>
+                <div class="scholarship-amount">₹75,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">CodeCraft Scholarship</div>
+                <p class="small-copy">For outstanding CS, AI & technical field students + internship.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Jan 20, 2027</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
 
-<!-- Scholarship 2 -->
-<div class="scholarship-card metric-card" data-scholarship="need">
-<div class="card-top">
-<div>
-<span class="chain-tag">Need-Based</span>
-<h3>Student Welfare Fund</h3>
-<p class="small-copy">₹25,000 - Semester Support</p>
-</div>
-<div class="status-badge pending">Closing Soon</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Nov 30, 2026</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
+              <div class="scholarship-card stagger-item" data-scholarship="sports">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Sports Achievement</span>
+                  <span class="status-badge success">Open</span>
+                </div>
+                <div class="scholarship-amount">₹30,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">Athlete Excellence Award</div>
+                <p class="small-copy">For students excelling in national or state-level sports.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Dec 10, 2026</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
 
-<!-- Scholarship 3 -->
-<div class="scholarship-card metric-card" data-scholarship="tech">
-<div class="card-top">
-<div>
-<span class="chain-tag">Tech Excellence</span>
-<h3>CodeCraft Scholarship</h3>
-<p class="small-copy">₹75,000 + Internship</p>
-</div>
-<div class="status-badge success">Open</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Jan 20, 2027</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
+              <div class="scholarship-card stagger-item" data-scholarship="women">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Women in Tech</span>
+                  <span class="status-badge success">Open</span>
+                </div>
+                <div class="scholarship-amount">₹60,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">STEM Sisters Scholarship</div>
+                <p class="small-copy">Empowering women pursuing STEM degrees and careers.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Feb 15, 2027</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
 
-<!-- Scholarship 4 -->
-<div class="scholarship-card metric-card" data-scholarship="sports">
-<div class="card-top">
-<div>
-<span class="chain-tag">Sports Achievement</span>
-<h3>Athlete Excellence Award</h3>
-<p class="small-copy">₹30,000 + Gear Support</p>
-</div>
-<div class="status-badge success">Open</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Dec 10, 2026</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
+              <div class="scholarship-card stagger-item" data-scholarship="rural">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                  <span class="chain-tag">Rural Excellence</span>
+                  <span class="status-badge pending">Closing Soon</span>
+                </div>
+                <div class="scholarship-amount">₹40,000</div>
+                <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">Village Scholar Program</div>
+                <p class="small-copy">Supporting rural students with mentorship and financial aid.</p>
+                <div class="scholarship-meta">
+                  <span style="font-size:0.75rem;color:var(--text-muted);">Deadline: Nov 25, 2026</span>
+                  <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">Apply →</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<!-- Scholarship 5 -->
-<div class="scholarship-card metric-card" data-scholarship="women">
-<div class="card-top">
-<div>
-<span class="chain-tag">Women Empowerment</span>
-<h3>STEM Sisters Scholarship</h3>
-<p class="small-copy">₹60,000 - Women in Tech</p>
-</div>
-<div class="status-badge success">Open</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Feb 15, 2027</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
-
-<!-- Scholarship 6 -->
-<div class="scholarship-card metric-card" data-scholarship="rural">
-<div class="card-top">
-<div>
-<span class="chain-tag">Rural Excellence</span>
-<h3>Village Scholar Program</h3>
-<p class="small-copy">₹40,000 + Mentorship</p>
-</div>
-<div class="status-badge pending">Closing Soon</div>
-</div>
-<div class="scholarship-meta">
-<span>Deadline: Nov 25, 2026</span>
-<strong>Apply Now →</strong>
-</div>
-</div>
-</div>
-</article>
-
-<!-- Scholarship Detail Modal/Pane -->
-<aside class="glass-card section-card" id="scholarship-detail" style="display: none;">
-<div class="section-head">
-<button class="secondary-btn" onclick="closeScholarshipDetail()" style="padding: 6px 12px; font-size: 0.8rem;">← Back to List</button>
-<h2 id="detail-title">Scholarship Details</h2>
-</div>
-
-<div id="scholarship-content">
-<!-- Dynamic content loaded here -->
-</div>
-</aside>
-</section>
-</main>
-
-<footer data-site-footer></footer>
-</div>
-
-<div class="toast-stack" data-toast-stack></div>
-
-<script>
-function showAllScholarships() {
-  document.querySelector('#scholarships-grid').style.display = 'grid';
-}
-
-// Scholarship card click handlers
-document.addEventListener('click', function(e) {
-  if (e.target.closest('.scholarship-card')) {
-    const scholarshipId = e.target.closest('.scholarship-card').dataset.scholarship;
-    showScholarshipDetail(scholarshipId);
-  }
-});
-
-function showScholarshipDetail(id) {
-  const detailPane = document.getElementById('scholarship-detail');
-  const scholarshipsGrid = document.getElementById('scholarships-grid');
-  const content = document.getElementById('scholarship-content');
-  const title = document.getElementById('detail-title');
-  
-  scholarshipsGrid.style.display = 'none';
-  detailPane.style.display = 'block';
-  
-  const scholarships = {
-    merit: {
-      title: 'Prime Merit Scholarship',
-      amount: '₹50,000',
-      type: 'Merit-Based',
-      deadline: 'December 15, 2026',
-      description: 'Awarded to top-performing students across all academic years based on semester GPA and extracurricular achievements.'
-    },
-    need: {
-      title: 'Student Welfare Fund',
-      amount: '₹25,000',
-      type: 'Need-Based',
-      deadline: 'November 30, 2026',
-      description: 'Financial support for students from economically disadvantaged backgrounds to continue their education.'
-    },
-    tech: {
-      title: 'CodeCraft Scholarship',
-      amount: '₹75,000 + Internship',
-      type: 'Tech Excellence',
-      deadline: 'January 20, 2027',
-      description: 'For outstanding students in Computer Science, AI, and related technical fields with proven coding skills.'
-    }
-  };
-  
-  const scholarship = scholarships[id] || scholarships.merit;
-  title.textContent = scholarship.title;
-  
-  content.innerHTML = `
-    <div class="status-panel">
-      <div class="info-row">
-        <span>Scholarship Amount</span>
-        <strong>${scholarship.amount}</strong>
-      </div>
-      <div class="info-row">
-        <span>Type</span>
-        <strong>${scholarship.type}</strong>
-      </div>
-      <div class="info-row">
-        <span>Application Deadline</span>
-        <strong>${scholarship.deadline}</strong>
+          <!-- Detail Panel (hidden by default) -->
+          <div class="card card-p" id="scholarship-detail" style="display:none;border-radius:var(--r-xl);margin-top:20px;">
+            <div class="section-head">
+              <div>
+                <button onclick="closeScholarshipDetail()" class="btn btn-ghost btn-sm" style="margin-bottom:8px;">← Back to List</button>
+                <h2 id="detail-title">Scholarship Details</h2>
+              </div>
+            </div>
+            <div id="scholarship-content"></div>
+          </div>
+        </main>
       </div>
     </div>
+    <div class="toast-stack" data-toast-stack></div>
 
-    <div class="section-card compact-box" style="margin-top: 18px;">
-      <h3 style="margin-bottom: 12px; color: var(--teal);">Eligibility Criteria</h3>
-      <ul style="font-size: 0.82rem; color: var(--text-soft); line-height: 1.6; padding-left: 18px;">
-        <li>Minimum CGPA 8.5/10.0</li>
-        <li>Full-time enrolled student</li>
-        <li>No disciplinary actions</li>
-        <li>Active participation in college events</li>
-      </ul>
-    </div>
+    <script>
+      // Scholarship card click handlers
+      document.addEventListener('click', function(e) {
+        const card = e.target.closest('.scholarship-card');
+        if(card) showScholarshipDetail(card.dataset.scholarship);
+      });
 
-    <div class="section-card compact-box" style="margin-top: 14px;">
-      <h3 style="margin-bottom: 12px; color: var(--teal);">Required Documents</h3>
-      <div class="stack-list">
-        <div class="detail-card">
-          <span>Academic Transcript</span>
-          <strong>Last 2 semesters</strong>
-        </div>
-        <div class="detail-card">
-          <span>Income Certificate</span>
-          <strong>Family income proof</strong>
-        </div>
-        <div class="detail-card">
-          <span>Aadhaar Card</span>
-          <strong>Identity verification</strong>
-        </div>
-        <div class="detail-card">
-          <span>Recommendation Letter</span>
-          <strong>From HOD/Principal</strong>
-        </div>
-      </div>
-    </div>
+      function showScholarshipDetail(id) {
+        document.getElementById('scholarships-wrapper').style.display = 'none';
+        document.getElementById('scholarship-detail').style.display = 'block';
 
-    <div class="hero-actions" style="margin-top: 24px;">
-      <button class="primary-btn" data-apply-scholarship="${id}" onclick="applyScholarship('${id}')">
-        Apply On-Chain
-      </button>
-      <a class="secondary-btn" href="https://scholarship-portal.example.com" target="_blank">
-        Official Portal
-      </a>
-    </div>
-  `;
-}
+        const scholarships = {
+          merit: { title:'Prime Merit Scholarship', amount:'₹50,000', type:'Merit-Based', deadline:'December 15, 2026', desc:'Awarded to top-performing students across all academic years based on semester GPA and extracurricular achievements.' },
+          need: { title:'Student Welfare Fund', amount:'₹25,000', type:'Need-Based', deadline:'November 30, 2026', desc:'Financial support for students from economically disadvantaged backgrounds to continue their education.' },
+          tech: { title:'CodeCraft Scholarship', amount:'₹75,000 + Internship', type:'Tech Excellence', deadline:'January 20, 2027', desc:'For outstanding students in Computer Science, AI, and related technical fields with proven coding skills.' },
+          sports: { title:'Athlete Excellence Award', amount:'₹30,000', type:'Sports Achievement', deadline:'December 10, 2026', desc:'Recognizes students achieving at national or state level in sports while maintaining academic standards.' },
+          women: { title:'STEM Sisters Scholarship', amount:'₹60,000', type:'Women in Tech', deadline:'February 15, 2027', desc:'Empowering women to pursue STEM careers with financial support and mentorship opportunities.' },
+          rural: { title:'Village Scholar Program', amount:'₹40,000', type:'Rural Excellence', deadline:'November 25, 2026', desc:'Supporting rural students with comprehensive mentorship and financial aid to bridge educational gaps.' },
+        };
 
-function closeScholarshipDetail() {
-  document.getElementById('scholarships-grid').style.display = 'grid';
-  document.getElementById('scholarship-detail').style.display = 'none';
-}
+        const s = scholarships[id] || scholarships.merit;
+        document.getElementById('detail-title').textContent = s.title;
+        document.getElementById('scholarship-content').innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+            <div class="metric-card"><div class="metric-label">Amount</div><div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.2rem;color:var(--accent);">${s.amount}</div></div>
+            <div class="metric-card"><div class="metric-label">Type</div><div style="font-weight:600;color:var(--text);margin-top:6px;">${s.type}</div></div>
+            <div class="metric-card"><div class="metric-label">Deadline</div><div style="font-weight:600;color:var(--text);margin-top:6px;font-size:0.85rem;">${s.deadline}</div></div>
+          </div>
+          <div class="card card-p" style="margin-bottom:16px;border-radius:var(--r-md);">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:8px;color:var(--text);">About this Scholarship</h3>
+            <p class="small-copy">${s.desc}</p>
+          </div>
+          <div class="card card-p" style="margin-bottom:16px;border-radius:var(--r-md);">
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:10px;color:var(--text);">Eligibility Criteria</h3>
+            <ul style="font-size:0.83rem;color:var(--text-soft);line-height:1.8;padding-left:18px;">
+              <li>Minimum CGPA 8.5/10.0</li>
+              <li>Full-time enrolled student at a recognised institution</li>
+              <li>No active disciplinary actions</li>
+              <li>Active participation in college activities</li>
+            </ul>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-primary" data-apply-scholarship="${id}" onclick="applyScholarship('${id}')">Apply On-Chain →</button>
+            <button class="btn btn-ghost" onclick="closeScholarshipDetail()">← Back to List</button>
+          </div>
+        `;
+      }
 
-function applyScholarship(id) {
-  // Show toast notification
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `
-    <strong>On-Chain Application Started</strong>
-    <p>Redirecting to blockchain verification flow...</p>
-  `;
-  document.querySelector('[data-toast-stack]').appendChild(toast);
-  
-  // Auto remove toast after 4 seconds
-  setTimeout(() => {
-    toast.remove();
-  }, 4000);
-  
-  // Replaced by js/scholarships.js when module scripts load.
-  console.log('Applying for scholarship:', id);
-}
+      function closeScholarshipDetail() {
+        document.getElementById('scholarships-wrapper').style.display = 'block';
+        document.getElementById('scholarship-detail').style.display = 'none';
+      }
 
-// Add CSS for scholarship cards (inline for now)
-const style = document.createElement('style');
-style.textContent = `
-.scholarship-card {
-  cursor: pointer;
-  background: var(--glass-card) !important;
-  border: 1px solid var(--stroke) !important;
-  transition: all var(--t-mid) var(--ease-out) !important;
-}
+      function applyScholarship(id) {
+        const stack = document.querySelector('[data-toast-stack]');
+        if(stack) {
+          const t = document.createElement('div');
+          t.className='toast';
+          t.innerHTML='<strong>Application Started</strong><p>Redirecting to blockchain verification flow...</p>';
+          stack.prepend(t);
+          requestAnimationFrame(()=>t.classList.add('show'));
+          setTimeout(()=>{t.classList.add('hide');setTimeout(()=>t.remove(),250);},3200);
+        }
+        console.log('Applying for scholarship:', id);
+      }
+    </script>
 
-.scholarship-card:hover {
-  transform: translateY(-4px) !important;
-  box-shadow: var(--shadow-lg) !important;
-  border-color: var(--teal-light) !important;
-}
-
-.scholarship-card .card-top {
-  margin-bottom: 12px;
-}
-
-.scholarship-card h3 {
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  margin: 4px 0 2px !important;
-  color: var(--text) !important;
-}
-
-.scholarship-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.scholarship-meta strong {
-  font-size: 0.8rem;
-  color: var(--teal);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.scholarship-meta strong:hover {
-  color: var(--amber);
-}
-
-@media (max-width: 768px) {
-  .cards-grid { grid-template-columns: 1fr !important; }
-}
-`;
-document.head.appendChild(style);
-</script>
-
-<script type="module" src="js/main.js"></script>
-<script type="module" src="js/scholarships.js"></script>
-</body>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/scholarships.js"></script>
+  </body>
 </html>

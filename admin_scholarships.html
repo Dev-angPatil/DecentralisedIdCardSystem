@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,45 +7,51 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="admin_scholarships">
-    <div class="site-shell">
-      <header data-site-header></header>
-
-      <main class="page-content">
-        <section class="hero-panel glass-card">
-          <div class="hero-copy">
-            <span class="chain-tag">Scholarship Admin</span>
-            <h1>Manage scholarship applications and approvals.</h1>
-            <p>Review submitted student applications, approve eligible entries, or reject incomplete requests.</p>
-          </div>
-          <div class="hero-rail">
-            <div class="rail-card">
-              <p>Total Applications</p>
-              <strong data-scholarship-total>0</strong>
+    <div class="mesh-bg"></div>
+    <div class="app-shell">
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+      <div class="main-content">
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;">Manage Scholarships</span>
+          <div></div>
+        </div>
+        <main class="page-content">
+          <div class="page-header">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <p class="eyebrow">Admin · Scholarships</p>
+                <div class="page-title">Review Queue</div>
+                <p class="page-subtitle">Approve or reject student scholarship applications</p>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <div class="metric-card" style="padding:12px 18px;">
+                  <div class="metric-label">Total</div>
+                  <div class="metric-value" style="font-size:1.4rem;" data-scholarship-total>0</div>
+                </div>
+                <div class="metric-card" style="padding:12px 18px;">
+                  <div class="metric-label">Pending</div>
+                  <div class="metric-value" style="font-size:1.4rem;color:var(--amber);" data-scholarship-pending>0</div>
+                </div>
+              </div>
             </div>
-            <div class="rail-card">
-              <p>Pending Review</p>
-              <strong data-scholarship-pending>0</strong>
-            </div>
           </div>
-        </section>
 
-        <section class="glass-card section-card">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Applications</p>
-              <h2>Review Queue</h2>
+          <div class="card card-p" style="border-radius:var(--r-xl);">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Applications</p>
+                <h2>Student Applications</h2>
+              </div>
+              <span class="pill pill-amber">Approve / Reject</span>
             </div>
-            <span class="pill">Approve / Reject</span>
+            <div data-admin-scholarship-applications></div>
           </div>
-          <div class="stack-list" data-admin-scholarship-applications></div>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
+        </main>
+      </div>
     </div>
-
     <div class="toast-stack" data-toast-stack></div>
-
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/admin.js"></script>
   </body>

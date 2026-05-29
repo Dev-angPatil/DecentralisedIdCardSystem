@@ -1,66 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChainCampus | Dashboard</title>
+    <meta name="description" content="Your ChainCampus student dashboard — attendance, transactions, scholarships and more." />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="dashboard">
-    <div class="site-shell">
-      <header data-site-header></header>
+    <div class="mesh-bg"></div>
 
-      <main class="page-content">
-        <section class="hero-panel glass-card dashboard-hero">
-          <div class="hero-copy" data-welcome>
-            <span class="chain-tag">Dashboard</span>
-            <h1>Loading...</h1>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+
+      <!-- Main -->
+      <div class="main-content">
+        <!-- Mobile top bar -->
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;">ChainCampus</span>
+          <div></div>
+        </div>
+
+        <main class="page-content">
+          <!-- Page header + welcome -->
+          <div class="page-header" data-welcome>
+            <div class="page-title">Loading...</div>
           </div>
-          <div class="transaction-box" data-last-transaction></div>
-        </section>
 
-        <section class="stats-grid" data-dashboard-stats></section>
+          <!-- Stats grid -->
+          <div class="stats-grid" data-dashboard-stats></div>
 
-        <section class="glass-card section-card" id="applications">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Scholarships</p>
-              <h2>My Applications</h2>
+          <!-- Hero tx box -->
+          <div class="dashboard-hero" data-last-transaction style="margin-bottom:24px;"></div>
+
+          <!-- Bottom grid -->
+          <div class="content-grid">
+            <!-- Notices -->
+            <div class="card card-p" style="border-radius:var(--r-lg);">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Campus Updates</p>
+                  <h2>Recent Notices</h2>
+                </div>
+                <span class="pill pill-teal">Live</span>
+              </div>
+              <div data-dashboard-notices></div>
             </div>
-            <span class="pill">On-chain application flow</span>
-          </div>
-          <div class="stack-list" data-scholarship-applications></div>
-        </section>
 
-        <section class="content-grid">
-          <article class="glass-card section-card">
+            <!-- TX Log -->
+            <div class="card card-p" style="border-radius:var(--r-lg);">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Blockchain</p>
+                  <h2>Transaction Log</h2>
+                </div>
+              </div>
+              <div class="tx-timeline" data-tx-log style="max-height:280px;overflow-y:auto;"></div>
+            </div>
+          </div>
+
+          <!-- Scholarship Applications -->
+          <div class="card card-p" style="border-radius:var(--r-lg);" id="applications">
             <div class="section-head">
               <div>
-                <p class="eyebrow">Recent Notices</p>
-                <h2>Student updates</h2>
+                <p class="eyebrow">Scholarships</p>
+                <h2>My Applications</h2>
               </div>
-              <span class="pill">Campus + chain readiness</span>
+              <span class="pill">On-chain flow</span>
             </div>
-            <div class="stack-list" data-dashboard-notices></div>
-          </article>
-
-          <aside class="glass-card section-card">
-            <div class="section-head" style="margin-bottom:0">
-              <div>
-                <p class="eyebrow">Blockchain</p>
-                <h2>Transaction Log</h2>
-              </div>
-            </div>
-            <div class="stack-list" data-tx-log style="margin-top:12px; max-height:300px; overflow-y:auto; padding-right:5px"></div>
-          </aside>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
+            <div data-scholarship-applications></div>
+          </div>
+        </main>
+      </div>
     </div>
 
     <div class="toast-stack" data-toast-stack></div>
-
     <script type="module" src="js/main.js"></script>
   </body>
 </html>

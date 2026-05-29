@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,85 +7,94 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="admin_courses">
-    <div class="site-shell">
-      <header data-site-header></header>
+    <div class="mesh-bg"></div>
+    <div class="app-shell">
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+      <div class="main-content">
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;">Manage Courses</span>
+          <div></div>
+        </div>
+        <main class="page-content">
+          <div class="page-header">
+            <p class="eyebrow">Admin · Courses</p>
+            <div class="page-title">Course Management</div>
+            <p class="page-subtitle">Create and manage the academic course catalog</p>
+          </div>
 
-      <main class="page-content">
-        <section class="content-grid" style="grid-template-columns: 1fr 1.5fr;">
-          <article class="glass-card section-card">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Admin Actions</p>
-                <h2>Add New Course</h2>
+          <div class="content-grid" style="grid-template-columns:360px 1fr;">
+            <!-- Add Course Form -->
+            <div class="card card-p" style="border-radius:var(--r-xl);">
+              <div class="section-head" style="margin-bottom:18px;">
+                <div>
+                  <p class="eyebrow">Create</p>
+                  <h2>Add New Course</h2>
+                </div>
               </div>
+              <form data-add-course-form style="display:flex;flex-direction:column;gap:14px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Course Name</label>
+                  <input type="text" name="name" placeholder="e.g. Distributed Systems" required />
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Course Code</label>
+                  <input type="text" name="code" placeholder="e.g. CS801" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Credits</label>
+                    <input type="number" name="credits" value="3" min="1" max="5" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Color</label>
+                    <select name="color">
+                      <option value="blue">Blue</option>
+                      <option value="pink">Pink</option>
+                      <option value="mint">Mint</option>
+                      <option value="amber">Amber</option>
+                      <option value="violet">Violet</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Instructor</label>
+                  <input type="text" name="instructor" placeholder="Dr. Name" required />
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Time Slot</label>
+                    <input type="text" name="time" placeholder="9:00 AM" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label>Room</label>
+                    <input type="text" name="room" placeholder="LH-101" required />
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Days (comma separated)</label>
+                  <input type="text" name="days" placeholder="Mon, Wed, Fri" required />
+                </div>
+                <button type="submit" class="btn btn-primary" data-submit-btn>Create Course On-Chain →</button>
+              </form>
             </div>
-            <form class="form-grid" data-add-course-form>
-              <label>
-                Course Name
-                <input type="text" name="name" placeholder="e.g. Distributed Systems" required />
-              </label>
-              <label>
-                Course Code
-                <input type="text" name="code" placeholder="e.g. CS801" required />
-              </label>
-              <div class="two-column">
-                <label>
-                  Credits
-                  <input type="number" name="credits" value="3" min="1" max="5" required />
-                </label>
-                <label>
-                  Color Theme
-                  <select name="color">
-                    <option value="blue">Blue</option>
-                    <option value="pink">Pink</option>
-                    <option value="mint">Mint</option>
-                    <option value="amber">Amber</option>
-                    <option value="violet">Violet</option>
-                  </select>
-                </label>
-              </div>
-              <label>
-                Instructor
-                <input type="text" name="instructor" placeholder="Dr. Name" required />
-              </label>
-              <div class="two-column">
-                <label>
-                  Time Slot
-                  <input type="text" name="time" placeholder="e.g. 9:00 AM" required />
-                </label>
-                <label>
-                  Room
-                  <input type="text" name="room" placeholder="e.g. LH-101" required />
-                </label>
-              </div>
-              <label>
-                Days (comma separated)
-                <input type="text" name="days" placeholder="Mon, Wed, Fri" required />
-              </label>
 
-              <button type="submit" class="primary-btn" data-submit-btn>Create Course (On-Chain)</button>
-            </form>
-          </article>
-
-          <article class="glass-card section-card">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Live Catalog</p>
-                <h2>Existing Courses</h2>
+            <!-- Existing Courses -->
+            <div class="card card-p" style="border-radius:var(--r-xl);">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Live Catalog</p>
+                  <h2>Existing Courses</h2>
+                </div>
               </div>
+              <div class="cards-grid" data-courses-list></div>
             </div>
-            <div class="cards-grid" data-courses-list style="grid-template-columns: 1fr;">
-              <!-- Rendered via JS -->
-            </div>
-          </article>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
+          </div>
+        </main>
+      </div>
     </div>
-
     <div class="toast-stack" data-toast-stack></div>
-
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/admin.js"></script>
   </body>

@@ -42,39 +42,19 @@ function initLoginPage() {
 
   let connectedWalletAddress = "";
 
-  /* ── Tab Switcher Logic ── */
-  tabStudent.addEventListener('click', () => {
+  /* ── Tab Switcher Logic (new HTML uses inline switchTab fn) ── */
+  tabStudent?.addEventListener('click', () => {
     tabStudent.classList.add('active');
-    tabStudent.style.background = 'var(--teal-pale)';
-    tabStudent.style.color = 'var(--teal)';
-    
-    tabAdmin.classList.remove('active');
-    tabAdmin.style.background = 'transparent';
-    tabAdmin.style.color = 'var(--text-soft)';
-
+    tabAdmin?.classList.remove('active');
     studentTab.classList.remove('step-hidden');
-    adminTab.classList.add('step-hidden');
-    authTitle.textContent = "Web3 Student Sign-In";
-    authPill.textContent = "Wallet Mode";
-    authPill.style.background = 'var(--teal-pale)';
-    authPill.style.color = 'var(--teal-light)';
+    adminTab?.classList.add('step-hidden');
   });
 
-  tabAdmin.addEventListener('click', () => {
+  tabAdmin?.addEventListener('click', () => {
     tabAdmin.classList.add('active');
-    tabAdmin.style.background = 'var(--amber-pale2)';
-    tabAdmin.style.color = 'var(--amber-dark)';
-    
-    tabStudent.classList.remove('active');
-    tabStudent.style.background = 'transparent';
-    tabStudent.style.color = 'var(--text-soft)';
-
-    adminTab.classList.remove('step-hidden');
+    tabStudent?.classList.remove('active');
+    adminTab?.classList.remove('step-hidden');
     studentTab.classList.add('step-hidden');
-    authTitle.textContent = "Administrator Portal";
-    authPill.textContent = "Credentials Mode";
-    authPill.style.background = 'var(--amber-pale)';
-    authPill.style.color = 'var(--amber-dark)';
   });
 
   /* ── Student Phase 1: Connect Wallet ── */

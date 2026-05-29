@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,29 +7,41 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="attendance">
-    <div class="site-shell">
-      <header data-site-header></header>
+    <div class="mesh-bg"></div>
+    <div class="app-shell">
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+      <div class="main-content">
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;">Attendance</span>
+          <div></div>
+        </div>
+        <main class="page-content">
+          <div class="page-header">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <p class="eyebrow">Blockchain Ledger</p>
+                <div class="page-title">Attendance Tracker</div>
+                <p class="page-subtitle">Every entry is cryptographically timestamped on-chain</p>
+              </div>
+              <span class="pill pill-emerald">On-Chain Verified</span>
+            </div>
+          </div>
 
-      <main class="page-content">
-        <section class="content-grid" style="grid-template-columns:1fr">
-          <article class="glass-card section-card">
+          <div class="card card-p" style="border-radius:var(--r-xl);">
             <div class="section-head">
               <div>
                 <p class="eyebrow">Course Attendance</p>
-                <h2>Track your lecture attendance</h2>
+                <h2>Lecture Records</h2>
               </div>
-              <span class="pill">On-Chain Verified</span>
             </div>
-            <div class="cards-grid" data-attendance-list style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
-          </article>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
+            <div class="cards-grid" data-attendance-list style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));"></div>
+          </div>
+        </main>
+      </div>
     </div>
-
     <div class="toast-stack" data-toast-stack></div>
-
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/attendance.js"></script>
   </body>

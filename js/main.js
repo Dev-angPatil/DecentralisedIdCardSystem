@@ -182,9 +182,18 @@ export function showToast(title, message='', tone='success'){
   if(!stack) return;
   const t = document.createElement('div');
   t.className = 'toast';
-  t.innerHTML = `<strong>${title}</strong><p>${message}</p>`;
+  // Left accent color based on tone
+  const accentColors = { success:'#34d399', failed:'#f87171', pending:'#fbbf24', info:'#818cf8' };
+  const accent = accentColors[tone] || accentColors.info;
+  t.style.cssText = `border-left: 3px solid ${accent};`;
+  t.innerHTML = `<div><strong style="font-size:0.88rem;font-weight:700;color:var(--text)">${title}</strong>${message?`<p style="font-size:0.78rem;color:var(--text-soft);margin-top:2px;line-height:1.4">${message}</p>`:''}</div>`;
   stack.prepend(t);
-  setTimeout(()=>t.remove(), 3200);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{
+    t.classList.remove('show');
+    t.classList.add('hide');
+    setTimeout(()=>t.remove(), 250);
+  }, 3200);
 }
 
 export function setButtonPending(btn, isPending, pendingLabel='Pending…', defaultLabel='Submit'){
@@ -222,202 +231,134 @@ export function updateWalletCopy(){
   });
 }
 
-/* ─── HEADER ──────────────────────────────────────────────── */
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
 function renderHeader(){
-  const header = document.querySelector('[data-site-header]');
-  if(!header) return;
+  renderSidebar();
+}
+
+function renderSidebar(){
+  const sidebarEl = document.querySelector('[data-sidebar]');
   const cur = document.body.dataset.page || '';
   const session = getSession();
   const state = getState();
 
+  if(!sidebarEl) {
+    // Fallback for pages without sidebar (login, index)
+    return;
+  }
+
   const navList = session?.isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
-  const navLinks = navList.map(([href,label,page]) =>
-    `<a href="${href}" class="${page===cur?'active':''}">${label}</a>`
+  const NAV_ICONS = {
+    dashboard:'\u229e', courses:'\ud83d\udcda', events:'\ud83d\uddd3', attendance:'\u2713',
+    scholarships:'\ud83c\udfc6', profile:'\u2299', login:'\u2192',
+    admin_dashboard:'\u229e', admin_courses:'\ud83d\udcda', admin_events:'\ud83d\uddd3', admin_scholarships:'\ud83c\udfc6',
+  };
+
+  const filteredNav = navList.filter(([,,page]) => !(page==='login' && session?.loggedIn));
+  const navLinksHtml = filteredNav.map(([href,label,page]) =>
+    `<a href="${href}" class="sidebar-link${page===cur?' active':''}">
+      <span class="nav-icon">${NAV_ICONS[page]||'\u2022'}</span>
+      <span class="nav-label">${label}</span>
+    </a>`
   ).join('');
 
-  const themeToggleHtml = `
-    <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Theme" style="background:transparent; border:none; cursor:pointer; font-size:1.15rem; padding:6px; margin-right:5px; border-radius:50%; display:grid; place-items:center; transition:transform 0.4s var(--ease-spring); color:var(--text-on-teal-soft);">
-      🌓
-    </button>
-  `;
+  const isStudentUser = session && session.loggedIn && !session.isAdmin;
+  const vAddr = state.student?.walletAddress || state.walletAddress || session?.walletAddress || '';
+  const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
 
-  const isStudent = session && session.loggedIn && !session.isAdmin;
-  const virtualAddress = state.student?.walletAddress || state.walletAddress || session?.walletAddress || 'CCvW...';
-  const virtualBalance = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
-
-  const authArea = session && session.loggedIn ? `
-    ${themeToggleHtml}
-    <span class="user-chip" style="${session.isAdmin?'background:var(--warning)':''}">${getInitials(session.name)}</span>
-    ${isStudent ? `
-      <div class="virtual-wallet-hud glass-card" style="display:flex; align-items:center; gap:8px; padding:4px 8px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);">
-        <span class="wallet-addr-hud" data-copy-hud-addr="${virtualAddress}" style="cursor:pointer; font-family:monospace; font-size:0.8rem; color:var(--text-on-teal-soft); display:flex; align-items:center; gap:4px;" title="Click to copy Address">
-          🟢 ${truncate(virtualAddress, 10)}
-        </span>
-        <span class="wallet-bal-hud" style="font-weight:600; font-size:0.85rem; color:#4ade80;">
-          💎 ${Number(virtualBalance).toFixed(3)} SOL
-        </span>
-        <button class="airdrop-hud-btn" id="airdrop-hud-btn" style="border:none; background:rgba(74, 222, 128, 0.15); color:#4ade80; cursor:pointer; font-weight:bold; font-size:0.75rem; padding:4px 8px; border-radius:8px; transition:transform 0.15s var(--ease-spring), background 0.15s; display:flex; align-items:center; gap:2px;" title="Request free virtual airdrop">
-          ⚡ +1 SOL
-        </button>
+  const walletHudHtml = isStudentUser ? `
+    <div class="sidebar-wallet">
+      <div class="sidebar-wallet-addr" data-copy-hud-addr="${vAddr}" title="Click to copy">
+        <span class="wallet-dot"></span>
+        ${truncate(vAddr||'CCvW...virtual', 16)}
       </div>
-    ` : `
-      <span class="wallet-chip">${state.walletAddress ? '🟢 '+truncate(state.walletAddress,12) : '⚪ No Wallet'}</span>
-    `}
-    <button class="secondary-btn" id="logout-btn" style="margin-left:5px;">Sign Out</button>
-  ` : `
-    ${themeToggleHtml}
-    <a href="login.html" class="secondary-btn">Login</a>
+      <div class="sidebar-wallet-bal">
+        ${Number(vBal).toFixed(3)} <small>SOL</small>
+      </div>
+      <button class="airdrop-btn" id="airdrop-hud-btn">\u26a1 Airdrop +1 SOL</button>
+    </div>` : '';
+
+  const userHtml = session?.loggedIn ? `
+    ${walletHudHtml}
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">${getInitials(session.name)}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">${session.name||'Student'}</div>
+        <div class="sidebar-user-role">${session.isAdmin?'\ud83d\udd11 Administrator':'\ud83c\udf93 Student'}</div>
+      </div>
+    </div>` : `
+    <a href="login.html" class="sidebar-link">
+      <span class="nav-icon">\u2192</span>
+      <span class="nav-label">Sign In</span>
+    </a>`;
+
+  sidebarEl.innerHTML = `
+    <a class="sidebar-brand" href="${session?.loggedIn?(session.isAdmin?'admin_dashboard.html':'dashboard.html'):'index.html'}">
+      <div class="sidebar-logo">CC</div>
+      <div>
+        <div class="sidebar-brand-name">ChainCampus</div>
+        <div class="sidebar-brand-sub">${session?.isAdmin?'Admin Portal':'Student Portal'}</div>
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Navigation</div>
+      ${navLinksHtml}
+    </nav>
+    <div class="sidebar-footer">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">\ud83c\udf13</button>
+        ${session?.loggedIn?`<button class="secondary-btn" id="logout-btn" style="flex:1;font-size:0.8rem;padding:6px 12px;">Sign Out</button>`:''}
+      </div>
+      ${userHtml}
+    </div>
   `;
 
-  header.innerHTML = `
-    <nav class="site-nav glass-card">
-      <a class="brand" href="${session?.loggedIn ? (session.isAdmin ? 'admin_dashboard.html' : 'dashboard.html') : 'index.html'}">
-        <div class="brand-mark">CC</div>
-        <span class="brand-name">ChainCampus ${session?.isAdmin ? '<span style="color:var(--warning);font-size:0.8rem">ADMIN</span>' : ''}</span>
-      </a>
-      <div class="nav-links">${navLinks}</div>
-      <div class="nav-actions">${authArea}</div>
-    </nav>`;
-
-  // Copy address listener
-  const addrHud = header.querySelector('[data-copy-hud-addr]');
-  if(addrHud) {
-    addrHud.addEventListener('click', () => {
-      const fullAddr = addrHud.dataset.copyHudAddr;
-      navigator.clipboard.writeText(fullAddr);
-      
-      const toast = document.createElement('div');
-      toast.style.cssText = `
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: rgba(74, 222, 128, 0.95);
-        color: #0b1f15;
-        font-weight: 600;
-        font-size: 0.9rem;
-        padding: 12px 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        z-index: 99999;
-        transform: translateY(100px);
-        opacity: 0;
-        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
-      `;
-      toast.textContent = "📋 Address copied to clipboard!";
-      document.body.appendChild(toast);
-      
-      requestAnimationFrame(() => {
-        toast.style.transform = 'translateY(0)';
-        toast.style.opacity = '1';
-      });
-      
-      setTimeout(() => {
-        toast.style.transform = 'translateY(-20px)';
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
-    });
-  }
-
-  // Airdrop listener
-  const airdropBtn = header.querySelector('#airdrop-hud-btn');
-  if(airdropBtn) {
-    airdropBtn.addEventListener('click', async () => {
-      airdropBtn.style.transform = 'scale(0.9)';
-      setTimeout(() => { if(airdropBtn) airdropBtn.style.transform = 'none'; }, 150);
-      
-      airdropBtn.disabled = true;
-      airdropBtn.innerHTML = `🌀 ...`;
-      
-      try {
-        const { airdropSOLOnServer } = await import("./db.js");
-        const res = await airdropSOLOnServer(1.0);
-        if(res.ok) {
-          updateState(s => {
-            if(s.student) s.student.virtualBalance = res.virtualBalance;
-            return s;
-          });
-          const currentSession = getSession();
-          if(currentSession) {
-            currentSession.virtualBalance = res.virtualBalance;
-            setSession(currentSession);
-          }
-          
-          renderHeader();
-          
-          // Re-render profile if active to sync card flip details
-          if(typeof renderProfile === 'function') {
-            try {
-              renderProfile();
-            } catch(e) {}
-          }
-          
-          const toast = document.createElement('div');
-          toast.style.cssText = `
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: rgba(15, 23, 42, 0.95);
-            color: #4ade80;
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(74, 222, 128, 0.2);
-            z-index: 99999;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
-          `;
-          toast.innerHTML = `💸 Received Airdrop of <span style="font-weight:800; text-decoration: underline;">1.00 SOL</span>!`;
-          document.body.appendChild(toast);
-          
-          requestAnimationFrame(() => {
-            toast.style.transform = 'translateY(0)';
-            toast.style.opacity = '1';
-          });
-          
-          setTimeout(() => {
-            toast.style.transform = 'translateY(-20px)';
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 300);
-          }, 3000);
-        }
-      } catch(err) {
-        console.error("Airdrop failed:", err);
-      } finally {
-        if(airdropBtn) {
-          airdropBtn.disabled = false;
-          airdropBtn.innerHTML = `⚡ +1 SOL`;
-        }
-      }
-    });
-  }
-
-  document.getElementById('logout-btn')?.addEventListener('click', async ()=>{
-    try {
-      await logoutOnServer();
-    } catch(e) {
-      console.warn("[main] Server logout failed:", e);
-    }
-    clearSession();
-    updateState(s => { s.walletAddress=''; return s; });
-    window.location.href = 'login.html';
+  sidebarEl.querySelector('[data-copy-hud-addr]')?.addEventListener('click', ()=>{
+    navigator.clipboard.writeText(vAddr);
+    showToast('Copied','Wallet address copied to clipboard.','success');
   });
 
-  document.getElementById('theme-toggle')?.addEventListener('click', (e)=>{
-    const btn = e.currentTarget;
-    btn.style.transform = 'rotate(180deg)';
+  const airdropBtnEl = sidebarEl.querySelector('#airdrop-hud-btn');
+  if(airdropBtnEl) {
+    airdropBtnEl.addEventListener('click', async()=>{
+      airdropBtnEl.disabled=true; airdropBtnEl.textContent='\ud83c\udf00 ...';
+      try {
+        const {airdropSOLOnServer} = await import('./db.js');
+        const res = await airdropSOLOnServer(1.0);
+        if(res.ok) {
+          updateState(s=>{if(s.student)s.student.virtualBalance=res.virtualBalance;return s;});
+          const cs=getSession(); if(cs){cs.virtualBalance=res.virtualBalance;setSession(cs);}
+          renderSidebar();
+          showToast('Airdrop received!','1.00 SOL added to your virtual wallet.','success');
+        }
+      } catch(err){console.error('Airdrop failed:',err);}
+      finally{if(airdropBtnEl){airdropBtnEl.disabled=false;airdropBtnEl.textContent='\u26a1 Airdrop +1 SOL';}}
+    });
+  }
+
+  document.getElementById('logout-btn')?.addEventListener('click', async()=>{
+    try{await logoutOnServer();}catch(e){}
+    clearSession(); updateState(s=>{s.walletAddress='';return s;});
+    window.location.href='login.html';
+  });
+
+  document.getElementById('theme-toggle')?.addEventListener('click',(e)=>{
+    e.currentTarget.style.transform='rotate(180deg) scale(0.9)';
     toggleTheme();
-    setTimeout(() => { btn.style.transform = 'none'; }, 400);
+    setTimeout(()=>{const b=document.getElementById('theme-toggle');if(b)b.style.transform='';},350);
+  });
+
+  document.getElementById('hamburger-btn')?.addEventListener('click',()=>{
+    sidebarEl.classList.toggle('open');
+    document.querySelector('.sidebar-overlay')?.classList.toggle('visible');
+  });
+  document.querySelector('.sidebar-overlay')?.addEventListener('click',()=>{
+    sidebarEl.classList.remove('open');
+    document.querySelector('.sidebar-overlay')?.classList.remove('visible');
   });
 }
 
-/* ─── FOOTER ──────────────────────────────────────────────── */
+
 function renderFooter(){
   const footer = document.querySelector('[data-site-footer]');
   if(!footer) return;
@@ -465,11 +406,29 @@ export function renderDashboard(){
     const txCount  = state.txLog?.length || 0;
     const wallet   = state.walletAddress ? '🟢 Connected' : '⚪ Not Connected';
 
+    const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
+
     statsEl.innerHTML = `
-      <div class="metric-card"><span>Courses Enrolled</span><strong>${enrolled}</strong></div>
-      <div class="metric-card"><span>Attendance Rate</span><strong>${pct}%</strong></div>
-      <div class="metric-card"><span>Blockchain Txns</span><strong>${txCount}</strong></div>
-      <div class="metric-card"><span>Wallet Status</span><strong style="font-size:1rem">${wallet}</strong></div>`;
+      <div class="metric-card stagger-item">
+        <div class="metric-icon">📚</div>
+        <div class="metric-label">Enrolled Courses</div>
+        <div class="metric-value">${enrolled}</div>
+      </div>
+      <div class="metric-card stagger-item">
+        <div class="metric-icon">✓</div>
+        <div class="metric-label">Attendance Rate</div>
+        <div class="metric-value">${pct}<span style="font-size:0.9rem">%</span></div>
+      </div>
+      <div class="metric-card stagger-item">
+        <div class="metric-icon">⛓</div>
+        <div class="metric-label">Blockchain Txns</div>
+        <div class="metric-value">${txCount}</div>
+      </div>
+      <div class="metric-card stagger-item">
+        <div class="metric-icon">💎</div>
+        <div class="metric-label">Virtual Balance</div>
+        <div class="metric-value" style="font-size:1.3rem;">${Number(vBal).toFixed(2)}<span style="font-size:0.75rem;opacity:0.7;"> SOL</span></div>
+      </div>`;
   }
 
   /* Notices */
@@ -491,13 +450,19 @@ export function renderDashboard(){
   const txBox = document.querySelector('[data-last-transaction]');
   if(txBox){
     const lt = state.lastTransaction;
-    txBox.innerHTML = `
-      <p class="eyebrow">Last Transaction</p>
-      <div class="card-top">
-        <strong>${lt.label}</strong>
-        <span class="status-badge ${lt.status==='Success'?'success':lt.status==='Failed'?'failed':'idle'}">${lt.status}</span>
-      </div>
-      ${lt.txId ? `<p class="small-copy tx-id">🔗 ${lt.txId}</p>` : '<p class="small-copy">No transaction yet.</p>'}`;
+    if(lt?.txId) {
+      txBox.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <p class="eyebrow" style="margin-bottom:4px;">Last Transaction</p>
+            <h3 style="font-size:1rem;font-weight:700;color:var(--text);">${lt.label}</h3>
+          </div>
+          <span class="status-badge ${lt.status==='Success'?'success':lt.status==='Failed'?'failed':'idle'}">${lt.status}</span>
+        </div>
+        <p class="small-copy tx-id" style="font-size:0.75rem;color:var(--text-muted);">🔗 ${lt.txId}</p>`;
+    } else {
+      txBox.style.display = 'none';
+    }
   }
 }
 
@@ -505,16 +470,19 @@ function renderTxLog(){
   const el = document.querySelector('[data-tx-log]');
   if(!el) return;
   const log = getState().txLog || [];
-  if(!log.length){ el.innerHTML='<p class="small-copy">No transactions yet. Perform a blockchain action to see logs here.</p>'; return; }
-  el.innerHTML = log.map(t=>`
-    <div class="tx-row">
-      <div>
-        <strong class="small-copy">${t.action}</strong>
-        <p class="small-copy tx-id">🔗 ${t.txId}</p>
+  if(!log.length){ el.innerHTML='<p class="small-copy" style="padding:16px;color:var(--text-muted);">No transactions yet. Perform a blockchain action to see logs here.</p>'; return; }
+  el.innerHTML = log.map((t,i)=>`
+    <div class="tx-row" style="animation-delay:${i*40}ms;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:${t.status==='success'?'#34d399':t.status==='failed'?'#f87171':'#fbbf24'};flex-shrink:0;"></div>
+        <div>
+          <strong style="font-size:0.83rem;color:var(--text);">${t.action}</strong>
+          <p class="small-copy tx-id" style="font-size:0.7rem;">🔗 ${t.txId}</p>
+        </div>
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0;">
         <span class="status-badge ${t.status==='success'?'success':t.status==='failed'?'failed':'pending'}">${t.status}</span>
-        <p class="small-copy">${t.ts}</p>
+        <p class="small-copy" style="font-size:0.68rem;margin-top:2px;">${t.ts}</p>
       </div>
     </div>`).join('');
 }
@@ -574,63 +542,70 @@ export function renderProfile(){
   const verified = wallet !== 'Not Connected';
 
   cardEl.innerHTML = `
-    <div class="flip-card-container" id="student-flip-card">
-      <div class="flip-card-inner">
-        <!-- Front Side -->
-        <div class="id-card flip-card-front">
-          <div class="id-card-header">
-            <div class="id-avatar">${initials}</div>
-            <div>
-              <p class="eyebrow">Student Identity Card</p>
-              <h2 class="id-name">${session.name || '—'}</h2>
-              <span class="id-badge ${verified?'success':'pending'}">${verified?'⛓ Blockchain Verified':'⚠ Wallet Not Linked'}</span>
+    <div class="id-card-scene" id="student-flip-card">
+      <div class="id-card-flipper">
+        <!-- Front -->
+        <div class="id-face id-front">
+          <div class="id-top-row">
+            <div class="id-chip"></div>
+            <div class="id-brand">ChainCampus<span>Student Identity</span></div>
+            <div class="id-nfc-icon">📶</div>
+          </div>
+          <div class="id-mid-row">
+            <div class="id-card-number">${truncate(wallet,22)||'CCvW•••• •••• 4D2F'}</div>
+          </div>
+          <div class="id-bottom-row">
+            <div class="id-name-block">
+              <div class="id-label-xs">Cardholder</div>
+              <div class="id-cardholder-name">${(session.name||'Student').toUpperCase()}</div>
             </div>
-            <div class="id-logo">CC</div>
-          </div>
-          <div class="id-body">
-            <div class="id-field"><span>Student ID</span><strong>${session.studentId || '—'}</strong></div>
-            <div class="id-field"><span>College</span><strong>${session.college || '—'}</strong></div>
-            <div class="id-field"><span>Program</span><strong>${session.program || '—'}</strong></div>
-            <div class="id-field"><span>Year</span><strong>${session.year || '—'}</strong></div>
-            <div class="id-field wide"><span>Wallet Address</span><strong class="mono">${wShort}</strong></div>
-          </div>
-          <div class="id-footer">
-            <span class="small-copy">🔒 ChainCampus · Click to Flip Card</span>
-            <div class="qr-placeholder">QR</div>
+            <div class="id-verified-badge">${verified?'✓ Verified':'◎ Pending'}</div>
           </div>
         </div>
-
-        <!-- Back Side -->
-        <div class="flip-card-back">
-          <div class="card-magnetic-strip"></div>
-          <div class="chip-placeholder"></div>
-          
-          <div style="margin-top: 50px; text-align: left; padding: 0 10px;">
-            <p class="eyebrow" style="color:var(--amber); letter-spacing: 0.1em; font-size: 0.65rem;">On-Chain Cryptographic Proof</p>
-            <h3 style="font-size: 1rem; font-weight: 700; margin: 4px 0 10px; color:#fff;">Solana Academic Record</h3>
-            
-            <div style="font-family:'JetBrains Mono', monospace; font-size:0.7rem; display:grid; gap:6px; opacity:0.85; color:#e2e8f0;">
-              <div><span style="opacity:0.6">PROGRAM: </span>${truncate('Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd', 22)}</div>
-              <div><span style="opacity:0.6">OWNER PDA: </span>${truncate(wallet, 22)}</div>
-              <div><span style="opacity:0.6">STUDENT SEED: </span>${session.studentId || '—'}</div>
-              <div><span style="opacity:0.6">VIRTUAL BALANCE: </span><span style="color:#4ade80; font-weight:bold;">💎 ${Number(virtualBalance).toFixed(3)} SOL</span></div>
-              <div><span style="opacity:0.6">SYSTEM STATUS: </span>Verified & Signed</div>
+        <!-- Back -->
+        <div class="id-face id-back">
+          <div class="id-mag-strip"></div>
+          <div class="id-back-content">
+            <div class="id-back-row">
+              <span class="id-back-key">STUDENT ID:</span>
+              <span class="id-back-val">${session.studentId||'—'}</span>
+            </div>
+            <div class="id-back-row">
+              <span class="id-back-key">PROGRAM:</span>
+              <span class="id-back-val">${session.program||'—'}</span>
+            </div>
+            <div class="id-back-row">
+              <span class="id-back-key">NETWORK:</span>
+              <span class="id-back-val" style="color:#2dd4bf;">Solana Devnet</span>
+            </div>
+            <div class="id-back-row">
+              <span class="id-back-key">BALANCE:</span>
+              <span class="id-back-val" style="color:#34d399;font-weight:700;">${Number(virtualBalance).toFixed(3)} SOL</span>
+            </div>
+            <div class="id-back-row">
+              <span class="id-back-key">STATUS:</span>
+              <span class="id-back-val" style="color:#34d399;">${verified?'Active & Verified':'Pending Verification'}</span>
             </div>
           </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; color:#fff;">
-            <span style="font-size: 0.62rem; font-family: 'JetBrains Mono', monospace; opacity: 0.7;">SECURITY VERIFIED ✓</span>
-            <span style="font-size: 0.75rem; font-family: 'Syne', sans-serif; font-weight: 800; color:var(--amber)">ChainCampus</span>
+          <div class="id-back-footer">
+            <span class="id-security-text">SECURITY CODE: ${session.studentId||'—'}•••</span>
+            <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:0.8rem;color:#fbbf24;">ChainCampus</span>
           </div>
         </div>
       </div>
     </div>`;
 
+
+
   // Attach flip click listener
   document.getElementById('student-flip-card')?.addEventListener('click', (e) => {
-    const inner = e.currentTarget.querySelector('.flip-card-inner');
-    inner?.classList.toggle('is-flipped');
-    showToast('Identity Verified 🔐', 'Viewing secure smart contract parameters.', 'success');
+    const flipper = e.currentTarget.querySelector('.id-card-flipper');
+    if(flipper) {
+      flipper.classList.toggle('flipped');
+      if(flipper.classList.contains('flipped')) {
+        showToast('Credentials Revealed 🔐', 'Viewing secure on-chain parameters.', 'success');
+      }
+    }
   });
 
   /* On-chain details */
@@ -639,11 +614,12 @@ export function renderProfile(){
     const enrolled = state.enrolledCourses || [];
     const txCount  = state.txLog?.length || 0;
     onChain.innerHTML = `
-      <div class="info-row"><span>Blockchain Network</span><strong>Solana Devnet</strong></div>
-      <div class="info-row"><span>Wallet Address</span><strong class="mono small-copy">${wShort}</strong></div>
+      <div class="info-row"><span>Blockchain Network</span><strong style="color:#2dd4bf;">Solana Devnet</strong></div>
+      <div class="info-row"><span>Wallet Address</span><strong class="mono small-copy" style="font-size:0.72rem;">${wShort}</strong></div>
+      <div class="info-row"><span>Virtual Balance</span><strong style="color:#34d399;">${Number(virtualBalance).toFixed(3)} SOL</strong></div>
       <div class="info-row"><span>Courses On-Chain</span><strong>${enrolled.length}</strong></div>
       <div class="info-row"><span>Total Transactions</span><strong>${txCount}</strong></div>
-      <div class="info-row"><span>Identity Status</span><strong>${verified?'Verified ✓':'Pending wallet link'}</strong></div>`;
+      <div class="info-row"><span>Identity Status</span><strong>${verified?'<span class="status-badge success">Verified ✓</span>':'<span class="status-badge pending">Pending wallet link</span>'}</strong></div>`;
   }
 }
 
@@ -730,7 +706,7 @@ function populateHomeSummary() {
 }
 
 export function initTheme() {
-  const saved = localStorage.getItem("chainCampusTheme") || "light";
+  const saved = localStorage.getItem("chainCampusTheme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
   document.body.className = `theme-${saved}`;
 }

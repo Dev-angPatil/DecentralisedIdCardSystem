@@ -1,167 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChainCampus | Web3 Authentication Portal</title>
+    <title>ChainCampus | Sign In</title>
+    <meta name="description" content="Sign in to ChainCampus — access your blockchain-verified student identity instantly with a virtual wallet." />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="login">
-    <div class="site-shell">
-      <header data-site-header></header>
+    <div class="mesh-bg"></div>
 
-      <main class="page-content">
-        <section class="content-grid auth-grid">
-         
-          <!-- Left Visual Pane -->
-          <article class="glass-card section-card spotlight-card" style="display: flex; flex-direction: column; justify-content: center;">
-            <span class="chain-tag">⛓️ Solana Academic Ledger</span>
-            <h1 style="font-size: 2.2rem; line-height: 1.2; margin-top: 15px;">Your identity, verified on the blockchain.</h1>
-            <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.7;">
-              ChainCampus uses high-security Web3 cryptographic signatures to manage student records, attendances, and registrations. 
-              Students log in seamlessly using their Solana wallet address, avoiding traditional passwords entirely.
-            </p>
-            <div class="visual-indicator" style="margin-top: 30px; padding: 20px; border-radius: var(--r-lg); background: rgba(255,255,255,0.06); border: 1px dashed var(--stroke-teal);">
-              <span class="eyebrow" style="color:var(--amber)">Active Network</span>
-              <strong style="color:var(--teal-light); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">Solana Localnet / Devnet (Mock Fallback)</strong>
-            </div>
-          </article>
+    <div class="auth-page" style="position:relative;z-index:1;">
+      <!-- Left Brand Panel -->
+      <div class="auth-left">
+        <div class="auth-left-content">
+          <a href="index.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;margin-bottom:40px;">
+            <div style="width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#6366f1,#14b8a6);display:grid;place-items:center;font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;">CC</div>
+            <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;color:#fff;">ChainCampus</span>
+          </a>
 
-          <!-- Right Form Pane -->
-          <article class="glass-card section-card" id="auth-box">
-            <div class="section-head" style="margin-bottom: 25px;">
-              <div>
-                <p class="eyebrow">Authentication</p>
-                <h2 id="auth-title">Web3 Student Sign-In</h2>
-              </div>
-              <span class="pill" id="auth-pill" style="background:var(--teal-pale); color:var(--teal-light)">Wallet Mode</span>
-            </div>
+          <p class="eyebrow" style="color:#818cf8;margin-bottom:12px;">Blockchain Identity</p>
+          <h1 class="auth-headline">
+            Your academic identity,<br>
+            <span style="background:linear-gradient(135deg,#818cf8,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">verified on-chain.</span>
+          </h1>
+          <p class="auth-subline">
+            ChainCampus uses cryptographic signatures to manage student records, 
+            attendance, and registrations. Connect your virtual wallet instantly — no downloads, no passwords.
+          </p>
 
-            <!-- Tab Switcher -->
-            <div class="tab-switcher" style="display: flex; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid var(--stroke-light); padding-bottom: 15px;">
-              <button class="tab-btn active" id="tab-student" style="flex: 1; padding: 10px; border-radius: var(--r-md); cursor: pointer; font-weight: 600; font-size: 0.85rem; background: var(--teal-pale); color: var(--teal); transition: all var(--t-fast);">
-                🎓 Student
-              </button>
-              <button class="tab-btn" id="tab-admin" style="flex: 1; padding: 10px; border-radius: var(--r-md); cursor: pointer; font-weight: 600; font-size: 0.85rem; background: transparent; color: var(--text-soft); transition: all var(--t-fast);">
-                🔑 Admin Credentials
-              </button>
+          <div class="auth-network-box">
+            <div class="auth-network-label">Active Network</div>
+            <div class="auth-network-value">Solana Devnet · Virtual Wallet Mode</div>
+          </div>
+
+          <!-- Floating stats -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px;">
+            <div style="padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
+              <div style="font-size:1.4rem;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#818cf8;">100%</div>
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:2px;">No wallet download</div>
             </div>
-            
-            <!-- STUDENT TAB CONTENT -->
-            <div id="student-tab-content">
-              <!-- Connect Phase -->
-              <div id="wallet-connect-phase" class="auth-phase">
-                <div style="text-align: center; padding: 20px 10px;">
-                  <div class="wallet-icon-glow" style="width: 70px; height: 70px; border-radius: 50%; background: var(--amber-pale2); border: 2px solid var(--amber); display: grid; place-items: center; margin: 0 auto 20px; box-shadow: var(--shadow-amber);">
-                    <span style="font-size: 2rem;">⚡</span>
-                  </div>
-                  <h3>Connect Solana Wallet</h3>
-                  <p style="color:var(--text-soft); font-size: 0.85rem; margin: 10px 0 25px; line-height: 1.6;">
-                    Connect your Phantom (or Web3) wallet to securely verify your student profile. No account registration or passwords required.
-                  </p>
-                  
-                  <button type="button" class="primary-btn" id="btn-access-virtual" style="width: 100%; padding: 14px; font-size: 0.95rem; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 12px; background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);">
-                    🚀 Access instantly via Virtual Wallet
-                  </button>
-                  
-                  <button type="button" class="secondary-btn" id="btn-connect-phantom" style="width: 100%; padding: 12px; font-size: 0.9rem; display: flex; justify-content: center; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.15);">
-                    👻 Link Phantom Extension (Advanced)
-                  </button>
-                  
-                  <p class="small-copy" style="margin-top: 15px; color: var(--text-muted);">
-                    First time? Connect your wallet to complete your onboarding details.
-                  </p>
+            <div style="padding:14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
+              <div style="font-size:1.4rem;font-weight:800;font-family:'Space Grotesk',sans-serif;color:#2dd4bf;">⚡</div>
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:2px;">Instant access</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Auth Panel -->
+      <div class="auth-right">
+        <div class="auth-box">
+          <!-- Tab: Student / Admin -->
+          <div class="tab-pills" style="margin-bottom:28px;" id="auth-tabs">
+            <button class="tab-pill active" id="tab-student" onclick="switchTab('student')">🎓 Student</button>
+            <button class="tab-pill" id="tab-admin" onclick="switchTab('admin')">🔑 Admin</button>
+          </div>
+
+          <!-- STUDENT SECTION -->
+          <div id="student-tab-content">
+            <!-- Connect Phase -->
+            <div id="wallet-connect-phase" class="auth-phase">
+              <div class="auth-box-title">Welcome back</div>
+              <p class="auth-box-sub">Choose how you'd like to connect to ChainCampus</p>
+
+              <!-- Primary: Virtual Wallet -->
+              <button type="button" class="wallet-connect-btn primary-wallet" id="btn-access-virtual">
+                <div class="wallet-icon-ring">⚡</div>
+                <div class="wallet-connect-text">
+                  <strong>Virtual Wallet (Instant)</strong>
+                  <span>No download required · Start immediately</span>
                 </div>
-              </div>
+                <span style="font-size:1rem;opacity:0.8;">→</span>
+              </button>
 
-              <!-- Onboarding Form Phase (Hidden by default) -->
-              <div id="wallet-onboard-phase" class="auth-phase step-hidden">
-                <p class="eyebrow" style="color: var(--amber);">Academic Onboarding</p>
-                <h3 style="margin-bottom: 5px;">Create Web3 Student Identity</h3>
-                <p style="color:var(--text-soft); font-size: 0.82rem; margin-bottom: 20px; line-height: 1.5;">
-                  We detected that this wallet is new to ChainCampus. Complete your enrollment metadata to secure your profile on-chain.
-                </p>
+              <!-- Secondary: Phantom -->
+              <button type="button" class="wallet-connect-btn" id="btn-connect-phantom">
+                <div class="wallet-icon-ring" style="background:var(--stroke-soft);border-color:var(--stroke);">👻</div>
+                <div class="wallet-connect-text">
+                  <strong>Phantom Extension</strong>
+                  <span>Advanced · Requires browser extension</span>
+                </div>
+                <span style="font-size:1rem;opacity:0.5;">→</span>
+              </button>
 
-                <form class="form-grid two-column" id="onboard-form">
-                  <label class="wide-field">
-                    Full Name
-                    <input type="text" name="name" placeholder="Aarav Mehta" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke);" />
-                  </label>
-                  <label class="wide-field">
-                    Email Address
-                    <input type="email" name="email" placeholder="student@college.edu" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke);" />
-                  </label>
-                  
-                  <div class="wide-field divider" style="margin: 15px 0 5px; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Academic Identity Details</div>
+              <p style="text-align:center;margin-top:20px;font-size:0.78rem;color:var(--text-muted);">
+                New here? Connect your wallet to complete onboarding.
+              </p>
+            </div>
 
-                  <label class="wide-field">
-                    Student ID (Generated automatically if blank)
-                    <input type="text" name="studentId" placeholder="Will be auto-generated" style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke);" />
-                  </label>
-                  <label class="wide-field">
-                    College/University
-                    <input type="text" name="college" placeholder="Lumina College of Technology" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke);" />
-                  </label>
-                  <label style="flex: 1;">
-                    Program
-                    <input type="text" name="program" placeholder="B.Tech Computer Science" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke);" />
-                  </label>
-                  <label style="flex: 1;">
-                    Year
-                    <select name="year" required class="custom-select" style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke); background:#fff;">
+            <!-- Onboarding Phase (hidden by default) -->
+            <div id="wallet-onboard-phase" class="auth-phase step-hidden">
+              <div class="auth-box-title">Create your identity</div>
+              <p class="auth-box-sub" style="margin-bottom:24px;">New to ChainCampus? Complete your academic profile to get started.</p>
+
+              <form id="onboard-form">
+                <div class="form-group">
+                  <label for="onboard-name">Full Name</label>
+                  <input type="text" id="onboard-name" name="name" placeholder="Aarav Mehta" required />
+                </div>
+                <div class="form-group">
+                  <label for="onboard-email">Email Address</label>
+                  <input type="email" id="onboard-email" name="email" placeholder="student@college.edu" required />
+                </div>
+
+                <div style="border-top:1px solid var(--stroke);margin:16px 0;"></div>
+                <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:14px;">Academic Details</p>
+
+                <div class="form-group">
+                  <label for="onboard-studentid">Student ID <span style="font-weight:400;opacity:0.6;">(auto-generated if blank)</span></label>
+                  <input type="text" id="onboard-studentid" name="studentId" placeholder="Will be auto-generated" />
+                </div>
+                <div class="form-group">
+                  <label for="onboard-college">College / University</label>
+                  <input type="text" id="onboard-college" name="college" placeholder="Lumina College of Technology" required />
+                </div>
+                <div class="form-grid" style="margin-bottom:0;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label for="onboard-program">Program</label>
+                    <input type="text" id="onboard-program" name="program" placeholder="B.Tech Computer Science" required />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label for="onboard-year">Year</label>
+                    <select id="onboard-year" name="year" required>
                       <option value="1st Year">1st Year</option>
                       <option value="2nd Year">2nd Year</option>
                       <option value="3rd Year" selected>3rd Year</option>
                       <option value="4th Year">4th Year</option>
                       <option value="Postgrad">Postgraduate</option>
                     </select>
-                  </label>
-
-                  <div class="wide-field error-message" id="onboard-error" style="color:var(--red); font-size:0.8rem; display:none; margin-top:10px;"></div>
-
-                  <div class="wide-field inline-actions" style="margin-top: 20px;">
-                    <button type="submit" class="primary-btn" id="btn-submit-onboard" style="width: 100%; padding: 12px;">
-                      Complete Onboarding (On-Chain)
-                    </button>
                   </div>
-                </form>
-              </div>
-            </div>
-
-            <!-- ADMIN TAB CONTENT (Hidden by default) -->
-            <div id="admin-tab-content" class="step-hidden">
-              <p class="eyebrow" style="color: var(--warning);">Credentials Mode</p>
-              <h3 style="margin-bottom: 20px;">Administrator Sign In</h3>
-              
-              <form class="form-grid" id="admin-login-form">
-                <label class="wide-field" style="display: block; margin-bottom: 15px;">
-                  Email Address
-                  <input type="email" name="email" placeholder="admin@college.edu" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke); display: block; margin-top: 5px;" />
-                </label>
-                <label class="wide-field" style="display: block; margin-bottom: 20px;">
-                  Password
-                  <input type="password" name="password" placeholder="Enter administrative password" required style="width:100%; padding:10px; border-radius:var(--r-md); border:1px solid var(--stroke); display: block; margin-top: 5px;" />
-                </label>
-                
-                <div class="wide-field error-message" id="admin-login-error" style="color:var(--red); font-size:0.8rem; display:none; margin-bottom:15px;"></div>
-
-                <div class="wide-field inline-actions">
-                  <button type="submit" class="primary-btn" id="btn-submit-admin" style="width: 100%; padding: 12px; background:var(--warning); color:#fff; box-shadow:0 4px 14px rgba(245,158,11,0.2)">
-                    Authenticate Admin
-                  </button>
                 </div>
+
+                <div class="error-msg" id="onboard-error" style="display:none;margin-top:10px;"></div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="btn-submit-onboard" style="margin-top:20px;">
+                  Complete Onboarding →
+                </button>
               </form>
             </div>
-            
-          </article>
-        </section>
-      </main>
+          </div>
 
-      <footer data-site-footer></footer>
+          <!-- ADMIN SECTION (hidden) -->
+          <div id="admin-tab-content" class="step-hidden">
+            <div class="auth-box-title">Admin Sign In</div>
+            <p class="auth-box-sub" style="margin-bottom:24px;">Access the administration portal with your credentials.</p>
+
+            <form id="admin-login-form">
+              <div class="form-group">
+                <label for="admin-email">Email Address</label>
+                <input type="email" id="admin-email" name="email" placeholder="admin@college.edu" required />
+              </div>
+              <div class="form-group">
+                <label for="admin-password">Password</label>
+                <input type="password" id="admin-password" name="password" placeholder="Enter administrative password" required />
+              </div>
+
+              <div class="error-msg" id="admin-login-error" style="display:none;margin-bottom:12px;"></div>
+
+              <button type="submit" class="btn btn-full" id="btn-submit-admin" style="background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;padding:12px;border:none;border-radius:var(--r-sm);font-size:0.875rem;font-weight:600;cursor:pointer;margin-top:4px;">
+                Authenticate Admin →
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="toast-stack" data-toast-stack></div>
 
+    <script>
+      function switchTab(tab) {
+        const isStudent = tab === 'student';
+        document.getElementById('tab-student').classList.toggle('active', isStudent);
+        document.getElementById('tab-admin').classList.toggle('active', !isStudent);
+        document.getElementById('student-tab-content').classList.toggle('step-hidden', !isStudent);
+        document.getElementById('admin-tab-content').classList.toggle('step-hidden', isStudent);
+      }
+    </script>
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/auth.js"></script>
   </body>

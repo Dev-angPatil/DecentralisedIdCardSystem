@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,53 +7,62 @@
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body data-page="admin_dashboard">
-    <div class="site-shell">
-      <header data-site-header></header>
-
-      <main class="page-content">
-        <section class="hero-panel glass-card">
-          <div class="hero-copy" data-welcome>
-            <span class="chain-tag">Admin Overview</span>
-            <h1>University Metrics</h1>
+    <div class="mesh-bg"></div>
+    <div class="app-shell">
+      <aside class="sidebar" data-sidebar></aside>
+      <div class="sidebar-overlay"></div>
+      <div class="main-content">
+        <div class="top-bar">
+          <button class="hamburger" id="hamburger-btn">☰</button>
+          <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;">Admin Dashboard</span>
+          <div></div>
+        </div>
+        <main class="page-content">
+          <div class="page-header" data-welcome>
+            <p class="eyebrow">Administration</p>
+            <div class="page-title">University Metrics</div>
+            <p class="page-subtitle">Manage students, courses, events and scholarships</p>
           </div>
-        </section>
 
-        <section class="stats-grid" data-admin-stats>
-          <!-- Stats rendered via JS -->
-        </section>
+          <div class="stats-grid" data-admin-stats></div>
 
-        <section class="content-grid">
-          <article class="glass-card section-card">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">System Status</p>
-                <h2>Recent Blockchain Activity</h2>
+          <div class="content-grid">
+            <!-- Activity -->
+            <div class="card card-p" style="border-radius:var(--r-lg);">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">System Status</p>
+                  <h2>Blockchain Activity</h2>
+                </div>
+              </div>
+              <div class="tx-timeline" data-tx-log style="max-height:320px;overflow-y:auto;"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card card-p" style="border-radius:var(--r-lg);">
+              <div class="section-head" style="margin-bottom:16px;">
+                <div>
+                  <p class="eyebrow">Quick Actions</p>
+                  <h2>Management</h2>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <a href="admin_courses.html" class="btn btn-primary btn-full" style="justify-content:flex-start;gap:12px;">📚 Manage Courses</a>
+                <a href="admin_events.html" class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:12px;">🗓 Manage Events</a>
+                <a href="admin_scholarships.html" class="btn btn-secondary btn-full" style="justify-content:flex-start;gap:12px;">🏆 Manage Scholarships</a>
+              </div>
+
+              <!-- Admin note -->
+              <div style="margin-top:20px;padding:14px;border-radius:var(--r-sm);background:var(--amber-dim);border:1px solid rgba(245,158,11,0.20);">
+                <p style="font-size:0.78rem;font-weight:600;color:var(--amber);margin-bottom:4px;">Admin Access Active</p>
+                <p style="font-size:0.75rem;color:var(--text-soft);line-height:1.5;">You have full administrative privileges. All actions are logged on-chain.</p>
               </div>
             </div>
-            <div class="stack-list" data-tx-log></div>
-          </article>
-
-          <aside class="glass-card section-card">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Quick Actions</p>
-                <h2>Management</h2>
-              </div>
-            </div>
-            <div class="stack-list">
-              <a href="admin_courses.html" class="primary-btn" style="width:100%">Add New Course</a>
-              <a href="admin_events.html" class="primary-btn" style="width:100%; margin-top:8px">Create New Event</a>
-              <a href="admin_scholarships.html" class="primary-btn" style="width:100%; margin-top:8px">Manage Scholarships</a>
-            </div>
-          </aside>
-        </section>
-      </main>
-
-      <footer data-site-footer></footer>
+          </div>
+        </main>
+      </div>
     </div>
-
     <div class="toast-stack" data-toast-stack></div>
-
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/admin.js"></script>
   </body>
