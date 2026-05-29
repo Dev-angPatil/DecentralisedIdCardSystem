@@ -807,16 +807,14 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     self.send_json(400, {"error": "Missing required fields (email, name)"})
                     return
                 
-                # Generate unique username
+                # Generate unique username in format: name.randomnumber@vit.edu
                 import random
                 clean_name = "".join(c for c in name.split()[0].lower() if c.isalnum())
-                clean_prog = "".join(c for c in program.lower() if c.isalnum())[:5]
-                rand_num = random.randint(100, 999)
-                username = f"{clean_name}_{clean_prog}_{rand_num}"
+                rand_num = random.randint(1000, 9999)
+                username = f"{clean_name}.{rand_num}@vit.edu"
                 
-                # Generate readable password
-                words = ["Lumina", "Solana", "Chain", "Campus", "Secure", "Block", "Ledger", "Oxford", "Tech", "Smart", "Devnet", "Crypto", "Global", "Verified", "Access"]
-                password = f"{random.choice(words)}#{random.randint(1000, 9999)}"
+                # Password is same as username
+                password = username
                 
                 # Auto-generate a virtual wallet address if none is provided
                 if not wallet_addr:
