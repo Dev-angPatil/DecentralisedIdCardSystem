@@ -5,6 +5,7 @@ import { createCourseOnChain, createEventOnChain, reviewScholarshipApplicationOn
 import { 
   reviewScholarshipOnServer, createCourseOnServer, createEventOnServer, addTransactionOnServer, transferSOLOnServer
 } from "./db.js";
+import { NfcManager } from "./nfc.js";
 
 /* ─── DASHBOARD ───────────────────────────────────────────── */
 function renderAdminDashboard() {
@@ -279,14 +280,108 @@ function renderAdminEventsList() {
 
   const state = getState();
   target.innerHTML = (state.events || []).map(e => `
-    <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px">
+    <div class="info-row" style="background:var(--bg-alt); border-radius:var(--r-md); margin-bottom:8px; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px;">
       <div>
         <strong>${e.title}</strong>
         <p class="small-copy">${e.date} · ${e.venue}</p>
       </div>
-      <span class="status-badge success">${e.capacity} Spots</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-badge success">${e.capacity} Spots</span>
+        <button type="button" class="secondary-btn btn-sm" data-nfc-checkin-event="${e.id}">📶 NFC Check-In</button>
+      </div>
     </div>
   `).join('') || '<p class="small-copy">No events created yet.</p>';
+
+  bindNfcEventCheckinButtons();
+}
+
+function bindNfcEventCheckinButtons() {
+  document.querySelectorAll('[data-nfc-checkin-event]').forEach(btn => {
+    btn.onclick = async () => {
+      if (!(await requireConnectedWallet({ message: 'Connect admin wallet for event check-in.' }))) return;
+
+      const eventId = btn.dataset.nfcCheckinEvent;
+      const state = getState();
+      const event = (state.events || []).find(e => e.id === eventId);
+      if (!event) return;
+
+      setButtonPending(btn, true, 'Scanning...', '📶 NFC Check-In');
+
+      NfcManager.startScan(
+        async (cardData) => {
+          setButtonPending(btn, false, '', '📶 NFC Check-In');
+
+          // Log transaction for event check-in
+          const txResult = await reviewScholarshipApplicationOnChain({
+            applicationId: `event-${eventId}-${cardData.studentId}`,
+            scholarshipId: eventId,
+            approved: true
+          });
+
+          await addTransactionOnServer({
+            txId: txResult.txId,
+            action: `NFC Event Check-In: ${cardData.name} at ${event.title}`,
+            status: "success"
+          });
+
+          showToast("Event Check-In Success 🎉", `${cardData.name} has been verified and checked into ${event.title}.`, "success");
+        },
+        (err) => {
+          setButtonPending(btn, false, '', '📶 NFC Check-In');
+          showToast("NFC Read Error", err.message || "Failed to scan card.", "failed");
+        }
+      );
+    };
+  });
+}
+
+function initNfcManagement() {
+  const form = document.getElementById('admin-nfc-form');
+  const select = document.getElementById('nfc-student-select');
+  if (!form || !select) return;
+
+  const populateSelect = () => {
+    const users = JSON.parse(localStorage.getItem('chainCampusUsers') || '[]');
+    const students = users.filter(u => !u.isAdmin);
+    select.innerHTML = '<option value="">Select Student...</option>' + 
+      students.map(s => `<option value="${s.email}">${s.name} (${s.studentId || s.email})</option>`).join('');
+  };
+
+  populateSelect();
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = select.value;
+    const users = JSON.parse(localStorage.getItem('chainCampusUsers') || '[]');
+    const student = users.find(s => s.email === email);
+    if (!student) {
+      showToast("Select Student", "Please choose a valid student profile.", "failed");
+      return;
+    }
+
+    const initBtn = document.getElementById('btn-nfc-initialize');
+    setButtonPending(initBtn, true, 'Approaching Tag...', '📶 Initialize Card Tag');
+
+    NfcManager.writeCard(
+      {
+        studentId: student.studentId || "CC-1001",
+        email: student.email,
+        name: student.name,
+        walletAddress: student.walletAddress || "CCvWmock_student_addr",
+        college: student.college || "ChainCampus College",
+        program: student.program || "B.Tech",
+        year: student.year || "3rd Year"
+      },
+      (payload) => {
+        setButtonPending(initBtn, false, '📶 Initialize Card Tag');
+        showToast("Initialization Success 🎉", `NFC Card is verified and written for ${student.name}`, "success");
+      },
+      (err) => {
+        setButtonPending(initBtn, false, '📶 Initialize Card Tag');
+        showToast("NFC Error", err.message || "Failed to write NFC tag.", "failed");
+      }
+    );
+  });
 }
 
 /* ─── INIT ────────────────────────────────────────────────── */
@@ -294,3 +389,4 @@ renderAdminDashboard();
 renderScholarshipReviewQueue();
 initCourseManagement();
 initEventManagement();
+initNfcManagement();

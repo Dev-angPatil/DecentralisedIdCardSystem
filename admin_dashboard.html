@@ -58,6 +58,29 @@
                 <p style="font-size:0.75rem;color:var(--text-soft);line-height:1.5;">You have full administrative privileges. All actions are logged on-chain.</p>
               </div>
             </div>
+
+            <!-- NFC Card Setup Tool -->
+            <div class="card card-p" style="border-radius:var(--r-lg); margin-top:20px;">
+              <div class="section-head" style="margin-bottom:12px;">
+                <div>
+                  <p class="eyebrow">NFC Operations</p>
+                  <h2>Initialize Student Card</h2>
+                </div>
+              </div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:14px;">Select a student profile to write credentials onto a blank physical or simulated NFC tag.</p>
+              <form id="admin-nfc-form" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label style="font-size:0.7rem;">Student Profile</label>
+                  <select id="nfc-student-select" required style="width:100%; padding:10px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid var(--stroke); color:#fff; font-size:0.8rem;">
+                    <option value="">Select Student...</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="btn-nfc-initialize" style="margin-top:6px; justify-content:center; gap:8px;">
+                  📶 Initialize Card Tag
+                </button>
+              </form>
+            </div>
+          </div>
           </div>
         </main>
       </div>

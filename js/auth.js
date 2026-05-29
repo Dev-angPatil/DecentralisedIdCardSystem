@@ -8,6 +8,7 @@ import {
   registerProfileOnServer,
   loginWithCredentialsOnServer, addTransactionOnServer
 } from "./db.js";
+import { NfcManager } from "./nfc.js";
 
 /* ══════════════ UNIFIED AUTH PORTAL ═══════════════════════ */
 function initLoginPage() {
@@ -268,6 +269,8 @@ function initLoginPage() {
       const res = await loginWithCredentialsOnServer(email, password);
 
       if (res.ok && res.user) {
+        localStorage.setItem("chainCampusWalletType", "virtual");
+        localStorage.setItem("chainCampusVirtualAddress", res.user.walletAddress || "CCvWAdmin");
         setSession(res.user);
         showToast('Welcome Administrator 🛡️', res.user.name, 'success');
         
@@ -282,6 +285,99 @@ function initLoginPage() {
       showAdminError(err.message || 'Authentication error. Please retry.');
       setButtonPending(btnAdmin, false, '', 'Authenticate Admin');
     }
+  });
+
+  // Demo Credentials Quick-Fill Listeners
+  const btnQuickStudent = document.getElementById('quick-fill-student');
+  const btnQuickAdmin   = document.getElementById('quick-fill-admin');
+
+  btnQuickStudent?.addEventListener('click', () => {
+    if (typeof window.switchTab === 'function') {
+      window.switchTab('student');
+    }
+    tabStudent?.click();
+
+    const userField = studentForm.querySelector('[name="username"]');
+    const passField = studentForm.querySelector('[name="password"]');
+    if (userField && passField) {
+      userField.value = 'test.student@vit.edu';
+      passField.value = 'password';
+
+      showToast('Student credentials filled', 'Signing in...', 'success');
+      setTimeout(() => {
+        studentForm.dispatchEvent(new Event('submit'));
+      }, 500);
+    }
+  });
+
+  btnQuickAdmin?.addEventListener('click', () => {
+    if (typeof window.switchTab === 'function') {
+      window.switchTab('admin');
+    }
+    tabAdmin?.click();
+
+    const emailField = adminForm.querySelector('[name="email"]');
+    const passField = adminForm.querySelector('[name="password"]');
+    if (emailField && passField) {
+      emailField.value = 'admin@college.edu';
+      passField.value = 'Admin()09';
+
+      showToast('Admin credentials filled', 'Signing in...', 'success');
+      setTimeout(() => {
+        adminForm.dispatchEvent(new Event('submit'));
+      }, 500);
+    }
+  });
+
+  const btnNfcLogin = document.getElementById('btn-nfc-login');
+  btnNfcLogin?.addEventListener('click', async () => {
+    setButtonPending(btnNfcLogin, true, 'Approaching Card...', '📶 Sign In with NFC Card');
+
+    NfcManager.startScan(
+      async (cardData) => {
+        const walletAddress = cardData.walletAddress;
+        if (!walletAddress) {
+          setButtonPending(btnNfcLogin, false, '', '📶 Sign In with NFC Card');
+          showToast("NFC Read Error", "Invalid card payload: wallet address missing.", "failed");
+          return;
+        }
+
+        try {
+          const { loginWithWalletOnServer } = await import("./db.js");
+          const res = await loginWithWalletOnServer(walletAddress);
+
+          if (res.ok && res.user) {
+            localStorage.setItem("chainCampusWalletType", "virtual");
+            localStorage.setItem("chainCampusVirtualAddress", walletAddress);
+
+            setSession(res.user);
+            updateState(s => {
+              s.walletAddress = walletAddress;
+              if (!res.user.isAdmin) {
+                s.student = res.user;
+              }
+              return s;
+            });
+
+            showToast('NFC Sign In Successful 🎉', `Welcome back, ${res.user.name}!`, 'success');
+            
+            setTimeout(() => {
+              window.location.href = res.user.isAdmin ? 'admin_dashboard.html' : 'dashboard.html';
+            }, 1200);
+          } else {
+            showToast('NFC Login Failed', 'No registered profile matches this card.', 'failed');
+            setButtonPending(btnNfcLogin, false, '', '📶 Sign In with NFC Card');
+          }
+        } catch (err) {
+          showToast('NFC Login Error', err.message || 'Error authenticating card.', 'failed');
+          setButtonPending(btnNfcLogin, false, '', '📶 Sign In with NFC Card');
+        }
+      },
+      (err) => {
+        setButtonPending(btnNfcLogin, false, '', '📶 Sign In with NFC Card');
+        showToast('NFC Error', err.message || 'Failed to read card.', 'failed');
+      }
+    );
   });
 
   function showStudentError(msg) {

@@ -28,11 +28,257 @@ export function getActiveWalletAddress() {
 
 const DEFAULT_CONFIG = {
   mode: "auto",
-  network: "localhost",
-  rpcEndpoint: "http://127.0.0.1:8899",
+  network: "devnet",
+  rpcEndpoint: "https://api.devnet.solana.com",
   commitment: "confirmed",
-  programId: "Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd", // ChainCampus Program ID
-  idl: null,
+  programId: "BS8XqoJPFs6ifw1LGUwUVZX2BdfYr1b5RzrooNDPwUGK", // ChainCampus Program ID
+  idl: {
+    "version": "0.1.0",
+    "name": "chain_campus",
+    "constants": [
+      {"name": "STUDENT_SEED", "type": "bytes", "value": "[115, 116, 117, 100, 101, 110, 116]"},
+      {"name": "EVENT_SEED", "type": "bytes", "value": "[101, 118, 101, 110, 116]"},
+      {"name": "REGISTRATION_SEED", "type": "bytes", "value": "[114, 101, 103, 105, 115, 116, 114, 97, 116, 105, 111, 110]"},
+      {"name": "ATTENDANCE_SEED", "type": "bytes", "value": "[97, 116, 116, 101, 110, 100, 97, 110, 99, 101]"},
+      {"name": "COURSE_ENROLLMENT_SEED", "type": "bytes", "value": "[99, 111, 117, 114, 115, 101, 95, 101, 110, 114, 111, 108, 108, 109, 101, 110, 116]"},
+      {"name": "COURSE_SEED", "type": "bytes", "value": "[99, 111, 117, 114, 115, 101]"},
+      {"name": "SCHOLARSHIP_SEED", "type": "bytes", "value": "[115, 99, 104, 111, 108, 97, 114, 115, 104, 105, 112]"},
+      {"name": "SCHOLARSHIP_APPLICATION_SEED", "type": "bytes", "value": "[115, 99, 104, 111, 108, 97, 114, 115, 104, 105, 112, 95, 97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110]"}
+    ],
+    "instructions": [
+      {
+        "name": "registerStudent",
+        "accounts": [
+          {"name": "student", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "studentId", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "department", "type": "string"},
+          {"name": "semester", "type": "string"},
+          {"name": "email", "type": "string"}
+        ]
+      },
+      {
+        "name": "createEvent",
+        "accounts": [
+          {"name": "event", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "eventId", "type": "string"},
+          {"name": "title", "type": "string"},
+          {"name": "description", "type": "string"},
+          {"name": "venue", "type": "string"},
+          {"name": "capacity", "type": "u32"},
+          {"name": "startTime", "type": "i64"},
+          {"name": "endTime", "type": "i64"}
+        ]
+      },
+      {
+        "name": "registerForEvent",
+        "accounts": [
+          {"name": "registration", "isMut": true, "isSigner": false},
+          {"name": "student", "isMut": false, "isSigner": false},
+          {"name": "event", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": []
+      },
+      {
+        "name": "markAttendance",
+        "accounts": [
+          {"name": "attendance", "isMut": true, "isSigner": false},
+          {"name": "student", "isMut": false, "isSigner": false},
+          {"name": "event", "isMut": false, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": []
+      },
+      {
+        "name": "verifyAttendance",
+        "accounts": [
+          {"name": "attendance", "isMut": true, "isSigner": false},
+          {"name": "event", "isMut": false, "isSigner": false},
+          {"name": "authority", "isMut": false, "isSigner": true}
+        ],
+        "args": []
+      },
+      {
+        "name": "enrollCourse",
+        "accounts": [
+          {"name": "enrollment", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "courseId", "type": "string"}
+        ]
+      },
+      {
+        "name": "createCourse",
+        "accounts": [
+          {"name": "course", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "courseId", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "credits", "type": "u8"},
+          {"name": "instructor", "type": "string"}
+        ]
+      },
+      {
+        "name": "createScholarship",
+        "accounts": [
+          {"name": "scholarship", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "scholarshipId", "type": "string"},
+          {"name": "title", "type": "string"},
+          {"name": "description", "type": "string"},
+          {"name": "eligibility", "type": "string"},
+          {"name": "amount", "type": "u64"},
+          {"name": "deadline", "type": "i64"}
+        ]
+      },
+      {
+        "name": "applyScholarship",
+        "accounts": [
+          {"name": "application", "isMut": true, "isSigner": false},
+          {"name": "student", "isMut": false, "isSigner": false},
+          {"name": "scholarship", "isMut": true, "isSigner": false},
+          {"name": "authority", "isMut": true, "isSigner": true},
+          {"name": "systemProgram", "isMut": false, "isSigner": false}
+        ],
+        "args": [
+          {"name": "statement", "type": "string"}
+        ]
+      },
+      {
+        "name": "reviewScholarshipApplication",
+        "accounts": [
+          {"name": "application", "isMut": true, "isSigner": false},
+          {"name": "scholarship", "isMut": false, "isSigner": false},
+          {"name": "authority", "isMut": false, "isSigner": true}
+        ],
+        "args": [
+          {"name": "approved", "type": "bool"}
+        ]
+      }
+    ],
+    "accounts": [
+      {
+        "name": "EventRegistration",
+        "type": {"kind": "struct", "fields": [
+          {"name": "student", "type": "publicKey"},
+          {"name": "event", "type": "publicKey"},
+          {"name": "timestamp", "type": "i64"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "AttendanceRecord",
+        "type": {"kind": "struct", "fields": [
+          {"name": "student", "type": "publicKey"},
+          {"name": "event", "type": "publicKey"},
+          {"name": "verified", "type": "bool"},
+          {"name": "timestamp", "type": "i64"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "CourseEnrollment",
+        "type": {"kind": "struct", "fields": [
+          {"name": "authority", "type": "publicKey"},
+          {"name": "courseId", "type": "string"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "Course",
+        "type": {"kind": "struct", "fields": [
+          {"name": "authority", "type": "publicKey"},
+          {"name": "courseId", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "credits", "type": "u8"},
+          {"name": "instructor", "type": "string"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "Event",
+        "type": {"kind": "struct", "fields": [
+          {"name": "authority", "type": "publicKey"},
+          {"name": "eventId", "type": "string"},
+          {"name": "title", "type": "string"},
+          {"name": "description", "type": "string"},
+          {"name": "venue", "type": "string"},
+          {"name": "capacity", "type": "u32"},
+          {"name": "registrations", "type": "u32"},
+          {"name": "startTime", "type": "i64"},
+          {"name": "endTime", "type": "i64"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "Scholarship",
+        "type": {"kind": "struct", "fields": [
+          {"name": "authority", "type": "publicKey"},
+          {"name": "scholarshipId", "type": "string"},
+          {"name": "title", "type": "string"},
+          {"name": "description", "type": "string"},
+          {"name": "eligibility", "type": "string"},
+          {"name": "amount", "type": "u64"},
+          {"name": "deadline", "type": "i64"},
+          {"name": "applications", "type": "u32"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "ScholarshipApplication",
+        "type": {"kind": "struct", "fields": [
+          {"name": "scholarship", "type": "publicKey"},
+          {"name": "student", "type": "publicKey"},
+          {"name": "applicant", "type": "publicKey"},
+          {"name": "statement", "type": "string"},
+          {"name": "status", "type": "u8"},
+          {"name": "appliedAt", "type": "i64"},
+          {"name": "reviewedAt", "type": "i64"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      },
+      {
+        "name": "Student",
+        "type": {"kind": "struct", "fields": [
+          {"name": "authority", "type": "publicKey"},
+          {"name": "studentId", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "department", "type": "string"},
+          {"name": "semester", "type": "string"},
+          {"name": "email", "type": "string"},
+          {"name": "bump", "type": "u8"}
+        ]}
+      }
+    ],
+    "errors": [
+      {"code": 6000, "name": "StudentAlreadyRegistered", "msg": "Student is already registered."},
+      {"code": 6001, "name": "EventAlreadyRegistered", "msg": "Event is already registered."},
+      {"code": 6002, "name": "EventFull", "msg": "This event is full."},
+      {"code": 6003, "name": "AttendanceWindowClosed", "msg": "Attendance marking window is closed."},
+      {"code": 6004, "name": "Unauthorised", "msg": "You are not authorized to perform this action."},
+      {"code": 6005, "name": "StudentIdTooLong", "msg": "The provided student ID is too long."},
+      {"code": 6006, "name": "EventIdTooLong", "msg": "The provided event ID is too long."}
+    ]
+  },
   actions: {}
 };
 

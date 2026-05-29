@@ -24,7 +24,7 @@ function renderTimetable() {
       const course = enrolledCourses.find(c => c.days.includes(day) && c.time === time);
       if (course) {
         html += `
-          <div class="tt-slot" style="background:var(--pastel-${course.color}); border-color:var(--pastel-${course.color}-border)">
+          <div class="tt-slot color-${course.color}">
             <span class="tt-course-code" style="color:var(--text)">${course.code}</span>
             <span class="tt-room">${course.room}</span>
           </div>`;

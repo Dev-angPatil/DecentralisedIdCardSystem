@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   ["dashboard.html",  "Dashboard",  "dashboard"],
   ["courses.html",    "Courses",    "courses"],
   ["events.html",     "Events",     "events"],
+  ["timetable.html",  "Timetable",  "timetable"],
   ["attendance.html", "Attendance", "attendance"],
   ["schol.html", "Scholarships", "scholarships"],
   ["profile.html", "Profile", "profile"],
@@ -134,6 +135,20 @@ function seedData(){
   if(!getUserByEmail('admin@college.edu')){
     saveUser({ email:'admin@college.edu', password:'Admin()09', name:'System Admin', isAdmin:true });
   }
+  if(!getUserByEmail('test.student@vit.edu')){
+    saveUser({
+      email: 'test.student@vit.edu',
+      password: 'password',
+      name: 'Test Student',
+      studentId: 'CC-1001',
+      college: 'ChainCampus College',
+      program: 'B.Tech Computer Science',
+      year: '3rd Year',
+      isAdmin: false,
+      walletAddress: 'CCvWteststudent',
+      virtualBalance: 15.00
+    });
+  }
 
   if(s.seeded) return;
   updateState(st => {
@@ -249,7 +264,7 @@ function renderSidebar(){
 
   const navList = session?.isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
   const NAV_ICONS = {
-    dashboard:'\u229e', courses:'\ud83d\udcda', events:'\ud83d\uddd3', attendance:'\u2713',
+    dashboard:'\u229e', courses:'\ud83d\udcda', events:'\ud83d\uddd3', timetable:'\ud83d\udcc5', attendance:'\u2713',
     scholarships:'\ud83c\udfc6', profile:'\u2299', login:'\u2192',
     admin_dashboard:'\u229e', admin_courses:'\ud83d\udcda', admin_events:'\ud83d\uddd3', admin_scholarships:'\ud83c\udfc6',
   };
@@ -262,11 +277,11 @@ function renderSidebar(){
     </a>`
   ).join('');
 
-  const isStudentUser = session && session.loggedIn && !session.isAdmin;
-  const vAddr = state.student?.walletAddress || state.walletAddress || session?.walletAddress || '';
-  const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
+  const showWalletHud = session && session.loggedIn;
+  const vAddr = state.student?.walletAddress || state.walletAddress || session?.walletAddress || (session?.isAdmin ? 'CCvWAdmin' : '');
+  const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : (session?.isAdmin ? 100.0 : 5.00));
 
-  const walletHudHtml = isStudentUser ? `
+  const walletHudHtml = showWalletHud ? `
     <div class="sidebar-wallet">
       <div class="sidebar-wallet-addr" data-copy-hud-addr="${vAddr}" title="Click to copy">
         <span class="wallet-dot"></span>
@@ -338,6 +353,8 @@ function renderSidebar(){
 
   document.getElementById('logout-btn')?.addEventListener('click', async()=>{
     try{await logoutOnServer();}catch(e){}
+    localStorage.removeItem("chainCampusVirtualAddress");
+    localStorage.removeItem("chainCampusWalletType");
     clearSession(); updateState(s=>{s.walletAddress='';return s;});
     window.location.href='login.html';
   });
@@ -404,7 +421,7 @@ export function renderDashboard(){
     const verified = state.attendanceRecords?.filter(r=>r.status==='Verified').length || 0;
     const pct      = total ? Math.round(verified/total*100) : 0;
     const txCount  = state.txLog?.length || 0;
-    const wallet   = state.walletAddress ? '🟢 Connected' : '⚪ Not Connected';
+    const scholCount = state.scholarshipApplications?.length || 0;
 
     const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : 5.00);
 
@@ -418,6 +435,11 @@ export function renderDashboard(){
         <div class="metric-icon">✓</div>
         <div class="metric-label">Attendance Rate</div>
         <div class="metric-value">${pct}<span style="font-size:0.9rem">%</span></div>
+      </div>
+      <div class="metric-card stagger-item">
+        <div class="metric-icon">🏆</div>
+        <div class="metric-label">Scholarships</div>
+        <div class="metric-value">${scholCount}</div>
       </div>
       <div class="metric-card stagger-item">
         <div class="metric-icon">⛓</div>
@@ -654,8 +676,9 @@ function populateDashboardStats() {
   const state = getState();
   
   if (statsPanel) {
-    const eventCount = state.events ? state.events.length : 12;
-    const attendanceCount = state.attendanceRecords ? state.attendanceRecords.length : 3;
+    const eventCount = state.events ? state.events.length : 0;
+    const attendanceCount = state.attendanceRecords ? state.attendanceRecords.length : 0;
+    const scholarshipCount = state.scholarshipApplications ? state.scholarshipApplications.length : 0;
 
     statsPanel.innerHTML = `
       <div class="stat-card glass-card">
@@ -667,8 +690,8 @@ function populateDashboardStats() {
         <h2>${attendanceCount}</h2>
       </div>
       <div class="stat-card glass-card">
-        <p>Wallet Status</p>
-        <h2>${state.walletAddress ? 'Active' : 'Missing'}</h2>
+        <p>Scholarship Applications</p>
+        <h2>${scholarshipCount}</h2>
       </div>
     `;
   }
@@ -723,6 +746,21 @@ export function toggleTheme() {
 async function init() {
   initTheme();
   await hydrateFromDatabase();
+
+  // Sync state.walletAddress from virtual session if needed
+  const session = getSession();
+  if (session && session.loggedIn) {
+    const type = localStorage.getItem("chainCampusWalletType") || "virtual";
+    if (type === "virtual") {
+      const vAddr = session.walletAddress || (session.isAdmin ? 'CCvWAdmin' : localStorage.getItem("chainCampusVirtualAddress"));
+      if (vAddr) {
+        localStorage.setItem("chainCampusVirtualAddress", vAddr);
+        localStorage.setItem("chainCampusWalletType", "virtual");
+        updateState(s => { s.walletAddress = vAddr; return s; });
+      }
+    }
+  }
+
   seedData();
   saveState(getState());
   if(!requireAuth()) return;
@@ -732,7 +770,6 @@ async function init() {
   populateHomeSummary();
   renderDashboard();
   renderProfile();
-
 }
 
 initTheme();
