@@ -187,13 +187,15 @@ def get_db():
         """
     )
     try:
-        conn.execute("ALTER TABLE users ADD COLUMN username TEXT")
-        conn.commit()
+        if not conn.is_postgres:
+            conn.execute("ALTER TABLE users ADD COLUMN username TEXT")
+            conn.commit()
     except Exception:
         pass
     try:
-        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)")
-        conn.commit()
+        if not conn.is_postgres:
+            conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)")
+            conn.commit()
     except Exception:
         pass
     conn.execute(
@@ -299,18 +301,19 @@ def get_db():
     )
     
     # Run dynamic migrations to ensure compatibility if db already exists
-    try:
-        conn.execute("ALTER TABLE users ADD COLUMN virtualBalance REAL DEFAULT 5.00")
-    except Exception:
-        pass
-    try:
-        conn.execute("ALTER TABLE session ADD COLUMN virtualBalance REAL DEFAULT 5.00")
-    except Exception:
-        pass
-    try:
-        conn.execute("ALTER TABLE session ADD COLUMN walletAddress TEXT")
-    except Exception:
-        pass
+    if not conn.is_postgres:
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN virtualBalance REAL DEFAULT 5.00")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE session ADD COLUMN virtualBalance REAL DEFAULT 5.00")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE session ADD COLUMN walletAddress TEXT")
+        except Exception:
+            pass
         
     conn.commit()
 
