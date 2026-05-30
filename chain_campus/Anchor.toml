@@ -3,13 +3,16 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-chain_campus = "Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd"
+chain_campus = "BS8XqoJPFs6ifw1LGUwUVZX2BdfYr1b5RzrooNDPwUGK"
+
+[programs.devnet]
+chain_campus = "BS8XqoJPFs6ifw1LGUwUVZX2BdfYr1b5RzrooNDPwUGK"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

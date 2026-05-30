@@ -8,3 +8,5 @@ dist/
 .codex
 data/*.db
 data/*.db-journal
+.agents/
+solana-install-init.sh

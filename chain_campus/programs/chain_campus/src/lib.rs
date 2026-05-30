@@ -7,7 +7,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("Fg6Pa4H2X4CWdU3EajNf8C8ViPyMskGuFA6shVe6icMd");
+declare_id!("BS8XqoJPFs6ifw1LGUwUVZX2BdfYr1b5RzrooNDPwUGK");
 
 #[program]
 pub mod chain_campus {
