@@ -1041,6 +1041,7 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 payload = self.read_json_body()
                 email = payload.get("email")
                 name = payload.get("name")
+                password = payload.get("password")
                 student_id = payload.get("studentId")
                 college = payload.get("college")
                 program = payload.get("program") # Branch
@@ -1048,34 +1049,25 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 wallet_addr = payload.get("walletAddress")
                 virtual_balance = float(payload.get("virtualBalance", 5.00))
                 
+                if not email or not name or not password:
+                    self.send_json(400, {"error": "Missing required fields (email, name, password)"})
+                    return
+                
                 if not student_id:
                     import time, random
                     student_id = f"CC-{time.strftime('%Y')}-{random.randint(1000, 9999)}"
                 
-                if not email or not name:
-                    self.send_json(400, {"error": "Missing required fields (email, name)"})
-                    return
-                
-                # Generate unique username in format: name.randomnumber@vit.edu
-                import random
-                clean_name = "".join(c for c in name.split()[0].lower() if c.isalnum())
-                rand_num = random.randint(1000, 9999)
-                username = f"{clean_name}.{rand_num}@vit.edu"
-                
-                # Password is same as username
-                password = username
-                
                 # Auto-generate a virtual wallet address if none is provided
                 if not wallet_addr:
                     import hashlib
-                    h = hashlib.sha256(f"{email}-{username}".encode()).hexdigest()
+                    h = hashlib.sha256(f"{email}-{name}".encode()).hexdigest()
                     wallet_addr = f"CCvW{h[:36]}"
                 
                 with get_db() as conn:
                     # check if email already exists
                     existing = conn.execute("SELECT email FROM users WHERE email = ?", (email,)).fetchone()
                     if existing:
-                        self.send_json(400, {"error": "A student profile with this email address is already registered."})
+                        self.send_json(400, {"error": "A profile with this email already exists. Please Sign In."})
                         return
                     
                     conn.execute(
@@ -1083,12 +1075,22 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                         INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
                         """,
-                        (email, username, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                        (email, email, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                    )
+                    
+                    # Log them in on the server session table
+                    conn.execute("DELETE FROM session")
+                    conn.execute(
+                        """
+                        INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                        """,
+                        (email, name, student_id, college, program, year, 0, wallet_addr, virtual_balance)
                     )
                     
                     user = {
                         "email": email,
-                        "username": username,
+                        "username": email,
                         "name": name,
                         "studentId": student_id,
                         "college": college,
@@ -1097,20 +1099,17 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                         "isAdmin": False,
                         "walletAddress": wallet_addr,
                         "virtualBalance": virtual_balance,
-                        "loggedIn": False # Auto-fill in UI instead of immediate login so they can copy credentials!
+                        "loggedIn": True
                     }
                     conn.commit()
                     self.send_json(200, {
                         "ok": True,
-                        "username": username,
-                        "password": password,
                         "user": user
                     })
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return
 
-        # 3. Credentials Auth (Supports generated username OR email)
         if self.path == "/api/auth/credentials":
             try:
                 payload = self.read_json_body()

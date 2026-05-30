@@ -49,10 +49,7 @@ function initLoginPage() {
     return;
   }
 
-  let generatedUser = null;
-  let generatedPass = "";
-
-  /* ── Tab Switcher Logic (new HTML uses inline switchTab fn) ── */
+  /* ── Tab Switcher Logic ── */
   tabStudent?.addEventListener('click', () => {
     tabStudent.classList.add('active');
     tabAdmin?.classList.remove('active');
@@ -131,7 +128,7 @@ function initLoginPage() {
     }
   });
 
-  /* ── Student Registration & Credentials Generation ── */
+  /* ── Student Registration (Sign Up) ── */
   onboardForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (onboardError) {
@@ -141,16 +138,17 @@ function initLoginPage() {
 
     const name = onboardForm.name.value.trim();
     const email = onboardForm.email.value.trim();
+    const password = onboardForm.password.value;
     const college = onboardForm.college.value.trim();
     const program = onboardForm.program.value.trim(); // Branch
     const year = onboardForm.year.value;
 
-    if (!name || !email || !college || !program) {
-      showOnboardError('All profile details are required.');
+    if (!name || !email || !password || !college || !program) {
+      showOnboardError('All profile details and password are required.');
       return;
     }
 
-    setButtonPending(btnOnboard, true, 'Generating Credentials…', 'Register & Generate Credentials →');
+    setButtonPending(btnOnboard, true, 'Creating Profile…', 'Sign Up & Create Profile →');
 
     try {
       // 1. Pre-generate virtual Solana address for the local Sandbox in background
@@ -161,17 +159,15 @@ function initLoginPage() {
       const res = await registerProfileOnServer({
         email,
         name,
+        password,
         college,
         program,
         year,
         walletAddress: localWallet
       });
 
-      if (res.ok && res.username && res.password) {
-        generatedUser = res.user;
-        generatedPass = res.password;
-
-        // 3. Complete simulated student registration on-chain with generated academic ID
+      if (res.ok && res.user) {
+        // 3. Complete simulated student registration on-chain
         const studentId = res.user.studentId || 'CC-TEMP-ID';
         const txResult = await registerStudentOnChain({ studentId, name });
 
@@ -182,37 +178,7 @@ function initLoginPage() {
           status: "success"
         });
 
-        // 4. Update the UI to display the generated username and password
-        if (genUsernameDisplay) genUsernameDisplay.value = res.username;
-        if (genPasswordDisplay) genPasswordDisplay.value = res.password;
-
-        phaseOnboard.classList.add('step-hidden');
-        phaseSuccess?.classList.remove('step-hidden');
-
-        showToast('Registration Successful ✓', 'Generated credentials displayed.', 'success');
-      } else {
-        throw new Error(res.error || "Profile registration failed.");
-      }
-    } catch (err) {
-      console.error("[auth] Onboarding registration error:", err);
-      showOnboardError(err.message || 'Registration failed. Check details or email conflicts.');
-      setButtonPending(btnOnboard, false, '', 'Register & Generate Credentials →');
-    }
-  });
-
-  /* ── Proceed Auto Sign In ── */
-  btnProceedLogin?.addEventListener('click', async () => {
-    if (!generatedUser || !generatedPass) {
-      phaseSuccess?.classList.add('step-hidden');
-      phaseLogin?.classList.remove('step-hidden');
-      return;
-    }
-
-    setButtonPending(btnProceedLogin, true, 'Auto Signing In…', 'Auto Sign In & Launch Portal →');
-
-    try {
-      const res = await loginWithCredentialsOnServer(generatedUser.username, generatedPass);
-      if (res.ok && res.user) {
+        // 4. Immediately set session and redirect to dashboard, no copy screen!
         const walletAddress = res.user.walletAddress || 'CCvWmock_addr';
         localStorage.setItem("chainCampusWalletType", "virtual");
         localStorage.setItem("chainCampusVirtualAddress", walletAddress);
@@ -224,26 +190,17 @@ function initLoginPage() {
           return s;
         });
 
-        showToast('Portal Activated! 🎓', `Signed in as ${res.user.name}`, 'success');
-        
+        showToast('Registration Successful ✓', `Welcome, ${res.user.name}!`, 'success');
         setTimeout(() => {
           window.location.href = 'dashboard.html';
         }, 1200);
       } else {
-        throw new Error("Auto login failed.");
+        throw new Error(res.error || "Profile registration failed.");
       }
     } catch (err) {
-      showToast('Manual Sign In Required', 'Auto sign-in failed. Please enter your credentials manually.', 'pending');
-      phaseSuccess?.classList.add('step-hidden');
-      phaseLogin?.classList.remove('step-hidden');
-
-      // Pre-fill
-      const userField = studentForm.querySelector('[name="username"]');
-      const passField = studentForm.querySelector('[name="password"]');
-      if (userField) userField.value = generatedUser.username;
-      if (passField) passField.value = generatedPass;
-    } finally {
-      setButtonPending(btnProceedLogin, false, '', 'Auto Sign In & Launch Portal →');
+      console.error("[auth] Onboarding registration error:", err);
+      showOnboardError(err.message || 'Registration failed. Check details or email conflicts.');
+      setButtonPending(btnOnboard, false, '', 'Sign Up & Create Profile →');
     }
   });
 
