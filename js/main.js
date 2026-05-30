@@ -525,9 +525,10 @@ async function hydrateFromDatabase(){
   if(snapshot.chainCampusState){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mergeState(snapshot.chainCampusState)));
   }
-  if(snapshot.chainCampusSession){
-    localStorage.setItem(SESSION_KEY, JSON.stringify(snapshot.chainCampusSession));
-  }
+  // Session hydration has been commented out to keep sessions strictly isolated per client/browser.
+  // if(snapshot.chainCampusSession){
+  //   localStorage.setItem(SESSION_KEY, JSON.stringify(snapshot.chainCampusSession));
+  // }
 }
 
 function renderScholarshipApplications(){

@@ -2,9 +2,16 @@ const API_ROOT = "";
 
 async function postJson(path, payload) {
   try {
+    const session = JSON.parse(localStorage.getItem("chainCampusSession") || "null");
+    const headers = { "Content-Type": "application/json" };
+    if (session) {
+      headers["X-Session-Email"] = session.email || "";
+      headers["X-Session-StudentId"] = session.studentId || "";
+      headers["X-Session-IsAdmin"] = session.isAdmin ? "1" : "0";
+    }
     const response = await fetch(`${API_ROOT}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload)
     });
     if (!response.ok) {
@@ -20,8 +27,15 @@ async function postJson(path, payload) {
 
 export async function loadDatabaseSnapshot() {
   try {
+    const session = JSON.parse(localStorage.getItem("chainCampusSession") || "null");
+    const headers = { Accept: "application/json" };
+    if (session) {
+      headers["X-Session-Email"] = session.email || "";
+      headers["X-Session-StudentId"] = session.studentId || "";
+      headers["X-Session-IsAdmin"] = session.isAdmin ? "1" : "0";
+    }
     const response = await fetch(`${API_ROOT}/api/bootstrap`, {
-      headers: { Accept: "application/json" }
+      headers
     });
     if (!response.ok) return null;
     return await response.json();

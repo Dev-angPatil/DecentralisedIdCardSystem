@@ -925,6 +925,41 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
+    def get_session_user(self, conn):
+        email = self.headers.get("X-Session-Email")
+        if not email:
+            # Fallback to backend single-user session table
+            row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+            if row:
+                return {
+                    "email": row[0],
+                    "name": row[1],
+                    "studentId": row[2],
+                    "college": row[3],
+                    "program": row[4],
+                    "year": row[5],
+                    "isAdmin": bool(row[6]),
+                    "walletAddress": row[7],
+                    "virtualBalance": row[8]
+                }
+            return None
+        
+        # Look up directly in users table
+        row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users WHERE email = ?", (email,)).fetchone()
+        if row:
+            return {
+                "email": row[0],
+                "name": row[1],
+                "studentId": row[2],
+                "college": row[3],
+                "program": row[4],
+                "year": row[5],
+                "isAdmin": bool(row[6]),
+                "walletAddress": row[7],
+                "virtualBalance": row[8]
+            }
+        return None
+
     def send_json(self, status, payload):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(status)
@@ -1144,12 +1179,12 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     return
                 
                 with get_db() as conn:
-                    session_row = conn.execute("SELECT studentId FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
-                    if not session_row:
+                    user = self.get_session_user(conn)
+                    if not user:
                         self.send_json(401, {"error": "Unauthorized session"})
                         return
                     
-                    student_id = session_row[0]
+                    student_id = user["studentId"]
                     # Check duplicate
                     exists = conn.execute("SELECT 1 FROM enrolled_courses WHERE studentId = ? AND courseId = ?", (student_id, course_id)).fetchone()
                     if exists:
@@ -1195,12 +1230,12 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 payload = self.read_json_body()
                 amount = float(payload.get("amount", 1.0))
                 with get_db() as conn:
-                    session_row = conn.execute("SELECT email FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
-                    if not session_row:
+                    user = self.get_session_user(conn)
+                    if not user:
                         self.send_json(401, {"error": "Unauthorized session"})
                         return
                     
-                    email = session_row[0]
+                    email = user["email"]
                     conn.execute("UPDATE users SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, email))
                     conn.execute("UPDATE session SET virtualBalance = virtualBalance + ? WHERE email = ?", (amount, email))
                     
@@ -1224,8 +1259,8 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     return
                 
                 with get_db() as conn:
-                    session_row = conn.execute("SELECT isAdmin FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
-                    if not session_row or not session_row[0]:
+                    user = self.get_session_user(conn)
+                    if not user or not user["isAdmin"]:
                         self.send_json(403, {"error": "Admin access required"})
                         return
                     
@@ -1263,12 +1298,13 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 action = payload.get("action", "Transaction Gas Fee")
                 
                 with get_db() as conn:
-                    session_row = conn.execute("SELECT email, virtualBalance FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
-                    if not session_row:
+                    user = self.get_session_user(conn)
+                    if not user:
                         self.send_json(401, {"error": "Unauthorized session"})
                         return
                     
-                    email, current_bal = session_row
+                    email = user["email"]
+                    current_bal = conn.execute("SELECT virtualBalance FROM users WHERE email = ?", (email,)).fetchone()[0]
                     if current_bal < amount:
                         self.send_json(400, {"error": "Insufficient virtual balance for transaction gas"})
                         return
@@ -1308,12 +1344,12 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 applied_at = time.strftime("%Y-%m-%d %H:%M:%S")
                 
                 with get_db() as conn:
-                    session_row = conn.execute("SELECT studentId FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
-                    if not session_row:
+                    user = self.get_session_user(conn)
+                    if not user:
                         self.send_json(401, {"error": "Unauthorized session"})
                         return
                     
-                    student_id = session_row[0]
+                    student_id = user["studentId"]
                     conn.execute(
                         """
                         INSERT INTO scholarship_applications (id, scholarshipId, title, amount, type, studentId, status, txId, appliedAt)
