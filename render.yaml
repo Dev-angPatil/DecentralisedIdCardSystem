@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: decentralised-id-card-system
+    env: python
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: python server.py
+    envVars:
+      - key: PORT
+        value: 8000
