@@ -12,10 +12,10 @@ export function useBlockchain() {
 
   const executeOnChain = useCallback(
     async (actionLabel, payload = {}) => {
-      // 1. Generate simulated Solana transaction signature
+      // 1. Generate authentic simulated Solana 88-character transaction signature (base58)
       const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
       let txId = "";
-      for (let i = 0; i < 44; i++) {
+      for (let i = 0; i < 88; i++) {
         txId += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 

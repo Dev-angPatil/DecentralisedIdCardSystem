@@ -412,8 +412,12 @@ body {
   border: none;
   cursor: pointer;
   text-decoration: none;
-  transition: all var(--t-fast) var(--ease-out);
+  transition: transform var(--t-fast) cubic-bezier(0.32, 0.72, 0, 1), background-color var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
   gap: 8px;
+}
+
+.btn:active {
+  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -427,7 +431,7 @@ body {
   background: #1e293b;
 }
 .btn-primary:active {
-  transform: none;
+  transform: translateY(-1px) scale(0.97);
 }
 
 .btn-secondary {
@@ -1093,15 +1097,45 @@ body {
   border-radius: var(--r-sm);
   padding: 14px;
   text-align: left;
+  transition: transform var(--t-fast) cubic-bezier(0.32, 0.72, 0, 1), box-shadow var(--t-fast) var(--ease-out);
 }
-.class-slot.blue { border-left: 3px solid #6366f1; }
-.class-slot.pink { border-left: 3px solid #ec4899; }
-.class-slot.mint { border-left: 3px solid #14b8a6; }
-.class-slot.peach { border-left: 3px solid #f97316; }
-.class-slot.lavender { border-left: 3px solid #a855f7; }
-.class-slot.violet { border-left: 3px solid #8b5cf6; }
-.class-slot.rose { border-left: 3px solid #f43f5e; }
-.class-slot.amber { border-left: 3px solid #fbbf24; }
+.class-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.class-slot.blue {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+}
+.class-slot.pink {
+  background: rgba(236, 72, 153, 0.05);
+  border: 1px solid rgba(236, 72, 153, 0.18);
+}
+.class-slot.mint {
+  background: rgba(20, 184, 166, 0.05);
+  border: 1px solid rgba(20, 184, 166, 0.18);
+}
+.class-slot.peach {
+  background: rgba(249, 115, 22, 0.05);
+  border: 1px solid rgba(249, 115, 22, 0.18);
+}
+.class-slot.lavender {
+  background: rgba(168, 85, 247, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.18);
+}
+.class-slot.violet {
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+}
+.class-slot.rose {
+  background: rgba(244, 63, 94, 0.05);
+  border: 1px solid rgba(244, 63, 94, 0.18);
+}
+.class-slot.amber {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.18);
+}
 
 .class-time {
   font-size: 0.65rem;

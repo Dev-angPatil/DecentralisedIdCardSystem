@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { useApi } from "../hooks/useApi";
 import { useBlockchain } from "../hooks/useBlockchain";
-import { Calendar, Users, Link as LinkIcon, Check } from "lucide-react";
+import { Calendar, Users, Link as LinkIcon, Check, MapPin, Ticket } from "lucide-react";
 
 export function Events() {
   const { state, refreshData, showToast } = useApp();
@@ -13,7 +13,7 @@ export function Events() {
     setLocalLoading(prev => ({ ...prev, [event.id]: true }));
     try {
       // 1. Submit on chain transaction
-      await registerForEventOnChain(event.id, event.title);
+      const blockchainRes = await registerForEventOnChain(event.id, event.title);
 
       // 2. Submit database event registration
       await registerEvent(event.id);
@@ -30,58 +30,95 @@ export function Events() {
   const [localLoading, setLocalLoading] = useState({});
 
   return (
-    <div style={{ textAlign: "left" }}>
-      <div style={{ marginBottom: "32px" }}>
-        <h3 style={{ fontSize: "1.4rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", margin: 0 }}>
+    <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "32px" }}>
+      {/* Header section with Editorial Typography */}
+      <div style={{ borderBottom: "1px solid rgba(15, 23, 42, 0.05)", paddingBottom: "24px" }}>
+        <h3 style={{ fontSize: "clamp(2rem, 3.5vw, 2.6rem)", fontWeight: 300, fontFamily: "'Cormorant Garamond', serif", margin: 0, color: "var(--text)", lineHeight: 1.1 }}>
           Campus Events Calendar
         </h3>
-        <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", marginTop: "4px" }}>
-          Explore campus technology workshops, summits, and hackathons. Registering maps your cryptographic address.
+        <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", marginTop: "8px", maxWidth: "600px", lineHeight: 1.6 }}>
+          Explore campus technology workshops, hackathons, and guest summits. Registering your ticket signs a cryptographic entry and logs your attendance verifiably on the blockchain ledger.
         </p>
       </div>
 
-      <div className="feature-grid">
+      {/* Grid containing the cards - fully responsive */}
+      <div className="feature-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
         {state.events && state.events.map((event) => {
-          // Check if user is enrolled (we can store inside registered users or fallback)
-          // In the database model, let's see if we have isRegistered or if we can track it
           const isRegistered = event.isRegistered || false;
           const isLoading = localLoading[event.id];
 
           return (
-            <div key={event.id} className="glass-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "20px" }}>
+            <div 
+              key={event.id} 
+              className="glass-card" 
+              style={{ 
+                display: "flex", 
+                flexDirection: "column", 
+                justifyContent: "space-between", 
+                gap: "24px", 
+                padding: "28px",
+                background: "#ffffff",
+                border: "1px solid var(--stroke)",
+                borderRadius: "18px",
+                transition: "transform 0.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.2s ease-out"
+              }}
+            >
               <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                  <span className="status-badge" style={{ background: "rgba(20, 184, 166, 0.06)", border: "1px solid rgba(20, 184, 166, 0.18)", color: "#14b8a6", textTransform: "uppercase" }}>
+                {/* Meta details header inside card */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <span className="status-badge" style={{ background: "rgba(15, 23, 42, 0.03)", border: "1px solid var(--stroke)", color: "var(--text-soft)", textTransform: "uppercase", fontSize: "0.62rem", letterSpacing: "0.04em", fontWeight: 700, padding: "4px 10px" }}>
                     {event.date}
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                    <Users size={12} />
+                    <Users size={12} style={{ color: "var(--text-soft)" }} />
                     <span>Capacity: {event.capacity}</span>
                   </div>
                 </div>
-                <h4 style={{ margin: "0 0 8px", fontFamily: "'Space Grotesk',sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "var(--text)" }}>
+
+                {/* Event Name */}
+                <h4 style={{ margin: "0 0 10px", fontFamily: "'Space Grotesk',sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.01em" }}>
                   {event.title}
                 </h4>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-soft)", margin: "0 0 12px", minHeight: "36px", lineHeights: 1.4 }}>
+
+                {/* Description */}
+                <p style={{ fontSize: "0.82rem", color: "var(--text-soft)", margin: "0 0 16px", lineHeight: 1.5, minHeight: "36px" }}>
                   {event.description}
                 </p>
-                <div style={{ background: "var(--bg-alt)", borderRadius: "8px", padding: "10px", fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                  Venue: <strong style={{ color: "var(--text-soft)" }}>{event.venue}</strong>
+
+                {/* Venue Details */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-alt)", border: "1px solid var(--stroke-soft)", borderRadius: "10px", padding: "10px 14px", fontSize: "0.72rem", color: "var(--text-soft)" }}>
+                  <MapPin size={12} style={{ color: "#6366f1" }} />
+                  <span>Venue: <strong>{event.venue}</strong></span>
                 </div>
               </div>
 
-              <div>
+              {/* Action and Signatures */}
+              <div style={{ borderTop: "1px solid var(--stroke-soft)", paddingTop: "16px", marginTop: "8px" }}>
                 {isRegistered ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#10b981", fontSize: "0.78rem", fontWeight: 700 }}>
-                      <Check size={14} />
-                      <span>Verifiably Registered</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--teal)", fontSize: "0.78rem", fontWeight: 700 }}>
+                      <Check size={14} style={{ color: "var(--teal)" }} />
+                      <span>Verifiably Mapped On-Chain</span>
                     </div>
                     {event.txId && (
-                      <div className="mono" style={{ fontSize: "0.6rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                      <a 
+                        href={`https://explorer.solana.com/tx/${event.txId}?cluster=devnet`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mono" 
+                        style={{ 
+                          fontSize: "0.62rem", 
+                          color: "#6366f1", 
+                          display: "inline-flex", 
+                          alignItems: "center", 
+                          gap: "4px",
+                          textDecoration: "underline",
+                          transition: "color 0.15s ease"
+                        }}
+                      >
                         <LinkIcon size={10} />
-                        <span>{event.txId.substring(0, 16)}...</span>
-                      </div>
+                        <span>Explorer: {event.txId.substring(0, 14)}...</span>
+                      </a>
                     )}
                   </div>
                 ) : (
@@ -89,9 +126,18 @@ export function Events() {
                     className="btn btn-primary btn-full"
                     onClick={() => handleRegister(event)}
                     disabled={isLoading || loading}
-                    style={{ fontSize: "0.7rem", padding: "10px 14px", borderRadius: "10px" }}
+                    style={{ 
+                      fontSize: "0.7rem", 
+                      padding: "12px 16px", 
+                      borderRadius: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px"
+                    }}
                   >
-                    {isLoading ? "Signing Ledger..." : "Register Ticket"}
+                    <Ticket size={12} />
+                    <span>{isLoading ? "Signing Ledger..." : "Register Ticket"}</span>
                   </button>
                 )}
               </div>
