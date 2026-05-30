@@ -756,6 +756,20 @@ async function init() {
 
   // Sync state.walletAddress from virtual session if needed
   const session = getSession();
+  
+  // Auto-clear legacy demo student sessions from local storage
+  if (session && (
+    session.email === 'test.student@vit.edu' || 
+    session.email === 'teststudent@college.edu' || 
+    session.name === 'Test Student'
+  )) {
+    clearSession();
+    localStorage.removeItem("chainCampusVirtualAddress");
+    localStorage.removeItem("chainCampusWalletType");
+    window.location.reload();
+    return;
+  }
+
   if (session && session.loggedIn) {
     const type = localStorage.getItem("chainCampusWalletType") || "virtual";
     if (type === "virtual") {
