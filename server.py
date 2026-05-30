@@ -351,29 +351,7 @@ def seed_db(conn):
         )
         conn.commit()
 
-    # Seed default student if not exists
-    student_exists = conn.execute("SELECT count(*) FROM users WHERE email = 'test.student@vit.edu'").fetchone()[0]
-    if student_exists == 0:
-        print("Seeding default student user...")
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
-            """,
-            (
-                "test.student@vit.edu",
-                "test_student",
-                "password",
-                "Test Student",
-                "CC-1001",
-                "ChainCampus College",
-                "B.Tech Computer Science",
-                "3rd Year",
-                "CCvWteststudent",
-                15.00
-            )
-        )
-        conn.commit()
+    # Seeding of default student has been removed to keep registrations clean and actual.
 
     # Seed default courses if courses table is empty
     count_courses = conn.execute("SELECT count(*) FROM courses").fetchone()[0]

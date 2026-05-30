@@ -135,20 +135,7 @@ function seedData(){
   if(!getUserByEmail('admin@college.edu')){
     saveUser({ email:'admin@college.edu', password:'Admin()09', name:'System Admin', isAdmin:true });
   }
-  if(!getUserByEmail('test.student@vit.edu')){
-    saveUser({
-      email: 'test.student@vit.edu',
-      password: 'password',
-      name: 'Test Student',
-      studentId: 'CC-1001',
-      college: 'ChainCampus College',
-      program: 'B.Tech Computer Science',
-      year: '3rd Year',
-      isAdmin: false,
-      walletAddress: 'CCvWteststudent',
-      virtualBalance: 15.00
-    });
-  }
+  // Seeding of default student has been removed to keep registrations clean and actual.
 
   if(s.seeded) return;
   updateState(st => {
@@ -264,15 +251,24 @@ function renderSidebar(){
 
   const navList = session?.isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
   const NAV_ICONS = {
-    dashboard:'\u229e', courses:'\ud83d\udcda', events:'\ud83d\uddd3', timetable:'\ud83d\udcc5', attendance:'\u2713',
-    scholarships:'\ud83c\udfc6', profile:'\u2299', login:'\u2192',
-    admin_dashboard:'\u229e', admin_courses:'\ud83d\udcda', admin_events:'\ud83d\uddd3', admin_scholarships:'\ud83c\udfc6',
+    dashboard: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>`,
+    courses: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+    events: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+    timetable: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+    attendance: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,
+    scholarships: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>`,
+    profile: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    login: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
+    admin_dashboard: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>`,
+    admin_courses: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+    admin_events: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+    admin_scholarships: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>`
   };
 
   const filteredNav = navList.filter(([,,page]) => !(page==='login' && session?.loggedIn));
   const navLinksHtml = filteredNav.map(([href,label,page]) =>
     `<a href="${href}" class="sidebar-link${page===cur?' active':''}">
-      <span class="nav-icon">${NAV_ICONS[page]||'\u2022'}</span>
+      <span class="nav-icon" style="display:inline-flex; align-items:center; justify-content:center;">${NAV_ICONS[page]||'•'}</span>
       <span class="nav-label">${label}</span>
     </a>`
   ).join('');
@@ -282,47 +278,57 @@ function renderSidebar(){
   const vBal = typeof session?.virtualBalance === 'number' ? session.virtualBalance : (typeof state.student?.virtualBalance === 'number' ? state.student.virtualBalance : (session?.isAdmin ? 100.0 : 5.00));
 
   const walletHudHtml = showWalletHud ? `
-    <div class="sidebar-wallet">
-      <div class="sidebar-wallet-addr" data-copy-hud-addr="${vAddr}" title="Click to copy">
-        <span class="wallet-dot"></span>
+    <div class="sidebar-wallet" style="border: 1px solid var(--stroke); background: rgba(255,255,255,0.02); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+      <div class="sidebar-wallet-addr" data-copy-hud-addr="${vAddr}" title="Click to copy" style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:0.7rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">
+        <span class="wallet-dot" style="width:6px; height:6px; background:var(--teal); border-radius:50%; display:inline-block;"></span>
         ${truncate(vAddr||'CCvW...virtual', 16)}
       </div>
-      <div class="sidebar-wallet-bal">
-        ${Number(vBal).toFixed(3)} <small>SOL</small>
+      <div class="sidebar-wallet-bal" style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.1rem; color:var(--text); margin-top:4px;">
+        ${Number(vBal).toFixed(3)} <small style="font-size:0.7rem; font-weight:500; color:var(--text-soft);">SOL</small>
       </div>
-      <button class="airdrop-btn" id="airdrop-hud-btn">\u26a1 Airdrop +1 SOL</button>
+      <button class="airdrop-btn" id="airdrop-hud-btn" style="width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px; padding:6px; font-size:0.75rem; font-weight:700; background:var(--accent-dim); border:1px solid var(--accent-border); color:var(--accent-bright); border-radius:8px; cursor:pointer; transition:all 0.2s;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Airdrop +1 SOL
+      </button>
     </div>` : '';
 
   const userHtml = session?.loggedIn ? `
     ${walletHudHtml}
-    <div class="sidebar-user">
-      <div class="sidebar-avatar">${getInitials(session.name)}</div>
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name">${session.name||'Student'}</div>
-        <div class="sidebar-user-role">${session.isAdmin?'\ud83d\udd11 Administrator':'\ud83c\udf93 Student'}</div>
+    <div class="sidebar-user" style="display:flex; align-items:center; gap:10px; padding-top:10px; border-top:1px solid var(--stroke);">
+      <div class="sidebar-avatar" style="width:36px; height:36px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; font-weight:700; font-size:0.85rem;">${getInitials(session.name)}</div>
+      <div class="sidebar-user-info" style="display:flex; flex-direction:column; gap:1px;">
+        <div class="sidebar-user-name" style="font-weight:700; font-size:0.85rem; color:var(--text);">${session.name||'Student'}</div>
+        <div class="sidebar-user-role" style="font-size:0.7rem; display:flex; align-items:center; gap:4px;">
+          ${session.isAdmin ? 
+            `<span style="color:var(--amber); display:inline-flex; align-items:center; gap:3px; font-weight:600;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Admin</span>` : 
+            `<span style="color:var(--teal); display:inline-flex; align-items:center; gap:3px; font-weight:600;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg> Student</span>`
+          }
+        </div>
       </div>
     </div>` : `
     <a href="login.html" class="sidebar-link">
-      <span class="nav-icon">\u2192</span>
+      <span class="nav-icon" style="display:inline-flex; align-items:center; justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
       <span class="nav-label">Sign In</span>
     </a>`;
 
   sidebarEl.innerHTML = `
-    <a class="sidebar-brand" href="${session?.loggedIn?(session.isAdmin?'admin_dashboard.html':'dashboard.html'):'index.html'}">
-      <div class="sidebar-logo">CC</div>
+    <a class="sidebar-brand" href="${session?.loggedIn?(session.isAdmin?'admin_dashboard.html':'dashboard.html'):'index.html'}" style="display:flex; align-items:center; gap:10px; margin-bottom:28px;">
+      <div class="sidebar-logo" style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#6366f1,#14b8a6); display:grid; place-items:center; font-family:'Space Grotesk',sans-serif; font-weight:800; color:#fff; font-size:0.8rem;">CC</div>
       <div>
-        <div class="sidebar-brand-name">ChainCampus</div>
-        <div class="sidebar-brand-sub">${session?.isAdmin?'Admin Portal':'Student Portal'}</div>
+        <div class="sidebar-brand-name" style="font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:0.95rem; color:#fff; line-height:1.2;">ChainCampus</div>
+        <div class="sidebar-brand-sub" style="font-size:0.65rem; color:var(--text-muted); font-weight:500;">${session?.isAdmin?'Administrative Portal':'Academic Hub'}</div>
       </div>
     </a>
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Navigation</div>
+      <div class="sidebar-section-label" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:700; margin-bottom:12px;">Navigation</div>
       ${navLinksHtml}
     </nav>
-    <div class="sidebar-footer">
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
-        <button class="theme-toggle" id="theme-toggle" title="Toggle theme">\ud83c\udf13</button>
-        ${session?.loggedIn?`<button class="secondary-btn" id="logout-btn" style="flex:1;font-size:0.8rem;padding:6px 12px;">Sign Out</button>`:''}
+    <div class="sidebar-footer" style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="theme-toggle" id="theme-toggle" title="Toggle theme" style="display:grid; place-items:center; width:32px; height:32px; border-radius:8px; border:1px solid var(--stroke); background:none; color:var(--text-soft); cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+        ${session?.loggedIn?`<button class="secondary-btn" id="logout-btn" style="flex:1;font-size:0.75rem;padding:6px 12px;font-weight:700; border-radius:8px;">Sign Out</button>`:''}
       </div>
       ${userHtml}
     </div>

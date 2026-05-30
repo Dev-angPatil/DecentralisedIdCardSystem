@@ -287,47 +287,7 @@ function initLoginPage() {
     }
   });
 
-  // Demo Credentials Quick-Fill Listeners
-  const btnQuickStudent = document.getElementById('quick-fill-student');
-  const btnQuickAdmin   = document.getElementById('quick-fill-admin');
-
-  btnQuickStudent?.addEventListener('click', () => {
-    if (typeof window.switchTab === 'function') {
-      window.switchTab('student');
-    }
-    tabStudent?.click();
-
-    const userField = studentForm.querySelector('[name="username"]');
-    const passField = studentForm.querySelector('[name="password"]');
-    if (userField && passField) {
-      userField.value = 'test.student@vit.edu';
-      passField.value = 'password';
-
-      showToast('Student credentials filled', 'Signing in...', 'success');
-      setTimeout(() => {
-        studentForm.dispatchEvent(new Event('submit'));
-      }, 500);
-    }
-  });
-
-  btnQuickAdmin?.addEventListener('click', () => {
-    if (typeof window.switchTab === 'function') {
-      window.switchTab('admin');
-    }
-    tabAdmin?.click();
-
-    const emailField = adminForm.querySelector('[name="email"]');
-    const passField = adminForm.querySelector('[name="password"]');
-    if (emailField && passField) {
-      emailField.value = 'admin@college.edu';
-      passField.value = 'Admin()09';
-
-      showToast('Admin credentials filled', 'Signing in...', 'success');
-      setTimeout(() => {
-        adminForm.dispatchEvent(new Event('submit'));
-      }, 500);
-    }
-  });
+  // Quick-Fill listeners removed to transition to an actual student portal.
 
   const btnNfcLogin = document.getElementById('btn-nfc-login');
   btnNfcLogin?.addEventListener('click', async () => {
