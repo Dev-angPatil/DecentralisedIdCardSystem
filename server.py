@@ -925,6 +925,25 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
+    def translate_path(self, path):
+        # Map all non-API static files to frontend/dist if the directory exists
+        dist_dir = os.path.join(str(ROOT), "frontend", "dist")
+        if os.path.isdir(dist_dir) and not path.startswith("/api/"):
+            # Remove query params or anchors
+            clean_path = path.split("?")[0].split("#")[0]
+            
+            # Resolve the local file path under dist
+            local_path = os.path.join(dist_dir, clean_path.lstrip("/"))
+            
+            # If the resolved path doesn't exist, or is a directory,
+            # serve the main index.html file (enabling client-side React Router routing!)
+            if not os.path.exists(local_path) or os.path.isdir(local_path):
+                return os.path.join(dist_dir, "index.html")
+                
+            return local_path
+            
+        return super().translate_path(path)
+
     def get_session_user(self, conn):
         email = self.headers.get("X-Session-Email")
         if not email:
