@@ -182,7 +182,10 @@ def get_db():
             year TEXT,
             isAdmin INTEGER DEFAULT 0,
             walletAddress TEXT,
-            virtualBalance REAL DEFAULT 5.00
+            virtualBalance REAL DEFAULT 5.00,
+            isVerified INTEGER DEFAULT 0,
+            otpCode TEXT DEFAULT '',
+            otpExpiry INTEGER DEFAULT 0
         )
         """
     )
@@ -293,7 +296,8 @@ def get_db():
             isAdmin INTEGER DEFAULT 0,
             loggedIn INTEGER DEFAULT 0,
             walletAddress TEXT,
-            virtualBalance REAL DEFAULT 5.00
+            virtualBalance REAL DEFAULT 5.00,
+            isVerified INTEGER DEFAULT 0
         )
         """
     )
@@ -313,7 +317,23 @@ def get_db():
         except Exception:
             pass
         try:
+            conn.execute("ALTER TABLE users ADD COLUMN isVerified INTEGER DEFAULT 0")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN otpCode TEXT DEFAULT ''")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN otpExpiry INTEGER DEFAULT 0")
+        except Exception:
+            pass
+        try:
             conn.execute("ALTER TABLE session ADD COLUMN virtualBalance REAL DEFAULT 5.00")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE session ADD COLUMN isVerified INTEGER DEFAULT 0")
         except Exception:
             pass
         try:
@@ -363,8 +383,8 @@ def seed_db(conn):
         print("Seeding default admin user...")
         conn.execute(
             """
-            INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+            INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, isVerified, otpCode, otpExpiry)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 1, '', 0)
             """,
             (
                 "admin@college.edu",
@@ -610,7 +630,7 @@ def read_store():
     data = {}
     with get_db() as conn:
         # 1. Users
-        users_rows = conn.execute("SELECT email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance FROM users").fetchall()
+        users_rows = conn.execute("SELECT email, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, isVerified, otpCode FROM users").fetchall()
         users_list = []
         for r in users_rows:
             users_list.append({
@@ -623,12 +643,14 @@ def read_store():
                 'year': r[6],
                 'isAdmin': bool(r[7]),
                 'walletAddress': r[8],
-                'virtualBalance': r[9]
+                'virtualBalance': r[9],
+                'isVerified': bool(r[10]),
+                'otpCode': r[11]
             })
         data['chainCampusUsers'] = users_list
 
         # 2. Session
-        session_row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
+        session_row = conn.execute("SELECT email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance, isVerified FROM session WHERE loggedIn = 1 LIMIT 1").fetchone()
         if session_row:
             data['chainCampusSession'] = {
                 'email': session_row[0],
@@ -640,7 +662,8 @@ def read_store():
                 'isAdmin': bool(session_row[6]),
                 'loggedIn': bool(session_row[7]),
                 'walletAddress': session_row[8],
-                'virtualBalance': session_row[9]
+                'virtualBalance': session_row[9],
+                'isVerified': bool(session_row[10])
             }
             active_student_id = session_row[2]
         else:
@@ -1130,6 +1153,18 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     h = hashlib.sha256(f"{email}-{name}".encode()).hexdigest()
                     wallet_addr = f"CCvW{h[:36]}"
                 
+                # Generate dynamic verification OTP code
+                import random, time
+                otp_code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+                otp_expiry = int(time.time()) + 600 # 10 minutes expiry
+
+                print("\n" + "="*60)
+                print(f"🔑 [SANDBOX SECURITY] EMAIL VERIFICATION CODE GENERATED:")
+                print(f"👉   EMAIL: {email}")
+                print(f"👉   OTP CODE: {otp_code}")
+                print(f"⏳   EXPIRES IN: 10 minutes (600s)")
+                print("="*60 + "\n")
+
                 with get_db() as conn:
                     # check if email already exists
                     existing = conn.execute("SELECT email FROM users WHERE email = ?", (email,)).fetchone()
@@ -1139,18 +1174,18 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     
                     conn.execute(
                         """
-                        INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                        INSERT OR REPLACE INTO users (email, username, password, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, isVerified, otpCode, otpExpiry)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 0, ?, ?)
                         """,
-                        (email, email, password, name, student_id, college, program, year, wallet_addr, virtual_balance)
+                        (email, email, password, name, student_id, college, program, year, wallet_addr, virtual_balance, otp_code, otp_expiry)
                     )
                     
                     # Log them in on the server session table
                     conn.execute("DELETE FROM session")
                     conn.execute(
                         """
-                        INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                        INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance, isVerified)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 0)
                         """,
                         (email, name, student_id, college, program, year, 0, wallet_addr, virtual_balance)
                     )
@@ -1166,7 +1201,9 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                         "isAdmin": False,
                         "walletAddress": wallet_addr,
                         "virtualBalance": virtual_balance,
-                        "loggedIn": True
+                        "loggedIn": True,
+                        "isVerified": False,
+                        "otpCode": otp_code
                     }
                     conn.commit()
                     self.send_json(200, {
@@ -1189,7 +1226,7 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 
                 with get_db() as conn:
                     row = conn.execute(
-                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, username FROM users WHERE (email = ? OR username = ?) AND password = ?",
+                        "SELECT email, name, studentId, college, program, year, isAdmin, walletAddress, virtualBalance, username, isVerified, otpCode FROM users WHERE (email = ? OR username = ?) AND password = ?",
                         (email, email, password)
                     ).fetchone()
                     
@@ -1205,21 +1242,108 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                             "walletAddress": row[7],
                             "virtualBalance": row[8],
                             "username": row[9],
-                            "loggedIn": True
+                            "loggedIn": True,
+                            "isVerified": bool(row[10]),
+                            "otpCode": row[11]
                         }
                         
                         conn.execute("DELETE FROM session")
                         conn.execute(
                             """
-                            INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+                            INSERT INTO session (email, name, studentId, college, program, year, isAdmin, loggedIn, walletAddress, virtualBalance, isVerified)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
                             """,
-                            (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+                            (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[10])
                         )
                         conn.commit()
                         self.send_json(200, {"ok": True, "user": user})
                     else:
                         self.send_json(200, {"ok": False, "reason": "invalid"})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 2b. Verify OTP
+        if self.path == "/api/auth/verify-otp":
+            try:
+                payload = self.read_json_body()
+                email = payload.get("email")
+                otp = payload.get("otp")
+                
+                if not email or not otp:
+                    self.send_json(400, {"error": "Email and OTP are required"})
+                    return
+                
+                with get_db() as conn:
+                    user_row = conn.execute("SELECT otpCode, otpExpiry, name, studentId, college, program, year, walletAddress, virtualBalance FROM users WHERE email = ?", (email,)).fetchone()
+                    
+                    if not user_row:
+                        self.send_json(200, {"ok": False, "reason": "User not found"})
+                        return
+                    
+                    saved_otp, expiry, name, studentId, college, program, year, walletAddress, virtualBalance = user_row
+                    
+                    import time
+                    if int(time.time()) > expiry:
+                        self.send_json(200, {"ok": False, "reason": "expired"})
+                        return
+                    
+                    if saved_otp != otp:
+                        self.send_json(200, {"ok": False, "reason": "invalid"})
+                        return
+                    
+                    # Update user to isVerified = 1
+                    conn.execute("UPDATE users SET isVerified = 1, otpCode = '' WHERE email = ?", (email,))
+                    
+                    # Update session
+                    conn.execute("UPDATE session SET isVerified = 1 WHERE email = ?", (email,))
+                    conn.commit()
+                    
+                    updated_user = {
+                        "email": email,
+                        "username": email,
+                        "name": name,
+                        "studentId": studentId,
+                        "college": college,
+                        "program": program,
+                        "year": year,
+                        "isAdmin": False,
+                        "walletAddress": walletAddress,
+                        "virtualBalance": virtualBalance,
+                        "loggedIn": True,
+                        "isVerified": True
+                    }
+                    self.send_json(200, {"ok": True, "user": updated_user})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 2c. Resend OTP
+        if self.path == "/api/auth/resend-otp":
+            try:
+                payload = self.read_json_body()
+                email = payload.get("email")
+                
+                if not email:
+                    self.send_json(400, {"error": "Email is required"})
+                    return
+                
+                with get_db() as conn:
+                    # Generate new OTP
+                    import random, time
+                    otp_code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+                    otp_expiry = int(time.time()) + 600
+                    
+                    conn.execute("UPDATE users SET otpCode = ?, otpExpiry = ? WHERE email = ?", (otp_code, otp_expiry, email))
+                    conn.commit()
+                    
+                    print("\n" + "="*50)
+                    print(f"🔑 RESENT EMAIL VERIFICATION OTP FOR {email}:")
+                    print(f"👉   OTP CODE: {otp_code}")
+                    print(f"⏳   EXPIRES IN: 10 minutes")
+                    print("="*50 + "\n")
+                    
+                    self.send_json(200, {"ok": True, "otpCode": otp_code})
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return

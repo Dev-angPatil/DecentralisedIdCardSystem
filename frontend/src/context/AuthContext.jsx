@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
         walletAddress: user.walletAddress,
         virtualBalance: user.virtualBalance ?? 5.0,
         loggedIn: true,
+        isVerified: !!user.isVerified
       };
       localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
       setSessionState(sessionData);
@@ -164,6 +165,43 @@ export function AuthProvider({ children }) {
     setSession(null);
   };
 
+  const verifyOtp = async (email, otp) => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+      const res = await response.json();
+      if (!response.ok || !res.ok) {
+        throw new Error(res.error || res.reason || "Verification failed.");
+      }
+      setSession(res.user);
+      return res.user;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendOtp = async (email) => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const res = await response.json();
+      if (!response.ok || !res.ok) {
+        throw new Error(res.error || "Resending OTP failed.");
+      }
+      return res;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getHeaders = () => {
     const headers = { "Content-Type": "application/json" };
     if (session) {
@@ -183,6 +221,8 @@ export function AuthProvider({ children }) {
         loginWithWallet,
         register,
         logout,
+        verifyOtp,
+        resendOtp,
         getHeaders,
         setSession,
       }}

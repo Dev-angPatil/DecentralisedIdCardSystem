@@ -45,12 +45,17 @@ export const COLLEGE_EMAIL_DOMAINS = {
 };
 
 export function Login() {
-  const { login, register, loginWithWallet, loading } = useAuth();
+  const { login, register, loginWithWallet, loading, verifyOtp, resendOtp } = useAuth();
   const { showToast } = useApp();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("student"); // "student" | "admin"
-  const [authPhase, setAuthPhase] = useState("login"); // "login" | "register"
+  const [authPhase, setAuthPhase] = useState("login"); // "login" | "register" | "verify"
+  
+  // OTP Verification States
+  const [verifyingEmail, setVerifyingEmail] = useState("");
+  const [otpVal, setOtpVal] = useState(["", "", "", "", "", ""]);
+  const [resendTimer, setResendTimer] = useState(0);
   
   // Login Form States
   const [loginEmail, setLoginEmail] = useState("");
@@ -87,8 +92,18 @@ export function Login() {
     try {
       const user = await login(loginEmail, loginPassword);
       if (user) {
-        showToast("Sign In Successful 🎉", `Welcome back, ${user.name}!`, "success");
-        navigate("/dashboard");
+        if (!user.isAdmin && !user.isVerified) {
+          setVerifyingEmail(user.email);
+          setAuthPhase("verify");
+          // Pre-fill otpVal with user's current code from dev tools / mock to make it ultra convenient
+          if (user.otpCode) {
+            setOtpVal(user.otpCode.split(""));
+          }
+          showToast("Verification Required 📧", "Please enter the 6-digit OTP code sent to your email.", "info");
+        } else {
+          showToast("Sign In Successful 🎉", `Welcome back, ${user.name}!`, "success");
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       setLoginError(err.message || "Invalid email or password.");
@@ -127,31 +142,119 @@ export function Login() {
 
       if (user) {
         // Registration success!
-        // 1. Save user object to display the confirmation notice
-        setRegisteredUser(user);
+        // Move straight to email verification screen
+        setVerifyingEmail(signupEmail);
+        setAuthPhase("verify");
         
-        // 2. Pre-fill the login email input with the newly registered email
+        // Load the mock OTP code directly into inputs to make testing incredibly convenient
+        if (user.otpCode) {
+          setOtpVal(user.otpCode.split(""));
+        }
+
+        // Pre-fill the login email input with the newly registered email for later
         setLoginEmail(signupEmail);
         setLoginPassword("");
         
-        // 3. Clear the registration form fields
+        // Clear the registration form fields
         setSignupName("");
         setSignupEmail("");
         setSignupPassword("");
         setSignupCollege(REGISTERED_COLLEGES[0]);
         setSignupProgram(REGISTERED_BRANCHES[0]);
         
-        // 4. Switch tab to login to force manual sign in!
-        setAuthPhase("login");
-        
         showToast(
-          "Registration Successful ✓", 
-          "Your profile and wallet have been created! Please log in to confirm credentials.", 
+          "Profile Registered ✓", 
+          "Your profile and wallet have been created! Please verify your institutional email to complete onboarding.", 
           "success"
         );
       }
     } catch (err) {
       setSignupError(err.message || "Registration failed. Email might already be registered.");
+    }
+  };
+
+  // OTP Countdown timer
+  useEffect(() => {
+    let interval = null;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((t) => t - 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const handleOtpChange = (index, val) => {
+    if (val && !/^[0-9]$/.test(val)) return;
+    
+    const newOtp = [...otpVal];
+    newOtp[index] = val;
+    setOtpVal(newOtp);
+
+    // Auto-focus next input if a digit is entered
+    if (val && index < 5) {
+      const nextInput = document.getElementById(`otp-input-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpVal[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-input-${index - 1}`);
+      if (prevInput) {
+        prevInput.focus();
+        const newOtp = [...otpVal];
+        newOtp[index - 1] = "";
+        setOtpVal(newOtp);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+    if (/^\d{6}$/.test(pastedData)) {
+      setOtpVal(pastedData.split(""));
+      document.getElementById("otp-input-5")?.focus();
+    }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setSignupError("");
+    
+    const fullOtp = otpVal.join("");
+    if (fullOtp.length < 6) {
+      setSignupError("Please enter the complete 6-digit verification code.");
+      return;
+    }
+
+    try {
+      const user = await verifyOtp(verifyingEmail, fullOtp);
+      if (user) {
+        showToast("Email Verified ✓", `Welcome to ChainCampus, ${user.name}!`, "success");
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setSignupError(err.message || "Invalid or expired verification code. Please try again.");
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendTimer > 0) return;
+    try {
+      const res = await resendOtp(verifyingEmail);
+      setResendTimer(60);
+      if (res.otpCode) {
+        setOtpVal(res.otpCode.split(""));
+      } else {
+        setOtpVal(["", "", "", "", "", ""]);
+      }
+      showToast("OTP Resent 📧", "A new 6-digit verification code has been logged to your console.", "success");
+    } catch (err) {
+      setSignupError(err.message || "Failed to resend code.");
     }
   };
 
@@ -329,10 +432,10 @@ export function Login() {
                   </form>
 
                   <p style={{ textAlign: "center", marginTop: "24px", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                    New student? <button onClick={() => { setAuthPhase("register"); setRegisteredUser(null); }} style={{ background: "none", border: "none", color: "#6366f1", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}>Register Profile Here</button>
+                    New student? <button onClick={() => { setAuthPhase("register"); setSignupError(""); }} style={{ background: "none", border: "none", color: "#6366f1", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}>Register Profile Here</button>
                   </p>
                 </div>
-              ) : (
+              ) : authPhase === "register" ? (
                 /* STUDENT SIGNUP */
                 <div>
                   <div className="auth-box-title">Student Registration</div>
@@ -430,7 +533,98 @@ export function Login() {
                   </form>
 
                   <p style={{ textAlign: "center", marginTop: "24px", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                    Already have credentials? <button onClick={() => setAuthPhase("login")} style={{ background: "none", border: "none", color: "#6366f1", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}>Sign In Here</button>
+                    Already have credentials? <button onClick={() => { setAuthPhase("login"); setSignupError(""); }} style={{ background: "none", border: "none", color: "#6366f1", fontWeight: 600, textDecoration: "underline", cursor: "pointer" }}>Sign In Here</button>
+                  </p>
+                </div>
+              ) : (
+                /* STUDENT EMAIL VERIFICATION (OTP) */
+                <div>
+                  <div className="auth-box-title" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <Shield size={20} style={{ color: "#6366f1" }} />
+                    <span>Verify College Email</span>
+                  </div>
+                  <p className="auth-box-sub">
+                    Enter the 6-digit institutional verification code sent to <strong style={{ color: "var(--text)" }}>{verifyingEmail}</strong>.
+                  </p>
+
+                  <form onSubmit={handleOtpSubmit}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "8px", margin: "24px 0" }}>
+                      {otpVal.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          id={`otp-input-${idx}`}
+                          type="text"
+                          maxLength={1}
+                          pattern="[0-9]"
+                          inputMode="numeric"
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                          onPaste={idx === 0 ? handleOtpPaste : undefined}
+                          required
+                          style={{
+                            width: "42px",
+                            height: "48px",
+                            textAlign: "center",
+                            fontSize: "1.2rem",
+                            fontWeight: 700,
+                            borderRadius: "8px",
+                            border: "1px solid var(--stroke)",
+                            background: "rgba(255,255,255,0.02)",
+                            color: "var(--text)",
+                            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1)",
+                            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          }}
+                          autoComplete="off"
+                        />
+                      ))}
+                    </div>
+
+                    {signupError && <div className="error-msg" style={{ marginBottom: "16px" }}>{signupError}</div>}
+
+                    <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+                      {loading ? "Verifying Profile..." : "Verify & Onboard Card →"}
+                    </button>
+                  </form>
+
+                  <div style={{ textAlign: "center", marginTop: "24px" }}>
+                    <button
+                      type="button"
+                      disabled={resendTimer > 0}
+                      onClick={handleResend}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: resendTimer > 0 ? "var(--text-muted)" : "#6366f1",
+                        fontWeight: 600,
+                        textDecoration: resendTimer > 0 ? "none" : "underline",
+                        cursor: resendTimer > 0 ? "not-allowed" : "pointer",
+                        fontSize: "0.8rem",
+                        transition: "color 0.2s ease"
+                      }}
+                    >
+                      {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Verification Code 📧"}
+                    </button>
+                  </div>
+
+                  <p style={{ textAlign: "center", marginTop: "20px", fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                    Entered incorrect email?{" "}
+                    <button
+                      onClick={() => {
+                        setAuthPhase("register");
+                        setSignupError("");
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#6366f1",
+                        fontWeight: 600,
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Back to Register
+                    </button>
                   </p>
                 </div>
               )}
