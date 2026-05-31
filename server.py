@@ -142,7 +142,7 @@ def get_db():
     else:
         print("Connecting to SQLite database...")
         DB_DIR.mkdir(exist_ok=True)
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30.0)
         wrapped_conn = DBWrapper(conn, is_postgres=False)
         
     conn = wrapped_conn

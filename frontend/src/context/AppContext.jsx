@@ -44,15 +44,25 @@ export function AppProvider({ children }) {
   const refreshData = useCallback(async () => {
     try {
       const data = await bootstrap();
-      if (data) {
+      if (data && data.chainCampusState) {
+        const s = data.chainCampusState;
         setState({
-          events: data.chainCampusEvents || [],
-          courses: data.chainCampusCourses || [],
-          attendanceRecords: data.chainCampusAttendance || [],
-          notifications: data.chainCampusNotifications || [],
-          enrolledCourses: data.chainCampusEnrolled || [],
-          scholarshipApplications: data.chainCampusScholarships || [],
-          txLog: data.chainCampusTxLog || [],
+          events: s.events || [],
+          courses: s.courses || [],
+          attendanceRecords: s.attendanceRecords || [],
+          notifications: s.notifications || [],
+          // Dynamically map course strings to compatible objects expected by UI components
+          enrolledCourses: (s.enrolledCourses || []).map(item => {
+            if (typeof item === "string") {
+              return {
+                courseId: item,
+                txId: `CCvWtx_${item.replace(/\s+/g, "").substring(0, 8).toLowerCase()}_${Math.random().toString(36).substring(2, 6)}`
+              };
+            }
+            return item;
+          }),
+          scholarshipApplications: s.scholarshipApplications || [],
+          txLog: s.txLog || [],
         });
       }
     } catch (err) {
