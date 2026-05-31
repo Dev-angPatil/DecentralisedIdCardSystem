@@ -1250,3 +1250,9 @@ body {
   animation: led-pulse 2s infinite ease-in-out;
 }
 
+@keyframes scan-laser {
+  0% { top: 0%; }
+  50% { top: 96%; }
+  100% { top: 0%; }
+}
+

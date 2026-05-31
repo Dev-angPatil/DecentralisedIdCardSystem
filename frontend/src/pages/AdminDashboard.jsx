@@ -3,13 +3,15 @@ import { useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useApi } from "../hooks/useApi";
 import { useBlockchain } from "../hooks/useBlockchain";
-import { ShieldCheck, Award, Plus, Calendar, BookOpen, RefreshCw, CheckCircle2, GraduationCap } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { ShieldCheck, Award, Plus, Calendar, BookOpen, RefreshCw, CheckCircle2, GraduationCap, QrCode, Camera, X } from "lucide-react";
 import { REGISTERED_COLLEGES, REGISTERED_BRANCHES } from "./Login";
 
 export function AdminDashboard() {
   const { state, refreshData, showToast } = useApp();
-  const { reviewScholarship, createCourse, createEvent, gradeStudent, loading } = useApi();
-  const { reviewScholarshipOnChain, gradeStudentOnChain } = useBlockchain();
+  const { reviewScholarship, createCourse, createEvent, gradeStudent, markAttendance, loading } = useApi();
+  const { reviewScholarshipOnChain, gradeStudentOnChain, markAttendanceOnChain } = useBlockchain();
+  const { session } = useAuth();
   const location = useLocation();
 
   // Navigation state
@@ -19,6 +21,12 @@ export function AdminDashboard() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [gradingCourseId, setGradingCourseId] = useState("");
   const [gradingGrade, setGradingGrade] = useState("A+");
+
+  // Terminal scanner states
+  const [selectedScanEvent, setSelectedScanEvent] = useState(null);
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [scanStudentId, setScanStudentId] = useState("");
+  const [activeScanStatus, setActiveScanStatus] = useState("idle"); // "idle" | "scanning" | "success"
 
   useEffect(() => {
     if (location.pathname === "/admin-courses") {
@@ -247,6 +255,53 @@ export function AdminDashboard() {
       await refreshData();
     } catch (err) {
       showToast("Grading Failed", err.message, "failed");
+    }
+  };
+
+  const handleTriggerScan = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedScanEvent || !scanStudentId) {
+      showToast("Scan Error", "Please select a student to scan.", "failed");
+      return;
+    }
+
+    const student = (state.users || []).find(s => s.studentId === scanStudentId);
+    if (!student) {
+      showToast("Scan Error", "Student not found.", "failed");
+      return;
+    }
+
+    try {
+      setActiveScanStatus("scanning");
+      showToast("Initiating Scanning Ledger...", `Scanning digital QR credential for ${student.name}`, "pending");
+
+      // 1. Run simulated Solana transaction flow
+      const blockchainRes = await markAttendanceOnChain(selectedScanEvent.id || selectedScanEvent.eventId, scanStudentId);
+
+      // 2. Mark attendance on database backend
+      await markAttendance({
+        id: `att-${Math.random().toString(36).substring(2, 10)}`,
+        courseId: selectedScanEvent.id || selectedScanEvent.eventId,
+        courseName: selectedScanEvent.title,
+        subject: student.name,
+        date: new Date().toLocaleString(),
+        status: "Verified Check-In",
+        verifier: `Admin Console: ${session?.walletAddress?.substring(0, 8)}...`
+      });
+
+      setActiveScanStatus("success");
+      showToast("Check-In Complete ✓", `${student.name} event credentials authorized on-chain!`, "success");
+      
+      // Reset select
+      setScanStudentId("");
+      await refreshData();
+      
+      setTimeout(() => {
+        setActiveScanStatus("idle");
+      }, 3000);
+    } catch (err) {
+      setActiveScanStatus("idle");
+      showToast("Check-In Failed", err.message, "failed");
     }
   };
 
@@ -497,112 +552,377 @@ export function AdminDashboard() {
         )}
 
         {adminTab === "events" && (
-          /* TAB 3: CAMPUS EVENTS Panel */
-          <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "800px" }}>
-            <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", display: "flex", alignItems: "center", gap: "8px", color: "var(--text)" }}>
-              <Calendar size={18} style={{ color: "#14b8a6" }} />
-              Event Publisher Panel
-            </h4>
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "28px", alignItems: "start" }}>
+            
+            {/* Left Column: Event Publisher Form */}
+            <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", display: "flex", alignItems: "center", gap: "8px", color: "var(--text)" }}>
+                <Calendar size={18} style={{ color: "#14b8a6" }} />
+                Event Publisher Panel
+              </h4>
 
-            <form onSubmit={handleCreateEvent} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div className="form-group">
-                <label htmlFor="evt-title">Event Title</label>
-                <input type="text" id="evt-title" placeholder="Web3 & Solana Summit 2026" value={eventTitle} onChange={e => setEventTitle(e.target.value)} required />
-              </div>
-
-              <div className="form-grid">
+              <form onSubmit={handleCreateEvent} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                 <div className="form-group">
-                  <label htmlFor="evt-date">Date Label</label>
-                  <input type="text" id="evt-date" placeholder="June 18, 2026" value={eventDate} onChange={e => setEventDate(e.target.value)} required />
+                  <label htmlFor="evt-title">Event Title</label>
+                  <input type="text" id="evt-title" placeholder="Web3 & Solana Summit 2026" value={eventTitle} onChange={e => setEventTitle(e.target.value)} required />
                 </div>
+
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="evt-date">Date Label</label>
+                    <input type="text" id="evt-date" placeholder="June 18, 2026" value={eventDate} onChange={e => setEventDate(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="evt-venue">Venue</label>
+                    <input type="text" id="evt-venue" placeholder="Main Auditorium" value={eventVenue} onChange={e => setEventVenue(e.target.value)} required />
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="evt-capacity">Participant Capacity</label>
+                    <input type="number" id="evt-capacity" min="5" value={eventCapacity} onChange={e => setEventCapacity(e.target.value)} required />
+                  </div>
+                </div>
+
                 <div className="form-group">
-                  <label htmlFor="evt-venue">Venue</label>
-                  <input type="text" id="evt-venue" placeholder="Main Auditorium" value={eventVenue} onChange={e => setEventVenue(e.target.value)} required />
+                  <label htmlFor="evt-desc">Event Summary</label>
+                  <textarea id="evt-desc" rows={3} placeholder="Provide details on the event, hackathon guidelines, or agenda..." value={eventDesc} onChange={e => setEventDesc(e.target.value)} required />
                 </div>
-              </div>
 
-              <div className="form-grid">
+                <div style={{ borderTop: "1px solid var(--stroke)", margin: "10px 0" }}></div>
+                <p style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "4px" }}>
+                  Target Student Eligibility Criteria
+                </p>
+
+                {/* Event Eligibility 1: Registered Colleges Checkboxes */}
                 <div className="form-group">
-                  <label htmlFor="evt-capacity">Participant Capacity</label>
-                  <input type="number" id="evt-capacity" min="5" value={eventCapacity} onChange={e => setEventCapacity(e.target.value)} required />
+                  <label style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Eligible Colleges / Universities</span>
+                    {renderActiveSelectionLabel(eventColleges)}
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                      <input type="checkbox" checked={eventColleges.includes("all")} onChange={() => handleToggle(eventColleges, setEventColleges, "all")} />
+                      <strong>All Colleges (No Restriction)</strong>
+                    </label>
+                    {REGISTERED_COLLEGES.map((col) => (
+                      <label key={col} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                        <input type="checkbox" checked={eventColleges.includes(col)} onChange={() => handleToggle(eventColleges, setEventColleges, col)} />
+                        <span>{col.split(" (")[0]}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="evt-desc">Event Summary</label>
-                <textarea id="evt-desc" rows={3} placeholder="Provide details on the event, hackathon guidelines, or agenda..." value={eventDesc} onChange={e => setEventDesc(e.target.value)} required />
-              </div>
+                {/* Event Eligibility 2: Branches Checkboxes */}
+                <div className="form-group">
+                  <label style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Eligible Branches / Programs</span>
+                    {renderActiveSelectionLabel(eventBranches)}
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                      <input type="checkbox" checked={eventBranches.includes("all")} onChange={() => handleToggle(eventBranches, setEventBranches, "all")} />
+                      <strong>All Branches</strong>
+                    </label>
+                    {REGISTERED_BRANCHES.map((br) => (
+                      <label key={br} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                        <input type="checkbox" checked={eventBranches.includes(br)} onChange={() => handleToggle(eventBranches, setEventBranches, br)} />
+                        <span>{br}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-              <div style={{ borderTop: "1px solid var(--stroke)", margin: "10px 0" }}></div>
-              <p style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: "4px" }}>
-                Target Student Eligibility Criteria
+                {/* Event Eligibility 3: Academic Years Checkboxes */}
+                <div className="form-group">
+                  <label style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Eligible Academic Years</span>
+                    {renderActiveSelectionLabel(eventYears)}
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                      <input type="checkbox" checked={eventYears.includes("all")} onChange={() => handleToggle(eventYears, setEventYears, "all")} />
+                      <strong>All Years</strong>
+                    </label>
+                    {["1st Year", "2nd Year", "3rd Year", "4th Year", "Postgrad"].map((yr) => (
+                      <label key={yr} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
+                        <input type="checkbox" checked={eventYears.includes(yr)} onChange={() => handleToggle(eventYears, setEventYears, yr)} />
+                        <span>{yr}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" className="btn btn-primary btn-full" style={{ padding: "12px", fontSize: "0.75rem", borderRadius: "10px", marginTop: "12px" }} disabled={loading}>
+                  <Plus size={14} />
+                  <span>Publish Event & Sync Ledger</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Right Column: Published Events & Live Scanner trigger */}
+            <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <h4 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", display: "flex", alignItems: "center", gap: "8px", color: "var(--text)" }}>
+                <QrCode size={18} style={{ color: "#14b8a6" }} />
+                Published Campus Events & Terminals
+              </h4>
+              <p style={{ color: "var(--text-soft)", fontSize: "0.78rem", margin: 0 }}>
+                Manage campus check-ins. Click an event to open its cryptographically synchronized scanning console.
               </p>
 
-              {/* Event Eligibility 1: Registered Colleges Checkboxes */}
-              <div className="form-group">
-                <label style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Eligible Colleges / Universities</span>
-                  {renderActiveSelectionLabel(eventColleges)}
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                    <input type="checkbox" checked={eventColleges.includes("all")} onChange={() => handleToggle(eventColleges, setEventColleges, "all")} />
-                    <strong>All Colleges (No Restriction)</strong>
-                  </label>
-                  {REGISTERED_COLLEGES.map((col) => (
-                    <label key={col} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                      <input type="checkbox" checked={eventColleges.includes(col)} onChange={() => handleToggle(eventColleges, setEventColleges, col)} />
-                      <span>{col.split(" (")[0]}</span>
-                    </label>
-                  ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxHeight: "650px", overflowY: "auto" }}>
+                {state.events && state.events.length > 0 ? (
+                  state.events.map((evt) => (
+                    <div 
+                      key={evt.id || evt.eventId} 
+                      style={{ 
+                        padding: "20px", 
+                        background: "var(--bg-alt)", 
+                        border: "1px solid var(--stroke-soft)", 
+                        borderRadius: "14px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "12px"
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px" }}>
+                        <div>
+                          <strong style={{ fontSize: "0.95rem", color: "var(--text)", fontFamily: "'Space Grotesk',sans-serif" }}>{evt.title}</strong>
+                          <div style={{ fontSize: "0.74rem", color: "var(--text-soft)", marginTop: "4px" }}>
+                            📅 {evt.date} · 📍 {evt.venue}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: "0.65rem", background: "rgba(20, 184, 166, 0.1)", color: "#14b8a6", padding: "3px 8px", borderRadius: "10px", fontWeight: 700, flexShrink: 0 }}>
+                          {evt.capacity} Cap
+                        </span>
+                      </div>
+                      
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setSelectedScanEvent(evt);
+                          setScanModalOpen(true);
+                        }}
+                        style={{ 
+                          padding: "8px 14px", 
+                          fontSize: "0.72rem", 
+                          border: "1px solid rgba(20, 184, 166, 0.25)", 
+                          color: "#14b8a6", 
+                          background: "rgba(20, 184, 166, 0.03)",
+                          alignSelf: "flex-start",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px"
+                        }}
+                      >
+                        <QrCode size={13} />
+                        <span>Live Verification Terminal</span>
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: "40px 20px", border: "1px dashed var(--stroke)", borderRadius: "14px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.82rem" }}>
+                    No events published in the catalog.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Verification Terminal Modal Overlay */}
+            {scanModalOpen && selectedScanEvent && (
+              <div style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(15, 23, 42, 0.65)",
+                backdropFilter: "blur(8px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 9999,
+                padding: "20px"
+              }}>
+                <div 
+                  className="glass-card" 
+                  style={{ 
+                    width: "100%", 
+                    maxWidth: "480px", 
+                    padding: "28px", 
+                    borderRadius: "20px",
+                    background: "rgba(17, 24, 39, 0.95)",
+                    border: "1px solid rgba(20, 184, 166, 0.3)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                    position: "relative"
+                  }}
+                >
+                  {/* Close Button */}
+                  <button 
+                    onClick={() => {
+                      setScanModalOpen(false);
+                      setSelectedScanEvent(null);
+                      setScanStudentId("");
+                      setActiveScanStatus("idle");
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: "20px",
+                      right: "20px",
+                      background: "transparent",
+                      border: "none",
+                      color: "rgba(255, 255, 255, 0.4)",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Camera size={20} style={{ color: "#14b8a6" }} />
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", color: "#ffffff" }}>
+                        Web3 Verification Terminal
+                      </h4>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "0.72rem", color: "rgba(255, 255, 255, 0.5)" }}>
+                        Event: <strong>{selectedScanEvent.title}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Cinematic Camera Viewfinder Sim */}
+                  <div style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "190px",
+                    background: "#090d16",
+                    borderRadius: "12px",
+                    border: "1.5px solid rgba(20, 184, 166, 0.25)",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "12px"
+                  }}>
+                    {/* Neon Laser Line */}
+                    {activeScanStatus === "scanning" && (
+                      <div style={{
+                        position: "absolute",
+                        left: 0,
+                        width: "100%",
+                        height: "3px",
+                        background: "rgba(20, 184, 166, 0.9)",
+                        boxShadow: "0 0 10px #14b8a6",
+                        top: "0%",
+                        animation: "scan-laser 2s infinite ease-in-out"
+                      }} />
+                    )}
+
+                    {activeScanStatus === "idle" && (
+                      <>
+                        <QrCode size={40} style={{ color: "rgba(20, 184, 166, 0.45)", strokeWidth: 1.2 }} />
+                        <span style={{ fontSize: "0.72rem", color: "rgba(255, 255, 255, 0.4)" }}>Waiting for client credential...</span>
+                      </>
+                    )}
+
+                    {activeScanStatus === "scanning" && (
+                      <>
+                        <Camera size={36} style={{ color: "#14b8a6", animation: "pulse 1.5s infinite" }} />
+                        <span style={{ fontSize: "0.72rem", color: "#14b8a6", fontWeight: 600 }}>Analyzing cryptographic parameters...</span>
+                      </>
+                    )}
+
+                    {activeScanStatus === "success" && (
+                      <>
+                        <div style={{
+                          width: "48px",
+                          height: "48px",
+                          borderRadius: "50%",
+                          background: "rgba(16, 185, 129, 0.12)",
+                          border: "1.5px solid #10b981",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#10b981"
+                        }}>
+                          <ShieldCheck size={28} />
+                        </div>
+                        <span style={{ fontSize: "0.74rem", color: "#10b981", fontWeight: 700 }}>Authorized & Recorded on Solana!</span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Check-In Submission form */}
+                  <form onSubmit={handleTriggerScan} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <div className="form-group">
+                      <label style={{ color: "#ffffff" }}>Select Student Credential</label>
+                      <select
+                        value={scanStudentId}
+                        onChange={e => setScanStudentId(e.target.value)}
+                        required
+                        style={{
+                          width: "100%",
+                          background: "rgba(0, 0, 0, 0.3)",
+                          border: "1px solid rgba(255, 255, 255, 0.08)",
+                          color: "#ffffff"
+                        }}
+                        disabled={activeScanStatus === "scanning"}
+                      >
+                        <option value="">-- Choose Student ID --</option>
+                        {students.map(s => (
+                          <option key={s.studentId} value={s.studentId}>
+                            {s.name} ({s.studentId})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={!scanStudentId || activeScanStatus === "scanning"}
+                        style={{
+                          flex: 1,
+                          padding: "10px 16px",
+                          fontSize: "0.75rem",
+                          borderRadius: "8px",
+                          background: "linear-gradient(135deg, #14b8a6, #0d9488)"
+                        }}
+                      >
+                        <span>Simulate QR Scan</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        onClick={() => {
+                          setScanModalOpen(false);
+                          setSelectedScanEvent(null);
+                          setScanStudentId("");
+                          setActiveScanStatus("idle");
+                        }}
+                        style={{
+                          padding: "10px 16px",
+                          fontSize: "0.75rem",
+                          borderRadius: "8px",
+                          border: "1px solid rgba(255, 255, 255, 0.1)",
+                          color: "#ffffff"
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+
                 </div>
               </div>
+            )}
 
-              {/* Event Eligibility 2: Branches Checkboxes */}
-              <div className="form-group">
-                <label style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Eligible Branches / Programs</span>
-                  {renderActiveSelectionLabel(eventBranches)}
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                    <input type="checkbox" checked={eventBranches.includes("all")} onChange={() => handleToggle(eventBranches, setEventBranches, "all")} />
-                    <strong>All Branches</strong>
-                  </label>
-                  {REGISTERED_BRANCHES.map((br) => (
-                    <label key={br} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                      <input type="checkbox" checked={eventBranches.includes(br)} onChange={() => handleToggle(eventBranches, setEventBranches, br)} />
-                      <span>{br}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Event Eligibility 3: Academic Years Checkboxes */}
-              <div className="form-group">
-                <label style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span>Eligible Academic Years</span>
-                  {renderActiveSelectionLabel(eventYears)}
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "10px", background: "var(--bg-alt)", padding: "16px", borderRadius: "12px", border: "1px solid var(--stroke-soft)" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                    <input type="checkbox" checked={eventYears.includes("all")} onChange={() => handleToggle(eventYears, setEventYears, "all")} />
-                    <strong>All Years</strong>
-                  </label>
-                  {["1st Year", "2nd Year", "3rd Year", "4th Year", "Postgrad"].map((yr) => (
-                    <label key={yr} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.76rem", cursor: "pointer", textTransform: "none", color: "var(--text-soft)", fontWeight: 500, margin: 0 }}>
-                      <input type="checkbox" checked={eventYears.includes(yr)} onChange={() => handleToggle(eventYears, setEventYears, yr)} />
-                      <span>{yr}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <button type="submit" className="btn btn-primary btn-full" style={{ padding: "12px", fontSize: "0.75rem", borderRadius: "10px", marginTop: "12px" }} disabled={loading}>
-                <Plus size={14} />
-                <span>Publish Event & Sync Ledger</span>
-              </button>
-            </form>
           </div>
         )}
 
