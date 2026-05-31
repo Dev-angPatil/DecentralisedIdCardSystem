@@ -30,6 +30,20 @@ export const REGISTERED_BRANCHES = [
   "MBA Systems Management"
 ];
 
+export const COLLEGE_EMAIL_DOMAINS = {
+  "Indian Institute of Technology (IIT), Bombay": ["@iitb.ac.in"],
+  "Indian Institute of Technology (IIT), Delhi": ["@iitd.ac.in"],
+  "Indian Institute of Technology (IIT), Madras": ["@iitm.ac.in"],
+  "Vellore Institute of Technology (VIT), Vellore": ["@vit.ac.in", "@vitstudent.ac.in"],
+  "Delhi Technological University (DTU), Delhi": ["@dtu.ac.in", "@dtu.edu"],
+  "Manipal Academy of Higher Education (MAHE), Manipal": ["@manipal.edu", "@learner.manipal.edu"],
+  "BITS Pilani, Pilani": ["@bits-pilani.ac.in", "@pilani.bits-pilani.ac.in"],
+  "National Institute of Technology (NIT), Trichy": ["@nitt.edu"],
+  "SRM Institute of Science and Technology, Chennai": ["@srmist.edu.in"],
+  "Vishwakarma Institute of Technology (VIT), Pune": ["@vit.edu"],
+  "ChainCampus Virtual University (CCVU)": ["@college.edu", "@chaincampus.edu", "@personal.com", "@gmail.com"]
+};
+
 export function Login() {
   const { login, register, loginWithWallet, loading } = useAuth();
   const { showToast } = useApp();
@@ -88,6 +102,17 @@ export function Login() {
     if (!signupName || !signupEmail || !signupPassword || !signupCollege || !signupProgram) {
       setSignupError("All fields are required.");
       return;
+    }
+
+    // Verify institutional email domain matching the selected college
+    const allowedDomains = COLLEGE_EMAIL_DOMAINS[signupCollege];
+    if (allowedDomains) {
+      const emailLower = signupEmail.toLowerCase().trim();
+      const isValid = allowedDomains.some(domain => emailLower.endsWith(domain));
+      if (!isValid) {
+        setSignupError(`Registration requires a valid institutional email domain for ${signupCollege}. Your email must end with: ${allowedDomains.join(" or ")}`);
+        return;
+      }
     }
 
     try {
