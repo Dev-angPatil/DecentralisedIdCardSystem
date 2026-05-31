@@ -209,7 +209,10 @@ def get_db():
             days TEXT NOT NULL,
             time TEXT NOT NULL,
             room TEXT NOT NULL,
-            color TEXT NOT NULL
+            color TEXT NOT NULL,
+            eligibleColleges TEXT DEFAULT '["all"]',
+            eligibleBranches TEXT DEFAULT '["all"]',
+            eligibleYears TEXT DEFAULT '["all"]'
         )
         """
     )
@@ -222,7 +225,10 @@ def get_db():
             venue TEXT NOT NULL,
             capacity INTEGER DEFAULT 0,
             description TEXT NOT NULL,
-            verified INTEGER DEFAULT 0
+            verified INTEGER DEFAULT 0,
+            eligibleColleges TEXT DEFAULT '["all"]',
+            eligibleBranches TEXT DEFAULT '["all"]',
+            eligibleYears TEXT DEFAULT '["all"]'
         )
         """
     )
@@ -312,6 +318,30 @@ def get_db():
             pass
         try:
             conn.execute("ALTER TABLE session ADD COLUMN walletAddress TEXT")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE courses ADD COLUMN eligibleColleges TEXT DEFAULT '[\"all\"]'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE courses ADD COLUMN eligibleBranches TEXT DEFAULT '[\"all\"]'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE courses ADD COLUMN eligibleYears TEXT DEFAULT '[\"all\"]'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE events ADD COLUMN eligibleColleges TEXT DEFAULT '[\"all\"]'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE events ADD COLUMN eligibleBranches TEXT DEFAULT '[\"all\"]'")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE events ADD COLUMN eligibleYears TEXT DEFAULT '[\"all\"]'")
         except Exception:
             pass
         
@@ -647,12 +677,18 @@ def read_store():
             except:
                 pass
 
-        courses_rows = conn.execute("SELECT id, code, name, credits, instructor, days, time, room, color FROM courses").fetchall()
+        courses_rows = conn.execute("SELECT id, code, name, credits, instructor, days, time, room, color, eligibleColleges, eligibleBranches, eligibleYears FROM courses").fetchall()
         for r in courses_rows:
             try:
                 days_list = json.loads(r[5])
             except:
                 days_list = []
+            try: eligible_colleges = json.loads(r[9]) if len(r) > 9 and r[9] else ["all"]
+            except: eligible_colleges = ["all"]
+            try: eligible_branches = json.loads(r[10]) if len(r) > 10 and r[10] else ["all"]
+            except: eligible_branches = ["all"]
+            try: eligible_years = json.loads(r[11]) if len(r) > 11 and r[11] else ["all"]
+            except: eligible_years = ["all"]
             state['courses'].append({
                 'id': r[0],
                 'code': r[1],
@@ -662,7 +698,10 @@ def read_store():
                 'days': days_list,
                 'time': r[6],
                 'room': r[7],
-                'color': r[8]
+                'color': r[8],
+                'eligibleColleges': eligible_colleges,
+                'eligibleBranches': eligible_branches,
+                'eligibleYears': eligible_years
             })
 
         if active_student_id:
@@ -672,8 +711,14 @@ def read_store():
             enroll_rows = conn.execute("SELECT DISTINCT courseId FROM enrolled_courses").fetchall()
             state['enrolledCourses'] = [r[0] for r in enroll_rows]
 
-        events_rows = conn.execute("SELECT id, title, date, venue, capacity, description, verified FROM events").fetchall()
+        events_rows = conn.execute("SELECT id, title, date, venue, capacity, description, verified, eligibleColleges, eligibleBranches, eligibleYears FROM events").fetchall()
         for r in events_rows:
+            try: eligible_colleges = json.loads(r[7]) if len(r) > 7 and r[7] else ["all"]
+            except: eligible_colleges = ["all"]
+            try: eligible_branches = json.loads(r[8]) if len(r) > 8 and r[8] else ["all"]
+            except: eligible_branches = ["all"]
+            try: eligible_years = json.loads(r[9]) if len(r) > 9 and r[9] else ["all"]
+            except: eligible_years = ["all"]
             state['events'].append({
                 'id': r[0],
                 'title': r[1],
@@ -681,7 +726,10 @@ def read_store():
                 'venue': r[3],
                 'capacity': r[4],
                 'description': r[5],
-                'verified': bool(r[6])
+                'verified': bool(r[6]),
+                'eligibleColleges': eligible_colleges,
+                'eligibleBranches': eligible_branches,
+                'eligibleYears': eligible_years
             })
 
         att_rows = conn.execute("SELECT id, courseId, courseName, subject, date, status, verifier FROM attendance_records").fetchall()
@@ -1436,7 +1484,6 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return
-
         # 10. Relational Events: Create (Admin)
         if self.path == "/api/events/create":
             try:
@@ -1448,25 +1495,33 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 capacity = payload.get("capacity", 100)
                 description = payload.get("description", "")
                 verified = payload.get("verified", 0)
+                eligibleColleges = payload.get("eligibleColleges", ["all"])
+                eligibleBranches = payload.get("eligibleBranches", ["all"])
+                eligibleYears = payload.get("eligibleYears", ["all"])
                 
                 if not event_id or not title:
-                    self.send_json(400, {"error": "id and title required"})
-                    return
+                  self.send_json(400, {"error": "id and title required"})
+                  return
+                
+                import json
+                eligible_colleges_json = json.dumps(eligibleColleges)
+                eligible_branches_json = json.dumps(eligibleBranches)
+                eligible_years_json = json.dumps(eligibleYears)
                 
                 with get_db() as conn:
                     conn.execute(
                         """
-                        INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified, eligibleColleges, eligibleBranches, eligibleYears)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (event_id, title, date, venue, capacity, description, 1 if verified else 0)
+                        (event_id, title, date, venue, capacity, description, 1 if verified else 0, eligible_colleges_json, eligible_branches_json, eligible_years_json)
                     )
                     conn.commit()
                 self.send_json(200, {"ok": True})
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return
-
+ 
         # 11. Relational Courses: Create (Admin)
         if self.path == "/api/courses/create":
             try:
@@ -1480,6 +1535,9 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 time = payload.get("time")
                 room = payload.get("room")
                 color = payload.get("color", "blue")
+                eligibleColleges = payload.get("eligibleColleges", ["all"])
+                eligibleBranches = payload.get("eligibleBranches", ["all"])
+                eligibleYears = payload.get("eligibleYears", ["all"])
                 
                 if not course_id or not name:
                     self.send_json(400, {"error": "id and name required"})
@@ -1487,14 +1545,17 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                 
                 import json
                 days_json = json.dumps(days)
+                eligible_colleges_json = json.dumps(eligibleColleges)
+                eligible_branches_json = json.dumps(eligibleBranches)
+                eligible_years_json = json.dumps(eligibleYears)
                 
                 with get_db() as conn:
                     conn.execute(
                         """
-                        INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color, eligibleColleges, eligibleBranches, eligibleYears)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (course_id, code, name, credits, instructor, days_json, time, room, color)
+                        (course_id, code, name, credits, instructor, days_json, time, room, color, eligible_colleges_json, eligible_branches_json, eligible_years_json)
                     )
                     conn.commit()
                 self.send_json(200, {"ok": True})

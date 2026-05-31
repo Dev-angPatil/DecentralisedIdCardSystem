@@ -4,6 +4,23 @@ import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
 import { Shield, Eye, EyeOff, Radio, Award } from "lucide-react";
 
+export const REGISTERED_COLLEGES = [
+  "Indian Institute of Technology (IIT), Bombay",
+  "Vellore Institute of Technology (VIT), Vellore",
+  "Delhi Technological University (DTU), Delhi",
+  "Manipal Academy of Higher Education (MAHE), Manipal",
+  "BITS Pilani, Pilani",
+  "ChainCampus Virtual University (CCVU)"
+];
+
+export const REGISTERED_BRANCHES = [
+  "B.Tech Computer Science",
+  "B.Tech Electronics & Comm",
+  "B.Tech Information Technology",
+  "B.Tech Mechanical Engineering",
+  "B.Sc Data Science"
+];
+
 export function Login() {
   const { login, register, loginWithWallet, loading } = useAuth();
   const { showToast } = useApp();
@@ -22,8 +39,8 @@ export function Login() {
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
-  const [signupCollege, setSignupCollege] = useState("");
-  const [signupProgram, setSignupProgram] = useState("");
+  const [signupCollege, setSignupCollege] = useState(REGISTERED_COLLEGES[0]);
+  const [signupProgram, setSignupProgram] = useState(REGISTERED_BRANCHES[0]);
   const [signupYear, setSignupYear] = useState("3rd Year");
   const [signupError, setSignupError] = useState("");
   
@@ -328,27 +345,31 @@ export function Login() {
 
                     <div className="form-group">
                       <label htmlFor="reg-college">College / University</label>
-                      <input 
-                        type="text" 
+                      <select
                         id="reg-college"
-                        placeholder="Vellore Institute of Technology"
                         value={signupCollege}
                         onChange={(e) => setSignupCollege(e.target.value)}
                         required
-                      />
+                      >
+                        {REGISTERED_COLLEGES.map((col) => (
+                          <option key={col} value={col}>{col}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="form-grid" style={{ marginBottom: 0 }}>
                       <div className="form-group" style={{ marginBottom: 0 }}>
                         <label htmlFor="reg-program">Branch / Program</label>
-                        <input 
-                          type="text" 
+                        <select
                           id="reg-program"
-                          placeholder="B.Tech CS"
                           value={signupProgram}
                           onChange={(e) => setSignupProgram(e.target.value)}
                           required
-                        />
+                        >
+                          {REGISTERED_BRANCHES.map((br) => (
+                            <option key={br} value={br}>{br}</option>
+                          ))}
+                        </select>
                       </div>
                       <div className="form-group" style={{ marginBottom: 0 }}>
                         <label htmlFor="reg-year">Academic Year</label>
