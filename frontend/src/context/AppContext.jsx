@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
     enrolledCourses: [],
     scholarshipApplications: [],
     txLog: [],
+    users: [],
   });
   const [toasts, setToasts] = useState([]);
   const [nfcScanState, setNfcScanState] = useState({
@@ -51,18 +52,28 @@ export function AppProvider({ children }) {
           courses: s.courses || [],
           attendanceRecords: s.attendanceRecords || [],
           notifications: s.notifications || [],
-          // Dynamically map course strings to compatible objects expected by UI components
+          // Dynamically map course strings or objects to compatible rich structures
           enrolledCourses: (s.enrolledCourses || []).map(item => {
             if (typeof item === "string") {
               return {
                 courseId: item,
+                studentId: "",
+                grade: "",
+                gradeTxId: "",
                 txId: `CCvWtx_${item.replace(/\s+/g, "").substring(0, 8).toLowerCase()}_${Math.random().toString(36).substring(2, 6)}`
               };
             }
-            return item;
+            return {
+              studentId: item.studentId || "",
+              courseId: item.courseId || "",
+              grade: item.grade || "",
+              gradeTxId: item.gradeTxId || "",
+              txId: item.gradeTxId || `CCvWtx_${(item.courseId || "").replace(/\s+/g, "").substring(0, 8).toLowerCase()}_${Math.random().toString(36).substring(2, 6)}`
+            };
           }),
           scholarshipApplications: s.scholarshipApplications || [],
           txLog: s.txLog || [],
+          users: data.chainCampusUsers || [],
         });
       }
     } catch (err) {

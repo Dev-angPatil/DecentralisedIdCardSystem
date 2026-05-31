@@ -364,6 +364,14 @@ def get_db():
             conn.execute("ALTER TABLE events ADD COLUMN eligibleYears TEXT DEFAULT '[\"all\"]'")
         except Exception:
             pass
+        try:
+            conn.execute("ALTER TABLE enrolled_courses ADD COLUMN grade TEXT DEFAULT ''")
+        except Exception:
+            pass
+        try:
+            conn.execute("ALTER TABLE enrolled_courses ADD COLUMN gradeTxId TEXT DEFAULT ''")
+        except Exception:
+            pass
         
     conn.commit()
 
@@ -727,12 +735,13 @@ def read_store():
                 'eligibleYears': eligible_years
             })
 
-        if active_student_id:
-            enroll_rows = conn.execute("SELECT courseId FROM enrolled_courses WHERE studentId = ?", (active_student_id,)).fetchall()
-            state['enrolledCourses'] = [r[0] for r in enroll_rows]
+        is_admin = bool(session_row[6]) if session_row else False
+        if active_student_id and not is_admin:
+            enroll_rows = conn.execute("SELECT courseId, grade, gradeTxId FROM enrolled_courses WHERE studentId = ?", (active_student_id,)).fetchall()
+            state['enrolledCourses'] = [{'courseId': r[0], 'grade': r[1] or '', 'gradeTxId': r[2] or '', 'studentId': active_student_id} for r in enroll_rows]
         else:
-            enroll_rows = conn.execute("SELECT DISTINCT courseId FROM enrolled_courses").fetchall()
-            state['enrolledCourses'] = [r[0] for r in enroll_rows]
+            enroll_rows = conn.execute("SELECT studentId, courseId, grade, gradeTxId FROM enrolled_courses").fetchall()
+            state['enrolledCourses'] = [{'studentId': r[0], 'courseId': r[1], 'grade': r[2] or '', 'gradeTxId': r[3] or ''} for r in enroll_rows]
 
         events_rows = conn.execute("SELECT id, title, date, venue, capacity, description, verified, eligibleColleges, eligibleBranches, eligibleYears FROM events").fetchall()
         for r in events_rows:
@@ -916,9 +925,12 @@ def write_store(key, value):
                 student_id = session_row[0]
                 conn.execute("DELETE FROM enrolled_courses WHERE studentId = ?", (student_id,))
                 for cid in value.get('enrolledCourses', []):
+                    course_id = cid.get('courseId') if isinstance(cid, dict) else cid
+                    grade = cid.get('grade', '') if isinstance(cid, dict) else ''
+                    grade_tx = cid.get('gradeTxId', '') if isinstance(cid, dict) else ''
                     conn.execute(
-                        "INSERT OR REPLACE INTO enrolled_courses (studentId, courseId) VALUES (?, ?)",
-                        (student_id, cid)
+                        "INSERT OR REPLACE INTO enrolled_courses (studentId, courseId, grade, gradeTxId) VALUES (?, ?, ?, ?)",
+                        (student_id, course_id, grade, grade_tx)
                     )
 
             for ev in value.get('events', []):
@@ -1683,6 +1695,58 @@ class ChainCampusHandler(SimpleHTTPRequestHandler):
                     )
                     conn.commit()
                 self.send_json(200, {"ok": True})
+            except Exception as e:
+                self.send_json(500, {"error": str(e)})
+            return
+
+        # 11b. Relational Grading: Grade Student (Admin)
+        if self.path == "/api/admin/grade-student":
+            try:
+                payload = self.read_json_body()
+                student_id = payload.get("studentId")
+                course_id = payload.get("courseId")
+                grade = payload.get("grade")
+                
+                if not student_id or not course_id or not grade:
+                    self.send_json(400, {"error": "studentId, courseId, and grade are required"})
+                    return
+                
+                # Check if session is admin
+                with get_db() as conn:
+                    user = self.get_session_user(conn)
+                    if not user or not user["isAdmin"]:
+                        self.send_json(403, {"error": "Forbidden: Admin access required"})
+                        return
+                    
+                    # Verify enrollment
+                    enrollment = conn.execute(
+                        "SELECT 1 FROM enrolled_courses WHERE studentId = ? AND courseId = ?",
+                        (student_id, course_id)
+                    ).fetchone()
+                    
+                    if not enrollment:
+                        self.send_json(404, {"error": "Student is not enrolled in this course"})
+                        return
+                    
+                    # Generate grading transaction signature
+                    import random, time, hashlib
+                    h = hashlib.sha256(f"{student_id}-{course_id}-{grade}-{time.time()}".encode()).hexdigest()
+                    tx_id = f"CCvWgr{h[:36]}"
+                    
+                    # Record grade in enrolled_courses
+                    conn.execute(
+                        "UPDATE enrolled_courses SET grade = ?, gradeTxId = ? WHERE studentId = ? AND courseId = ?",
+                        (grade, tx_id, student_id, course_id)
+                    )
+                    
+                    # Append transaction to transactions log
+                    conn.execute(
+                        "INSERT OR REPLACE INTO transactions (txId, action, status, ts) VALUES (?, ?, ?, ?)",
+                        (tx_id, f"Grade Issued: {course_id} ({grade})", "success", str(int(time.time())))
+                    )
+                    conn.commit()
+                    
+                self.send_json(200, {"ok": True, "gradeTxId": tx_id})
             except Exception as e:
                 self.send_json(500, {"error": str(e)})
             return

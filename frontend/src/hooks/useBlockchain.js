@@ -115,6 +115,12 @@ export function useBlockchain() {
     [executeOnChain]
   );
 
+  const gradeStudentOnChain = useCallback(
+    (studentId, courseId, grade) => 
+      executeOnChain(`Issue Academic Grade: ${courseId} (${grade})`, { studentId, courseId, grade }),
+    [executeOnChain]
+  );
+
   return {
     getActiveWallet,
     registerStudentOnChain,
@@ -123,5 +129,6 @@ export function useBlockchain() {
     markAttendanceOnChain,
     applyScholarshipOnChain,
     reviewScholarshipOnChain,
+    gradeStudentOnChain,
   };
 }

@@ -3,17 +3,22 @@ import { useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useApi } from "../hooks/useApi";
 import { useBlockchain } from "../hooks/useBlockchain";
-import { ShieldCheck, Award, Plus, Calendar, BookOpen, RefreshCw, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Award, Plus, Calendar, BookOpen, RefreshCw, CheckCircle2, GraduationCap } from "lucide-react";
 import { REGISTERED_COLLEGES, REGISTERED_BRANCHES } from "./Login";
 
 export function AdminDashboard() {
   const { state, refreshData, showToast } = useApp();
-  const { reviewScholarship, createCourse, createEvent, loading } = useApi();
-  const { reviewScholarshipOnChain } = useBlockchain();
+  const { reviewScholarship, createCourse, createEvent, gradeStudent, loading } = useApi();
+  const { reviewScholarshipOnChain, gradeStudentOnChain } = useBlockchain();
   const location = useLocation();
 
   // Navigation state
-  const [adminTab, setAdminTab] = useState("scholarships"); // "scholarships" | "courses" | "events"
+  const [adminTab, setAdminTab] = useState("scholarships"); // "scholarships" | "courses" | "events" | "gradebook"
+
+  // Grading form states
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [gradingCourseId, setGradingCourseId] = useState("");
+  const [gradingGrade, setGradingGrade] = useState("A+");
 
   useEffect(() => {
     if (location.pathname === "/admin-courses") {
@@ -22,8 +27,37 @@ export function AdminDashboard() {
       setAdminTab("events");
     } else if (location.pathname === "/admin-scholarships") {
       setAdminTab("scholarships");
+    } else if (location.pathname === "/admin-gradebook") {
+      setAdminTab("gradebook");
     }
   }, [location.pathname]);
+
+  // Student, Course, and Enrollment mapping for Gradebook Tab
+  const students = React.useMemo(() => {
+    return (state.users || []).filter(u => !u.isAdmin);
+  }, [state.users]);
+
+  const selectedStudent = React.useMemo(() => {
+    return students.find(s => s.studentId === selectedStudentId) || students[0];
+  }, [students, selectedStudentId]);
+
+  const enrollments = React.useMemo(() => {
+    return (state.enrolledCourses || []).filter(e => e.studentId === (selectedStudent?.studentId || ""));
+  }, [state.enrolledCourses, selectedStudent]);
+
+  const courseMap = React.useMemo(() => {
+    const map = {};
+    (state.courses || []).forEach(c => {
+      map[c.id || c.courseId] = c;
+    });
+    return map;
+  }, [state.courses]);
+
+  useEffect(() => {
+    if (adminTab === "gradebook" && students.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(students[0].studentId);
+    }
+  }, [adminTab, students, selectedStudentId]);
 
   // Create Course form states
   const [courseCode, setCourseCode] = useState("");
@@ -181,6 +215,41 @@ export function AdminDashboard() {
     }
   };
 
+  const handleGradeStudent = async (e) => {
+    e.preventDefault();
+    if (!selectedStudentId || !gradingCourseId || !gradingGrade) {
+      showToast("Grading Error", "Please select a student, course, and grade.", "failed");
+      return;
+    }
+
+    const student = (state.users || []).find(u => u.studentId === selectedStudentId);
+    if (!student) {
+      showToast("Grading Error", "Selected student not found.", "failed");
+      return;
+    }
+
+    try {
+      showToast("Signing Grade...", "Issuing cryptographic grade signature on ledger...", "pending");
+
+      // 1. Submit on-chain transaction progress
+      const blockchainRes = await gradeStudentOnChain(selectedStudentId, gradingCourseId, gradingGrade);
+
+      // 2. Submit database record update
+      await gradeStudent({
+        studentId: selectedStudentId,
+        courseId: gradingCourseId,
+        grade: gradingGrade,
+        txId: blockchainRes.txId,
+      });
+
+      showToast("Grade Certified ✓", `Assigned ${gradingGrade} in ${gradingCourseId} for ${student.name || 'Student'}.`, "success");
+      setGradingCourseId("");
+      await refreshData();
+    } catch (err) {
+      showToast("Grading Failed", err.message, "failed");
+    }
+  };
+
   const renderActiveSelectionLabel = (list) => {
     if (list.includes("all")) return <span style={{ color: "#14b8a6", fontWeight: 600 }}>All (No Restriction)</span>;
     return <span style={{ color: "#6366f1", fontWeight: 600 }}>{list.length} selected</span>;
@@ -226,6 +295,13 @@ export function AdminDashboard() {
           style={{ padding: "10px 24px", fontSize: "0.82rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}
         >
           📅 Campus Events
+        </button>
+        <button 
+          className={`tab-pill ${adminTab === "gradebook" ? "active" : ""}`}
+          onClick={() => setAdminTab("gradebook")}
+          style={{ padding: "10px 24px", fontSize: "0.82rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}
+        >
+          🎓 Gradebook Manager
         </button>
       </div>
 
@@ -527,6 +603,248 @@ export function AdminDashboard() {
                 <span>Publish Event & Sync Ledger</span>
               </button>
             </form>
+          </div>
+        )}
+
+        {adminTab === "gradebook" && (
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 320px) 1fr", gap: "24px", alignItems: "start" }}>
+            
+            {/* Sidebar: Student list */}
+            <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "20px" }}>
+              <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", color: "var(--text)" }}>
+                Student Roster
+              </h4>
+              <p style={{ color: "var(--text-soft)", fontSize: "0.75rem", margin: 0 }}>
+                Select a student to view academic records and sign grades.
+              </p>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "450px", overflowY: "auto", paddingRight: "4px" }}>
+                {students.length > 0 ? (
+                  students.map((student) => {
+                    const isSelected = selectedStudent?.studentId === student.studentId;
+                    return (
+                      <button
+                        key={student.studentId}
+                        onClick={() => {
+                          setSelectedStudentId(student.studentId);
+                          setGradingCourseId("");
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          width: "100%",
+                          padding: "12px 14px",
+                          borderRadius: "10px",
+                          border: isSelected ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid var(--stroke-soft)",
+                          background: isSelected ? "rgba(139, 92, 246, 0.08)" : "var(--bg-alt)",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          transition: "all var(--t-fast)"
+                        }}
+                      >
+                        <div style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: isSelected ? "linear-gradient(135deg, #a78bfa, #8b5cf6)" : "linear-gradient(135deg, #cbd5e1, #94a3b8)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#ffffff",
+                          fontSize: "0.85rem",
+                          fontWeight: 700
+                        }}>
+                          {student.name ? student.name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : "ST"}
+                        </div>
+                        <div style={{ flex: 1, overflow: "hidden" }}>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                            {student.name || "Unknown Student"}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                            ID: {student.studentId || "N/A"}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                    No students registered yet.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Main Area: Selection Details & Form */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              {selectedStudent ? (
+                <>
+                  {/* Selected Student profile info */}
+                  <div className="glass-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", padding: "20px" }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "var(--text)", fontFamily: "'Space Grotesk',sans-serif" }}>
+                        {selectedStudent.name}
+                      </h4>
+                      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "8px", fontSize: "0.76rem", color: "var(--text-soft)" }}>
+                        <span>ID: <strong>{selectedStudent.studentId}</strong></span>
+                        <span>College: <strong>{selectedStudent.college || "N/A"}</strong></span>
+                        <span>Program: <strong>{selectedStudent.program || "N/A"}</strong></span>
+                        <span>Year: <strong>{selectedStudent.year || "N/A"}</strong></span>
+                      </div>
+                    </div>
+                    <div style={{ padding: "6px 14px", borderRadius: "20px", border: "1px solid rgba(16, 185, 129, 0.2)", background: "rgba(16, 185, 129, 0.05)", color: "#10b981", fontSize: "0.72rem", fontWeight: 700 }}>
+                      Active Enrollment
+                    </div>
+                  </div>
+
+                  {/* Grading / Certificate Form */}
+                  <div className="glass-card" style={{ padding: "24px" }}>
+                    <h5 style={{ margin: "0 0 16px 0", fontSize: "0.9rem", fontWeight: 700, color: "var(--text)", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <GraduationCap size={16} style={{ color: "#8b5cf6" }} />
+                      Issue Cryptographically Verified GPA Certificate Seal
+                    </h5>
+
+                    {enrollments.length > 0 ? (
+                      <form onSubmit={handleGradeStudent} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        <div className="form-grid" style={{ gridTemplateColumns: "1fr 150px" }}>
+                          <div className="form-group">
+                            <label>Course Enrollment</label>
+                            <select
+                              value={gradingCourseId}
+                              onChange={e => setGradingCourseId(e.target.value)}
+                              required
+                              style={{ width: "100%" }}
+                            >
+                              <option value="">-- Select Course --</option>
+                              {enrollments.map(e => {
+                                const info = courseMap[e.courseId] || { code: e.courseId, name: "Enrolled Course" };
+                                return (
+                                  <option key={e.courseId} value={e.courseId}>
+                                    {info.code} - {info.name} {e.grade ? `(Grade: ${e.grade})` : "(Ungraded)"}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+                          
+                          <div className="form-group">
+                            <label>Grade</label>
+                            <select
+                              value={gradingGrade}
+                              onChange={e => setGradingGrade(e.target.value)}
+                              required
+                              style={{ width: "100%" }}
+                            >
+                              <option value="A+">A+ (10.0)</option>
+                              <option value="A">A (9.0)</option>
+                              <option value="B+">B+ (8.0)</option>
+                              <option value="B">B (7.0)</option>
+                              <option value="C">C (6.0)</option>
+                              <option value="F">F (0.0)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={loading || !gradingCourseId}
+                          style={{
+                            alignSelf: "flex-start",
+                            padding: "10px 24px",
+                            fontSize: "0.78rem",
+                            borderRadius: "8px",
+                            background: "linear-gradient(135deg, #8b5cf6, #6366f1)"
+                          }}
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>Issue Verified Grade Seal</span>
+                        </button>
+                      </form>
+                    ) : (
+                      <div style={{ padding: "12px", border: "1px solid var(--stroke-soft)", borderRadius: "10px", background: "var(--bg-alt)", color: "var(--text-soft)", fontSize: "0.78rem" }}>
+                        This student is not currently enrolled in any courses. Students must self-enroll in academic courses before they can be graded.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Academic Transcript Records Table */}
+                  <div className="glass-card" style={{ padding: "20px" }}>
+                    <h5 style={{ margin: "0 0 16px 0", fontSize: "0.9rem", fontWeight: 700, color: "var(--text)" }}>
+                      Certified Transcript Ledger & Academic History
+                    </h5>
+
+                    {enrollments.length > 0 ? (
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.78rem" }}>
+                          <thead>
+                            <tr style={{ borderBottom: "1px solid var(--stroke)" }}>
+                              <th style={{ padding: "10px 8px", color: "var(--text-muted)" }}>Course</th>
+                              <th style={{ padding: "10px 8px", color: "var(--text-muted)" }}>Instructor</th>
+                              <th style={{ padding: "10px 8px", color: "var(--text-muted)", textAlign: "center" }}>Credits</th>
+                              <th style={{ padding: "10px 8px", color: "var(--text-muted)", textAlign: "center" }}>Grade</th>
+                              <th style={{ padding: "10px 8px", color: "var(--text-muted)" }}>Web3 Grade Signature</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {enrollments.map((e) => {
+                              const info = courseMap[e.courseId] || { code: e.courseId, name: "Enrolled Course", instructor: "N/A", credits: 4 };
+                              return (
+                                <tr key={e.courseId} style={{ borderBottom: "1px solid var(--stroke-soft)" }}>
+                                  <td style={{ padding: "12px 8px" }}>
+                                    <strong style={{ color: "var(--text)" }}>{info.code}</strong>
+                                    <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>{info.name}</div>
+                                  </td>
+                                  <td style={{ padding: "12px 8px", color: "var(--text-soft)" }}>{info.instructor}</td>
+                                  <td style={{ padding: "12px 8px", textAlign: "center", color: "var(--text)" }}>{info.credits}</td>
+                                  <td style={{ padding: "12px 8px", textAlign: "center" }}>
+                                    {e.grade ? (
+                                      <span style={{
+                                        display: "inline-block",
+                                        padding: "4px 8px",
+                                        borderRadius: "6px",
+                                        fontWeight: 700,
+                                        fontSize: "0.72rem",
+                                        background: e.grade === "F" ? "rgba(239, 68, 68, 0.1)" : "rgba(16, 185, 129, 0.1)",
+                                        color: e.grade === "F" ? "var(--red)" : "var(--green)"
+                                      }}>
+                                        {e.grade}
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: "var(--text-muted)", fontStyle: "italic", fontSize: "0.72rem" }}>Ungraded</span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: "12px 8px", fontFamily: "monospace", fontSize: "0.68rem" }}>
+                                    {e.gradeTxId ? (
+                                      <span style={{ color: "#6366f1", wordBreak: "break-all" }}>
+                                        {e.gradeTxId.substring(0, 16)}...
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: "var(--text-muted)" }}>Pending Admin Issue</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                        No records to display.
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="glass-card" style={{ padding: "60px 20px", textAlign: "center", color: "var(--text-muted)" }}>
+                  <GraduationCap size={48} style={{ strokeWidth: 1, margin: "0 auto 16px auto", color: "var(--text-muted)" }} />
+                  <p style={{ fontSize: "0.85rem", margin: 0 }}>Please select a student from the left roster to view and manage academic grades.</p>
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 

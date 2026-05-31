@@ -88,6 +88,11 @@ export function useApi() {
     return res;
   }, [request, session, setSession]);
 
+  const gradeStudent = useCallback(
+    (gradeData) => request("/api/admin/grade-student", "POST", gradeData),
+    [request]
+  );
+
   return {
     loading,
     error,
@@ -101,5 +106,6 @@ export function useApi() {
     createCourse,
     markAttendance,
     airdropSOL,
+    gradeStudent,
   };
 }
