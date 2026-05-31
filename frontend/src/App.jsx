@@ -79,8 +79,8 @@ export function App() {
             {/* Admin Protected Routes */}
             <Route element={<PrivateRoute adminOnly={true} />}>
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
-              <Route path="/admin-courses" element={<Courses />} /> {/* Reuse Courses Component with Admin parameters inside context */}
-              <Route path="/admin-events" element={<Events />} />   {/* Reuse Events Component */}
+              <Route path="/admin-courses" element={<AdminDashboard />} />
+              <Route path="/admin-events" element={<AdminDashboard />} />
               <Route path="/admin-scholarships" element={<AdminDashboard />} />
             </Route>
 

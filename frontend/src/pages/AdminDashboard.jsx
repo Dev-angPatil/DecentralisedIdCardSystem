@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useApi } from "../hooks/useApi";
 import { useBlockchain } from "../hooks/useBlockchain";
@@ -9,9 +10,20 @@ export function AdminDashboard() {
   const { state, refreshData, showToast } = useApp();
   const { reviewScholarship, createCourse, createEvent, loading } = useApi();
   const { reviewScholarshipOnChain } = useBlockchain();
+  const location = useLocation();
 
   // Navigation state
   const [adminTab, setAdminTab] = useState("scholarships"); // "scholarships" | "courses" | "events"
+
+  useEffect(() => {
+    if (location.pathname === "/admin-courses") {
+      setAdminTab("courses");
+    } else if (location.pathname === "/admin-events") {
+      setAdminTab("events");
+    } else if (location.pathname === "/admin-scholarships") {
+      setAdminTab("scholarships");
+    }
+  }, [location.pathname]);
 
   // Create Course form states
   const [courseCode, setCourseCode] = useState("");
