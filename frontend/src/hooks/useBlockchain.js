@@ -1,10 +1,12 @@
 import { useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "./useApi";
+import { useApp } from "../context/AppContext";
 
 export function useBlockchain() {
   const { session, setSession } = useAuth();
   const { addTransaction } = useApi();
+  const { setTxProgress } = useApp();
 
   const getActiveWallet = useCallback(() => {
     return session?.walletAddress || "CCvWmock_addr";
@@ -17,6 +19,23 @@ export function useBlockchain() {
       let txId = "";
       for (let i = 0; i < 88; i++) {
         txId += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      // Trigger On-Chain Transaction Progress Overlay States
+      try {
+        setTxProgress({ active: true, label: actionLabel, status: "signature", txId: "" });
+        await new Promise(r => setTimeout(r, 800));
+        
+        setTxProgress({ active: true, label: actionLabel, status: "broadcasting", txId: "" });
+        await new Promise(r => setTimeout(r, 1000));
+        
+        setTxProgress({ active: true, label: actionLabel, status: "consensus", txId: "" });
+        await new Promise(r => setTimeout(r, 1000));
+        
+        setTxProgress({ active: true, label: actionLabel, status: "confirmed", txId: txId });
+        await new Promise(r => setTimeout(r, 800));
+      } finally {
+        setTxProgress({ active: false, label: "", status: "", txId: "" });
       }
 
       // 2. Deduct tiny simulated transaction GAS fee (e.g. 0.005 SOL)
@@ -62,7 +81,7 @@ export function useBlockchain() {
         action: actionLabel,
       };
     },
-    [session, setSession, addTransaction]
+    [session, setSession, addTransaction, setTxProgress]
   );
 
   const registerStudentOnChain = useCallback(

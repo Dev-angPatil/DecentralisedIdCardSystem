@@ -7,6 +7,7 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { ToastStack } from "./components/Toast";
 import { DevToolsWidget } from "./components/DevToolsWidget";
+import { TxProgressOverlay } from "./components/TxProgressOverlay";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -91,6 +92,7 @@ export function App() {
           {/* Global overlays */}
           <ToastStack />
           <DevToolsWidget />
+          <TxProgressOverlay />
         </BrowserRouter>
       </AppProvider>
     </AuthProvider>

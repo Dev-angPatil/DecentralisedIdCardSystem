@@ -26,6 +26,13 @@ export function AppProvider({ children }) {
     payloadData: null
   });
 
+  const [txProgress, setTxProgress] = useState({
+    active: false,
+    label: "",
+    status: "", // "signature", "broadcasting", "consensus", "confirmed"
+    txId: ""
+  });
+
   const showToast = useCallback((title, desc, type = "success") => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, title, desc, type }]);
@@ -109,6 +116,8 @@ export function AppProvider({ children }) {
         state,
         toasts,
         nfcScanState,
+        txProgress,
+        setTxProgress,
         showToast,
         refreshData,
         startNfcScan,
