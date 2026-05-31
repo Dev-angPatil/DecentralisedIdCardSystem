@@ -1230,3 +1230,23 @@ body {
 .step-hidden {
   display: none !important;
 }
+
+/* Elegant high-fidelity breathing animations */
+@keyframes led-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
+@keyframes card-glow-breathing {
+  0%, 100% { 
+    box-shadow: 0 8px 30px var(--pulse-glow, rgba(16, 185, 129, 0.15)), inset 0 0 12px var(--pulse-glow, rgba(16, 185, 129, 0.04)); 
+  }
+  50% { 
+    box-shadow: 0 12px 35px var(--pulse-glow-high, rgba(16, 185, 129, 0.25)), inset 0 0 16px var(--pulse-glow-high, rgba(16, 185, 129, 0.08)); 
+  }
+}
+
+.animate-pulse-led {
+  animation: led-pulse 2s infinite ease-in-out;
+}
+
