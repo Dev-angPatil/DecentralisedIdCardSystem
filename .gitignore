@@ -1,12 +1,38 @@
+# Dependencies
 node_modules/
 frontend/node_modules/
 backend/node_modules/
+
+# Build artifacts
 chain_campus/target/
-.DS_Store
-__pycache__/
+frontend/dist/
 dist/
+
+# OS files
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Codex / Agents
 .codex
+.agents/
+
+# Database files (don't commit data)
 data/*.db
 data/*.db-journal
-.agents/
-solana-install-init.sh
+
+# Installer binaries & archives (should never be committed)
+*.exe
+*.tar.bz2
+*.tar.gz
+rustup-init*
+solana*.sh
+solana-release*
+
+# Misc
+test_login.js
+skills-lock.json
+

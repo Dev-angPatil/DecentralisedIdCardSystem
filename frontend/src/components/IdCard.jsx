@@ -80,7 +80,7 @@ export function IdCard() {
               </span>
             </div>
             <div className="id-back-row">
-              <span className="id-Mag-strip id-back-key">STATUS:</span>
+              <span className="id-back-key">STATUS:</span>
               <span className="id-back-val" style={{ color: "#10b981" }}>Active & Verified</span>
             </div>
           </div>

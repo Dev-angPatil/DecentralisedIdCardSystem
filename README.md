@@ -1,197 +1,114 @@
-# ChainCampus (Decentralised ID Card System)
+# ChainCampus — Decentralised Student ID Card System (Solana MVP)
 
-ChainCampus is a minimalist Web3-ready student platform built for our college MVP presentation. It demonstrates student identity, wallet connection, courses, events, attendance, scholarship applications, admin workflows, local smart contract code, and basic SQLite persistence.
+ChainCampus is a premium, Web3-ready student platform built for our college MVP presentation. It demonstrates cryptographic student identity, wallet connection simulations, course enrollments, attendance log verification, on-chain scholarship applications, admin workflows, local smart contract structures, and SQLite sandbox persistence.
+
+---
 
 ## MVP Status: What's Currently Working?
 
-The project is currently demo-ready in local/mock mode. The frontend flow works without needing deployed Solana smart contracts or real transaction fees.
+The project is demo-ready, supporting both an offline static development mode and a fully persistent SQLite-backed presentation server. Visual and transition interactions are polished with state-of-the-art physics.
 
-### 1. Functional User Interfaces
+### 1. Functional User Interfaces (React + Vite)
+- **Student Onboarding / Profile Verification**: Authenticated student registration and credential loading.
+- **Interactive 3D Student ID Card**: An elegant, translucent virtual card displaying credentials. Incorporates smooth **3D interactive hover tilt** transforms and a glowing **holographic linear sweep shine** overlay that acts physical to the touch. Tapping the card flips it with a spring-back transition to reveal on-chain parameters.
+- **Student Dashboard (`Dashboard.jsx`)**: Displays statistics, transactions, official announcements, and application states with slide-up fade animations.
+- **Verifiable Courses (`Courses.jsx`)**: Students enroll in courses. Enrolling deducts a tiny simulated gas fee from their balance and logs a unique base58 transaction signature in the ledger.
+- **On-Chain Events (`Events.jsx`)**: Register for workshops and hackathons, syncing ledger parameters.
+- **Attendance Ledger (`Attendance.jsx`)**: Verifiably sign and mark attendance logs in the database.
+- **Scholarship Applications (`Scholarships.jsx`)**: Submit claims directly; funds are deposited upon review.
+- **Admin Command Console (`AdminDashboard.jsx`)**: Administrators manage courses, create events, view incoming scholarship claims, and grant approvals/rejections in real time.
 
-- **Student Login / Signup**: Students can create accounts and log in.
-- **Student Dashboard (`dashboard.html`)**: Shows student overview, transaction log, last transaction, and scholarship applications.
-- **Profile (`profile.html`)**: Shows student identity details and wallet status.
-- **Courses (`courses.html`)**: Students can enroll in courses through the blockchain abstraction layer.
-- **Events (`events.html`)**: Students can register for events through the blockchain abstraction layer.
-- **Attendance (`attendance.html`)**: Attendance UI and local demo records are available.
-- **Scholarships (`schol.html`)**: Students can browse scholarships and apply through the on-chain/mock flow.
-- **Admin Dashboard (`admin_dashboard.html`)**: Shows admin metrics and management shortcuts.
-- **Manage Courses (`admin_courses.html`)**: Admin can create courses.
-- **Manage Events (`admin_events.html`)**: Admin can create events.
-- **Manage Scholarships (`admin_scholarships.html`)**: Admin can view scholarship applications and approve/reject them.
+> [!NOTE]
+> **Default Admin Credentials:**
+> - **Email:** `admin@college.edu`
+> - **Password:** `Admin()09`
 
-Admin login:
-
-```text
-Email: admin@college.edu
-Password: Admin()09
-```
-
-### 2. Web3 Mock Mode & Phantom Integration
-
-- The frontend connects to Phantom wallet through `js/main.js`.
-- Blockchain actions go through `js/blockchain.js`.
-- The app currently runs in mock/auto mode for smooth demo transactions.
-- Actions generate mock transaction IDs and update the dashboard transaction log.
+### 2. Sandbox Blockchain Simulation (`useBlockchain.js`)
+- Simulates real Solana ledger events by generating authentic **88-character base58 transaction signatures**.
+- Automatically deducts a tiny simulated transaction fee (`0.005 SOL`) from the student's virtual wallet.
+- Logs transactions inside the persistent SQLite sandbox database, keeping a verified audit trail on the student profile ledger.
 
 ### 3. Smart Contract Blueprints
-
-Anchor/Rust smart contract code exists locally inside:
-
+Anchor/Rust smart contract code is located in the local directory:
 ```text
 chain_campus/programs/chain_campus/src/
 ```
+The blueprint contract contains instruction routines for:
+- Student Profile Registration
+- Course Creation & Academic Enrollment
+- Event Schedule & Student Registration
+- Tamper-proof Attendance Marking & Signature Verification
+- On-chain Scholarship Creation, Claim Application, and Multi-signature Approval
 
-Local smart contract code exists for:
+---
 
-- student registration
-- event creation
-- event registration
-- attendance marking
-- attendance verification
-- course creation
-- course enrollment
-- scholarship creation
-- scholarship application
-- scholarship approval/rejection
-
-Current blockchain status:
+## Technical Stack & Folder Structure
 
 ```text
-Smart contract code: Present locally
-Anchor build: Not completed with Anchor CLI
-Solana deployment: Not deployed yet
-Frontend mode: Mock/auto demo mode
+DecentralisedIdCardSystem/
+├── server.py                 # SQLite Multi-threaded Python API & Web Server
+├── data/                     # Database Directory
+│   └── chaincampus.db        # SQLite Sandbox Database
+├── chain_campus/             # Anchor Solana Smart Contract Program (Rust)
+│   ├── programs/             # Program logic
+│   └── Anchor.toml           # Anchor Configuration
+└── frontend/                 # React + Vite Client Application
+    ├── public/               # Static public assets (images, logos, favicon)
+    ├── src/
+    │   ├── context/          # State & Session Contexts (AuthContext, AppContext)
+    │   ├── hooks/            # Custom Hooks (useApi, useBlockchain)
+    │   ├── components/       # Reusable components (IdCard, Sidebar, Toast, Header)
+    │   ├── pages/            # View Pages (Landing, Dashboard, Login, Courses, etc.)
+    │   ├── index.css         # Premium Light-Sage & Cream Theme Stylesheet
+    │   └── main.jsx          # Vite React Bootstrap Entrypoint
+    └── vite.config.js        # Vite Build Configuration
 ```
 
-### 4. SQLite Demo Storage
+---
 
-The project includes a basic Python SQLite backend:
+## How to Run & Present the MVP
 
-```text
-server.py
-```
-
-It stores demo data in:
-
-```text
-data/chaincampus.db
-```
-
-SQLite currently stores demo data such as users, sessions, app state, transactions, courses, events, attendance records, and scholarship applications. This is intentionally simple and demo-friendly.
-
-Tables used:
-
-```text
-app_store
-audit_log
-```
-
-## Done
-
-- Scholarship smart contract state and instruction files added.
-- Scholarship actions connected into the Anchor program entrypoint.
-- Scholarship apply flow connected to `js/blockchain.js`.
-- Student **My Applications** section added to the dashboard.
-- Separate admin **Manage Scholarships** page added.
-- Admin approval/rejection flow added for scholarship applications.
-- Basic SQLite persistence added using `server.py` and `js/db.js`.
-- README updated with current run steps and teammate tasks.
-
-## How To Run and Test The MVP
-
-Use the SQLite-backed demo server:
-
+### Setup Prerequisites
+Ensure you have Node.js and Python installed. First, install the frontend packages:
 ```bash
-cd DecentralisedIdCardSystem
-python server.py
+cd frontend
+npm install
 ```
 
-Then open:
+### Option A: Run the SQLite-Persistent Presentation Server (Recommended)
+This mode runs the multi-threaded Python backend server on port `8000`, serving the pre-compiled production build of the React app and saving all student profiles, courses, and transactions into SQLite.
 
-```text
-http://localhost:8000
-```
-
-For only a static UI preview without SQLite persistence, run:
-
-```bash
-python -m http.server 8000
-```
-
-## Demo Flow
-
-1. Sign up or log in as a student.
-2. Connect Phantom wallet or skip wallet for demo.
-3. Open **Scholarships**.
-4. Apply for a scholarship.
-5. Confirm the student is redirected to **My Applications**.
-6. Log in as admin.
-7. Open **Manage Scholarships**.
-8. Approve or reject the application.
-9. Log back in as student and check updated application status.
-
-## Teammates To-Do List & Next Steps
-
-### Demo Testing
-
-1. Test student signup/login.
-2. Test admin login.
-3. Test course enrollment.
-4. Test event registration.
-5. Test scholarship apply flow.
-6. Test admin scholarship approval/rejection.
-7. Confirm SQLite persistence works after refresh when using `python server.py`.
-
-### UI Polish
-
-1. Check all pages on laptop screen size.
-2. Fix any remaining text/encoding issues.
-3. Prepare a short demo script for presentation.
-4. Add screenshots to the report if needed.
-
-### SQLite Improvements
-
-Current SQLite is basic JSON-style persistence. Future improvement can convert it into proper relational tables:
-
-- `users`
-- `courses`
-- `events`
-- `attendance_records`
-- `scholarships`
-- `scholarship_applications`
-- `transactions`
-
-### Blockchain Deployment
-
-To move from mock mode to real Solana localnet/devnet:
-
-1. Install Rust, Solana CLI, and Anchor in WSL Ubuntu.
-2. Build the contract:
+1. Compile the production bundle:
    ```bash
-   anchor build
+   cd frontend
+   npm run build
    ```
-3. Start local validator:
+2. Launch the backend server:
    ```bash
-   solana-test-validator
+   cd ..
+   python server.py
    ```
-4. Deploy:
-   ```bash
-   anchor deploy
-   ```
-5. Update Program ID in:
-   - `chain_campus/programs/chain_campus/src/lib.rs`
-   - `chain_campus/Anchor.toml`
-   - `js/blockchain.js`
-6. Connect the generated IDL from:
+3. Open your browser to:
    ```text
-   chain_campus/target/idl/
+   http://localhost:8000
    ```
 
-## Future Scope
+### Option B: Run Front-End Only in Hot-Reload Development Mode
+Use this for UI development or rapid stylesheet testing:
+```bash
+cd frontend
+npm run dev
+```
+Open the local Vite port displayed in your terminal (usually `http://localhost:5173`).
 
-- Deploy smart contracts to Solana devnet.
-- Replace mock transactions with real Anchor transactions.
-- Add QR/NFC-based student ID verification.
-- Normalize SQLite into proper relational tables.
-- Add document upload/verification for scholarship applications.
+---
+
+## MVP Presentation & Demo Script
+
+1. **Academic Portal Launch**: Start at the clean, editorial `Landing.jsx` page. Highlight the **custom ambient background meshes**, **3D student credential systems**, and Solana network indicators.
+2. **Onboard a Student**: Click **Start Your Journey** and Sign Up a new student profile. Explain that this dynamically generates a unique virtual Solana wallet address (`CCvW...`) in the background.
+3. **Verify the Credentials**: Log in. Hover over the **translucent Student ID card** to show the **3D holographic linear sweep shine**. Click the card to flip it with spring physics, revealing the virtual SOL balance, Network state, and active Student ID.
+4. **Log Academic Events**: Enrol in a Course or register for the *AI x Blockchain Workshop* under **Events**. Show the floating toast notification and verify that a new **88-character base58 transaction signature** is generated and a `0.005 SOL` fee is subtracted.
+5. **Apply for a Scholarship**: Navigate to **Scholarships** and apply for *Academic Excellence*. Point out the transaction log appearing on your student dashboard.
+6. **Admin Command Operations**: Log out. Sign in as Admin. Open the **Manage Scholarships** console. Observe the live student applications, then click **Approve**. 
+7. **Complete Payout Loop**: Log back in as the student. Check the dashboard. Notice that the scholarship status has transitioned to **Approved** and the virtual SOL balance has been credited with the scholarship funds!

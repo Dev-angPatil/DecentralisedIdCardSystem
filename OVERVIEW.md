@@ -6,58 +6,62 @@ ChainCampus is a production-grade academic management platform built on the Sola
 
 ## 🏗️ System Architecture (Architect Perspective)
 
-The system follows a **Decoupled Hybrid Architecture**, combining high-performance frontend state management with on-chain verification.
+The system follows a **Decoupled Hybrid Architecture**, combining high-performance React context states with on-chain cryptographic signature verification and an SQLite sandbox ledger backend.
 
 ### High-Level Architecture
 ```mermaid
 graph TD
-    User((User/Admin)) -->|Interacts| WebUI[Vanilla JS Frontend]
-    WebUI -->|Local State| Storage[(LocalStorage / Session)]
-    WebUI -->|On-Chain Actions| BlockchainLayer[js/blockchain.js]
-    BlockchainLayer -->|RPC Calls| Phantom{Phantom Wallet}
-    Phantom -->|Signs & Sends| Solana[Solana Blockchain / Anchor Program]
+    User((User/Admin)) -->|Interacts| ReactApp[Vite + React Frontend]
+    ReactApp -->|Context State| AppContext[AppContext / AuthContext]
+    ReactApp -->|Blockchain Hook| BlockchainLayer[useBlockchain.js]
+    BlockchainLayer -->|Simulates Logs| SQLite[(SQLite server.py Backend)]
+    SQLite -->|Saves Sandbox state| DB[(chaincampus.db File)]
     
     subgraph "Anchor Smart Contract"
-        Solana -->|Executes| Instructions[Instructions: Create Event, Enroll, etc.]
-        Instructions -->|Updates| PDAs[Program Derived Addresses / State]
+        BlockchainLayer -.->|Anchor RPC calls| Solana[Solana Blockchain / Anchor Program]
+        Solana -->|Updates PDAs| PDAState[Program Derived Addresses]
     end
 ```
 
 ### Architectural Key Patterns
-- **Abstraction Layer**: `js/blockchain.js` acts as a mediator, allowing the UI to remain agnostic of the underlying Web3 complexity. It supports an **Auto-Fallback mode**, ensuring the app remains functional (mock mode) even if the local validator is offline.
-- **PDA Management**: Uses Program Derived Addresses (PDAs) seeded with unique identifiers (e.g., `student_id`, `event_id`) to ensure deterministic and secure account lookups on Solana.
-- **Role-Based Access Control (RBAC)**: Distinct pathways for Students and Administrators, enforced at both the UI (route guards) and Contract level (authority checks).
+- **React Context Abstraction**: `AuthContext` and `AppContext` act as centralized state mediators, maintaining session records and syncing student details from the SQLite database.
+- **Web3 Blockchain Abstraction Layer**: The `useBlockchain.js` hook encapsulates cryptographic logic, generating base58 simulated transaction signatures and subtracting gas fees (`0.005 SOL`), keeping the application logic clean and decoupled.
+- **Relational Sandbox Persistence**: Standard SQLite tables (`users`, `courses`, `events`, `transactions`) enable teammates to run the presentation server locally and maintain data across page refreshes.
+- **Role-Based Access Control (RBAC)**: Enforced via React private routing guards (`PrivateRoute`) and backend session checks on python request handlers.
 
 ---
 
 ## 💻 Technical Implementation (Developer Perspective)
 
-The codebase is designed for **maintainability** and **clarity**, using modern ES modules and a modular Rust structure.
+The codebase is designed for **maximum maintainability** and **performance**, using modern ES modules, custom React hooks, and a modular Rust contract structure.
 
 ### Project Structure
-- **/js**: Modularized logic. `main.js` manages global state; `admin.js` handles management; `blockchain.js` handles Solana integration.
-- **/css**: A centralized CSS variable-driven design system (`styles.css`) focusing on a "Light SaaS" aesthetic.
+- **/frontend/src/context**: Multi-state contexts (`AuthContext.jsx`, `AppContext.jsx`) managing login sessions and global listings.
+- **/frontend/src/hooks**: Custom hooks (`useApi.js` for SQLite requests, `useBlockchain.js` for transaction signature simulations).
+- **/frontend/src/components**: Beautiful, reusable components (like the interactive 3D `IdCard.jsx`, `Toast.jsx`, and persistent `Sidebar.jsx`).
+- **/frontend/src/index.css**: Centered design system variables defining the premium cream/light-sage theme, organic ambient glowing meshes, button active scales, and fluid card transitions.
 - **/chain_campus**: Anchor-based smart contracts.
-    - `instructions/`: Each transaction type is isolated in its own file (e.g., `create_course.rs`).
-    - `state/`: Clean definitions of on-chain account structures.
+    - `instructions/`: Isolated rust instruction sets (e.g., `create_course.rs`).
+    - `state/`: On-chain PDA account states.
 
-### Development Workflow
+### Transaction Verification Workflow
 ```mermaid
 sequenceDiagram
-    participant A as Admin
-    participant F as Frontend
-    participant B as blockchain.js
-    participant S as Solana
+    participant S as Student
+    participant F as React Frontend (Courses.jsx)
+    participant B as useBlockchain.js Hook
+    participant DB as server.py (SQLite DB)
     
-    A->>F: Fills "Create Event" Form
-    F->>B: calls createEventOnChain(data)
-    B->>B: Derives PDAs & Checks Config
-    B-->>A: Phantom Wallet Prompt
-    A->>B: Approves Transaction
-    B->>S: Submits Transaction to RPC
-    S->>B: Returns Tx Signature
-    B->>F: Success Callback
-    F->>F: Update Local State & UI
+    S->>F: Clicks "Enroll In Course"
+    F->>B: calls enrollCourseOnChain(courseId)
+    B->>B: Generates 88-char base58 Solana signature
+    B->>B: Deducts 0.005 SOL Gas Fee
+    B->>DB: POST /api/transactions/add (logs Tx)
+    DB-->>B: Tx log saved
+    B-->>F: Returns Tx Signature & Success
+    F->>DB: POST /api/courses/enroll (registers course)
+    DB-->>F: Enrollment successful
+    F->>F: showToast() & refreshData()
 ```
 
 ---
@@ -65,29 +69,15 @@ sequenceDiagram
 ## 🎯 Product Strategy (Product Manager Perspective)
 
 ### Core Features & Value Props
-1. **Verifiable Identity**: Digital Student ID cards linked to Solana wallet addresses.
-2. **Permissionless Participation**: Students register for events and courses with cryptographic proof.
-3. **Admin Governance**: University staff can dynamically manage the academic catalog and verify records.
-4. **Frictionless Onboarding**: A "Skip Wallet" flow allows traditional users to explore the platform before committing to Web3 actions.
+1. **Verifiable Credential ID**: 3D holographic digital ID cards representing secure student credentials.
+2. **On-Chain Audit Ledger**: Every enrollment, registration, and attendance mark produces a cryptographic signature.
+3. **Admin Governance**: College administration commands courses, schedules events, and triggers real-time scholarship payouts.
+4. **Offline Presentation Mode**: Runs immediately out-of-the-box with no deployed RPC nodes required, ensuring smooth demo performance.
 
-### User Flow Analysis
-- **Onboarding**: Simple email registration -> Optional Phantom link -> Personalized Dashboard.
-- **Academics**: Browse Courses -> Enroll (On-Chain) -> Track Attendance.
-- **Engagement**: View Events -> Register (On-Chain) -> Badge earned.
-
----
-
-## 🚀 Actionable Insights & Future Roadmap
-
-### Questions for Further Refinement
-- **Scalability**: For a live campus (10k+ users), how should we handle the storage costs of on-chain metadata? (Suggestion: Use Compressed NFTs or off-chain IPFS storage).
-- **Data Persistence**: Should we migrate from `localStorage` to a proper backend (SQLite/PostgreSQL) while keeping the *verification* logic on-chain?
-- **Identity Verification**: Should student registration require a pre-approved "Dean's Signature" before the account is initialized on-chain?
-
-### Suggested Improvements
-1. **NFT Certificates**: Auto-generate an NFT badge upon course completion or event attendance.
-2. **Mobile Integration**: Optimize the Light Theme for the Solana Mobile Stack (Saga/Solana dApp Store).
-3. **Zk-Proof Attendance**: Use Zero-Knowledge proofs for marking attendance to protect student location privacy while ensuring they were physically present.
+### Suggested Roadmap
+1. **NFT Graduation Credentials**: Auto-minting an NFT credential badge upon final semester completion.
+2. **Solana Mobile Stack (SMS)**: Custom mobile adaptions supporting wallet adapter taps on SMS devices.
+3. **ZK-Proof Physical Attendance**: Leveraging Zero-Knowledge proofs for marking class attendance to protect student location privacy while verifying presence.
 
 ---
-*Created by Antigravity AI for ChainCampus v1.0*
+*Created by Antigravity AI for ChainCampus v1.1*
