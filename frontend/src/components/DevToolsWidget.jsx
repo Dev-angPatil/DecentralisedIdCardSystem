@@ -34,8 +34,8 @@ export function DevToolsWidget() {
       studentId: "CC-2026-1874",
       email: "aaravmehta@personal.com",
       walletAddress: "CCvWa6fb0ef4316d92349ccf97e4b926878d345d",
-      college: "VIT University",
-      program: "B.Tech Computer Science",
+      college: "Vellore Institute of Technology (VIT), Vellore",
+      program: "B.Tech Computer Science Engineering",
       year: "3rd Year"
     },
     {
@@ -43,8 +43,8 @@ export function DevToolsWidget() {
       studentId: "CC-2026-9901",
       email: "officialdevangpatil@gmail.com",
       walletAddress: "CCvWDevang",
-      college: "VIT University",
-      program: "B.Tech Computer Science",
+      college: "Vellore Institute of Technology (VIT), Vellore",
+      program: "B.Tech Computer Science Engineering",
       year: "4th Year"
     }
   ];

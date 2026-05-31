@@ -6,19 +6,27 @@ import { Shield, Eye, EyeOff, Radio, Award } from "lucide-react";
 
 export const REGISTERED_COLLEGES = [
   "Indian Institute of Technology (IIT), Bombay",
+  "Indian Institute of Technology (IIT), Delhi",
+  "Indian Institute of Technology (IIT), Madras",
   "Vellore Institute of Technology (VIT), Vellore",
   "Delhi Technological University (DTU), Delhi",
   "Manipal Academy of Higher Education (MAHE), Manipal",
   "BITS Pilani, Pilani",
+  "National Institute of Technology (NIT), Trichy",
+  "SRM Institute of Science and Technology, Chennai",
   "ChainCampus Virtual University (CCVU)"
 ];
 
 export const REGISTERED_BRANCHES = [
-  "B.Tech Computer Science",
-  "B.Tech Electronics & Comm",
+  "B.Tech Computer Science Engineering",
+  "B.Tech Electronics & Communication Engineering",
   "B.Tech Information Technology",
   "B.Tech Mechanical Engineering",
-  "B.Sc Data Science"
+  "B.Tech Electrical & Electronics Engineering",
+  "B.Tech Civil Engineering",
+  "B.Sc Data Science & AI",
+  "M.Tech Computer Science",
+  "MBA Systems Management"
 ];
 
 export function Login() {
@@ -104,8 +112,8 @@ export function Login() {
         setSignupName("");
         setSignupEmail("");
         setSignupPassword("");
-        setSignupCollege("");
-        setSignupProgram("");
+        setSignupCollege(REGISTERED_COLLEGES[0]);
+        setSignupProgram(REGISTERED_BRANCHES[0]);
         
         // 4. Switch tab to login to force manual sign in!
         setAuthPhase("login");

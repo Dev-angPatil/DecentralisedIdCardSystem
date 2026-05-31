@@ -388,20 +388,20 @@ def seed_db(conn):
     if count_courses == 0:
         print("Seeding default courses...")
         default_courses = [
-            ("cs101", "CS101", "Data Structures & Algorithms", 4, "Dr. Priya Sharma", '["Mon","Wed","Fri"]', "9:00 AM", "LH-201", "blue"),
-            ("cs201", "CS201", "Database Management Systems", 3, "Prof. Rahul Verma", '["Tue","Thu"]', "11:00 AM", "LH-102", "pink"),
-            ("cs301", "CS301", "Computer Networks", 4, "Dr. Anjali Nair", '["Mon","Wed","Fri"]', "2:00 PM", "LH-305", "mint"),
-            ("cs401", "CS401", "Operating Systems", 4, "Prof. Vikram Singh", '["Tue","Thu"]', "9:00 AM", "LH-203", "peach"),
-            ("ma101", "MA101", "Engineering Mathematics IV", 3, "Dr. Meena Krishnan", '["Mon","Wed","Fri"]', "11:00 AM", "LH-101", "lavender"),
-            ("cs501", "CS501", "Machine Learning", 3, "Dr. Arjun Patel", '["Tue","Thu"]', "2:00 PM", "ML-Lab-1", "violet"),
-            ("cs601", "CS601", "Blockchain Technology", 3, "Prof. Deepa Menon", '["Wed","Fri"]', "4:00 PM", "LH-404", "rose"),
-            ("cs701", "CS701", "Web Development", 3, "Dr. Suresh Kumar", '["Mon","Thu"]', "4:00 PM", "CS-Lab-2", "amber")
+            ("cs101", "CS101", "Data Structures & Algorithms", 4, "Dr. Priya Sharma", '["Mon","Wed","Fri"]', "9:00 AM", "LH-201", "blue", '["all"]', '["all"]', '["all"]'),
+            ("cs201", "CS201", "Database Management Systems", 3, "Prof. Rahul Verma", '["Tue","Thu"]', "11:00 AM", "LH-102", "pink", '["all"]', '["all"]', '["all"]'),
+            ("cs301", "CS301", "Computer Networks", 4, "Dr. Anjali Nair", '["Mon","Wed","Fri"]', "2:00 PM", "LH-305", "mint", '["all"]', '["all"]', '["all"]'),
+            ("cs401", "CS401", "Operating Systems", 4, "Prof. Vikram Singh", '["Tue","Thu"]', "9:00 AM", "LH-203", "peach", '["all"]', '["all"]', '["all"]'),
+            ("ma201", "MA201", "Advanced Calculus", 3, "Dr. Meena Krishnan", '["Mon","Wed","Fri"]', "11:00 AM", "LH-101", "lavender", '["BITS Pilani, Pilani", "Delhi Technological University (DTU), Delhi"]', '["all"]', '["1st Year", "2nd Year"]'),
+            ("cs501", "CS501", "Machine Learning", 3, "Dr. Arjun Patel", '["Tue","Thu"]', "2:00 PM", "ML-Lab-1", "violet", '["Vellore Institute of Technology (VIT), Vellore"]', '["B.Tech Computer Science Engineering"]', '["3rd Year", "4th Year"]'),
+            ("cs601", "CS601", "Blockchain Technology", 3, "Prof. Deepa Menon", '["Wed","Fri"]', "4:00 PM", "LH-404", "rose", '["all"]', '["all"]', '["all"]'),
+            ("ec801", "EC801", "Quantum Computing", 4, "Dr. Amit Bose", '["Tue","Thu"]', "10:00 AM", "LH-402", "amber", '["Indian Institute of Technology (IIT), Bombay"]', '["B.Tech Electronics & Communication Engineering"]', '["4th Year", "Postgrad"]')
         ]
         for c in default_courses:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT OR REPLACE INTO courses (id, code, name, credits, instructor, days, time, room, color, eligibleColleges, eligibleBranches, eligibleYears)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 c
             )
@@ -412,16 +412,16 @@ def seed_db(conn):
     if count_events == 0:
         print("Seeding default events...")
         default_events = [
-            ("evt1", "Blockchain Hackathon 2026", "May 10, 2026", "Innovation Hub", 100, "Build decentralised apps on Solana and compete for prizes.", 0),
-            ("evt2", "Web3 Summit", "May 18, 2026", "Main Auditorium", 500, "Industry leaders discuss Web3, DeFi, and decentralised identity.", 0),
-            ("evt3", "AI × Blockchain Workshop", "June 2, 2026", "CS Lab 1", 50, "Hands-on workshop combining AI agents with blockchain-verified data.", 0),
-            ("evt4", "Annual Tech Fest 2026", "June 15, 2026", "Campus Grounds", 1000, "The biggest campus tech event with competitions, talks & networking.", 0)
+            ("evt1", "Blockchain Hackathon 2026", "May 10, 2026", "Innovation Hub", 100, "Build decentralised apps on Solana and compete for prizes.", 0, '["all"]', '["all"]', '["all"]'),
+            ("evt2", "Web3 Summit", "May 18, 2026", "Main Auditorium", 500, "Industry leaders discuss Web3, DeFi, and decentralised identity.", 0, '["all"]', '["all"]', '["all"]'),
+            ("evt3", "AI × Blockchain Workshop", "June 2, 2026", "CS Lab 1", 50, "Hands-on workshop combining AI agents with blockchain-verified data.", 0, '["Vellore Institute of Technology (VIT), Vellore", "Indian Institute of Technology (IIT), Bombay"]', '["all"]', '["3rd Year", "4th Year", "Postgrad"]'),
+            ("evt4", "Annual Tech Fest 2026", "June 15, 2026", "Campus Grounds", 1000, "The biggest campus tech event with competitions, talks & networking.", 0, '["all"]', '["all"]', '["all"]')
         ]
         for ev in default_events:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT OR REPLACE INTO events (id, title, date, venue, capacity, description, verified, eligibleColleges, eligibleBranches, eligibleYears)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 ev
             )
