@@ -14,6 +14,7 @@ export const REGISTERED_COLLEGES = [
   "BITS Pilani, Pilani",
   "National Institute of Technology (NIT), Trichy",
   "SRM Institute of Science and Technology, Chennai",
+  "Vishwakarma Institute of Technology (VIT), Pune",
   "ChainCampus Virtual University (CCVU)"
 ];
 
