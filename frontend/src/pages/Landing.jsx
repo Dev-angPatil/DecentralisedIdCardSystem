@@ -21,7 +21,7 @@ export function Landing() {
 
       {/* Header Container */}
       <header style={{ margin: "32px auto", width: "92%", maxWidth: "1300px", padding: 0, boxSizing: "border-box", position: "relative", zIndex: 5 }}>
-        <div style={{ borderRadius: "28px", border: "1px solid rgba(255, 255, 255, 0.6)", background: "rgba(255, 255, 255, 0.32)", backdropFilter: "blur(32px)", position: "relative", padding: "48px", boxSizing: "border-box", overflow: "hidden", minHeight: "82vh", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 40px 100px rgba(15, 23, 42, 0.06)" }}>
+        <div style={{ borderRadius: "28px", border: "1px solid var(--glass-border)", background: "var(--glass)", backdropFilter: "blur(32px)", position: "relative", padding: "48px", boxSizing: "border-box", overflow: "hidden", minHeight: "82vh", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 40px 100px rgba(15, 23, 42, 0.06)" }}>
           
           {/* Double Exposure Student Masked Background */}
           <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "50%", background: "url('images/hero_background.png') no-repeat center right", backgroundSize: "cover", zIndex: 0, opacity: 0.58, maskImage: "linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)", WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)", mixBlendMode: "multiply", pointerEvents: "none" }}></div>
@@ -67,7 +67,7 @@ export function Landing() {
       </header>
 
       {/* Features grid */}
-      <section id="features" style={{ background: "#f4f6f4", padding: "100px 0", position: "relative", zIndex: 5, borderTop: "1px solid var(--stroke)" }}>
+      <section id="features" style={{ background: "var(--bg-alt)", padding: "100px 0", position: "relative", zIndex: 5, borderTop: "1px solid var(--stroke)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 48px" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
             <p className="eyebrow" style={{ fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700, marginBottom: "8px", color: "var(--text-muted)" }}>Platform Capabilities</p>
@@ -78,7 +78,7 @@ export function Landing() {
           </div>
 
           <div className="feature-grid">
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <Shield size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -86,7 +86,7 @@ export function Landing() {
               <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", lineHeight: 1.6, margin: 0 }}>A premium cryptographic student identity card synced with your Solana wallet address. Tap to authenticate instantly.</p>
             </div>
 
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <CheckCircle2 size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -94,7 +94,7 @@ export function Landing() {
               <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", lineHeight: 1.6, margin: 0 }}>Each attended session is recorded as a cryptographically-signed entry. Records are fully tamper-proof and verified.</p>
             </div>
 
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <GraduationCap size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -102,7 +102,7 @@ export function Landing() {
               <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", lineHeight: 1.6, margin: 0 }}>Submit academic claims for direct review. Approved scholarship funds deposit directly into your virtual wallet address.</p>
             </div>
 
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <BookOpen size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -110,7 +110,7 @@ export function Landing() {
               <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", lineHeight: 1.6, margin: 0 }}>Enroll securely in courses. All academic registrations, requirements, and class rosters maintain exact integrity.</p>
             </div>
 
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <Wallet size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -118,7 +118,7 @@ export function Landing() {
               <p style={{ color: "var(--text-soft)", fontSize: "0.85rem", lineHeight: 1.6, margin: 0 }}>No external browser extensions required. Every student profile registers a verified virtual sandbox wallet natively.</p>
             </div>
 
-            <div className="glass-card" style={{ background: "#fff", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
+            <div className="glass-card" style={{ background: "var(--surface)", border: "1px solid var(--stroke)", padding: "32px", borderRadius: "18px" }}>
               <div style={{ marginBottom: "20px", display: "inline-block", padding: "10px", background: "rgba(15,23,42,0.02)", borderRadius: "12px" }}>
                 <Cpu size={24} style={{ color: "#4f46e5" }} />
               </div>
@@ -144,7 +144,7 @@ export function Landing() {
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--stroke)", padding: "32px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f4f6f4", position: "relative", zIndex: 5, boxSizing: "border-box" }}>
+      <footer style={{ borderTop: "1px solid var(--stroke)", padding: "32px 48px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-alt)", position: "relative", zIndex: 5, boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "linear-gradient(135deg,#6366f1,#14b8a6)", display: "grid", placeItems: "center", fontWeight: 800, color: "#fff", fontSize: "0.75rem" }}>CC</div>
           <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, color: "var(--text)", fontSize: "0.85rem" }}>ChainCampus</span>
