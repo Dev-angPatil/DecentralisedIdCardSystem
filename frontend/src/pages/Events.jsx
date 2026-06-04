@@ -136,7 +136,7 @@ export function Events() {
                   justifyContent: "space-between", 
                   gap: "24px", 
                   padding: "28px",
-                  background: "#ffffff",
+                  background: "var(--surface)",
                   borderRadius: "18px",
                   transition: "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, box-shadow 0.4s ease",
                   

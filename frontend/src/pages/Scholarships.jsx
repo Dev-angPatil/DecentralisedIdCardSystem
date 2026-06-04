@@ -151,7 +151,7 @@ export function Scholarships() {
                   </span>
                 </div>
                 
-                <p style={{ fontSize: "0.72rem", color: "var(--text-soft)", background: "#ffffff", padding: "10px", borderRadius: "8px", border: "1px solid var(--stroke-soft)", margin: 0, lineHeight: 1.4 }}>
+                <p style={{ fontSize: "0.72rem", color: "var(--text-soft)", background: "var(--surface)", padding: "10px", borderRadius: "8px", border: "1px solid var(--stroke-soft)", margin: 0, lineHeight: 1.4 }}>
                   {app.statement}
                 </p>
 

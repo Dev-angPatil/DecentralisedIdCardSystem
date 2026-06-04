@@ -144,7 +144,7 @@ export function Attendance() {
             gap: "24px", 
             padding: "32px",
             borderRadius: "20px",
-            background: "#ffffff",
+            background: "var(--surface)",
             border: "1px solid var(--stroke)"
           }}
         >

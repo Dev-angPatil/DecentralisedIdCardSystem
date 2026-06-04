@@ -39,7 +39,7 @@ export function Profile() {
               gap: "20px",
               padding: "32px",
               borderRadius: "20px",
-              background: "#ffffff",
+              background: "var(--surface)",
               border: "1px solid var(--stroke)"
             }}
           >
@@ -101,8 +101,8 @@ export function Profile() {
             alignItems: "center",
             padding: "32px",
             borderRadius: "20px",
-            background: "rgba(255, 255, 255, 0.4)",
-            border: "1px solid rgba(255, 255, 255, 0.6)",
+            background: "var(--glass)",
+            border: "1px solid var(--glass-border)",
             backdropFilter: "blur(20px)"
           }}
         >

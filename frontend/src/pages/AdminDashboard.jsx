@@ -390,7 +390,7 @@ export function AdminDashboard() {
                       </span>
                     </div>
 
-                    <p style={{ fontSize: "0.78rem", color: "var(--text-soft)", background: "#ffffff", padding: "14px", borderRadius: "10px", border: "1px solid var(--stroke-soft)", margin: 0, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-soft)", background: "var(--surface)", padding: "14px", borderRadius: "10px", border: "1px solid var(--stroke-soft)", margin: 0, lineHeight: 1.5 }}>
                       {app.statement}
                     </p>
 
